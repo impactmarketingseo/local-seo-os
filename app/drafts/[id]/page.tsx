@@ -259,7 +259,13 @@ export default function DraftDetailPage() {
       {activeTab === 'json' && (
         <div className="rounded-lg border bg-card p-4">
           <pre className="overflow-x-auto text-sm">
-            {JSON.stringify(draft.content_text ? JSON.parse(draft.content_text) : draft, null, 2)}
+            {(() => {
+              try {
+                return JSON.stringify(draft.content_text ? JSON.parse(draft.content_text) : draft, null, 2);
+              } catch {
+                return JSON.stringify(draft, null, 2);
+              }
+            })()}
           </pre>
         </div>
       )}
