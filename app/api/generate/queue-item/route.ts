@@ -10,6 +10,8 @@ export async function POST(req: NextRequest) {
   try {
     const { queue_item_id } = await req.json();
 
+    console.log('queue_item_id:', queue_item_id);
+
     if (!queue_item_id) {
       return NextResponse.json({ error: 'Missing queue_item_id' }, { status: 400 });
     }
@@ -26,6 +28,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (queueError || !queueItem) {
+      console.log('Queue error:', queueError);
       return NextResponse.json({ error: 'Queue item not found' }, { status: 404 });
     }
 
@@ -34,13 +37,17 @@ export async function POST(req: NextRequest) {
       .select('*')
       .eq('service_id', queueItem.service_id)
       .eq('city_id', queueItem.city_id)
-      .single();
+      .maybeSingle();
 
     const client = queueItem.clients as any;
     const service = queueItem.services as any;
     const city = queueItem.cities as any;
 
-    const generateResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/generate`, {
+    const generateUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://local-seo-os.vercel.app';
+    
+    console.log('Calling generate API...');
+
+    const generateResponse = await fetch(`${generateUrl}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -58,6 +65,7 @@ export async function POST(req: NextRequest) {
     });
 
     const result = await generateResponse.json();
+    console.log('Generate result:', result);
 
     if (!result.success) {
       return NextResponse.json({ error: 'Generation failed', details: result.error }, { status: 500 });
@@ -69,6 +77,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error('Queue item generation error:', error);
-    return NextResponse.json({ error: 'Failed to generate content' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to generate content: ' + String(error) }, { status: 500 });
   }
 }
