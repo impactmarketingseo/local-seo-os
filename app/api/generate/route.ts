@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
     const generatedContent = parseOutput(content);
     const contentText = content;
     
-    // Extract fields from JSON output that may be embedded in text
+    // Extract fields from JSON code blocks
     const titleMatch = content.match(/"title"\s*:\s*"([^"]+)"/);
     const slugMatch = content.match(/"slug"\s*:\s*"([^"]+)"/);
     const h1Match = content.match(/"h1"\s*:\s*"([^"]+)"/);
@@ -95,11 +95,17 @@ export async function POST(req: NextRequest) {
     const introMatch = content.match(/"intro"\s*:\s*"([^"]+)"/);
     const ctaMatch = content.match(/"cta"\s*:\s*"([^"]+)"/);
     
-    const title = generatedContent.title || (titleMatch ? titleMatch[1] : 'Untitled');
-    const slug = generatedContent.slug || (slugMatch ? slugMatch[1] : '');
-    const h1 = generatedContent.h1 || (h1Match ? h1Match[1] : '');
+    // Extract from Markdown-style format (**Title:**, etc.)
+    const mdTitleMatch = content.match(/\*\*Title\*\*:\s*([^\n]+)/);
+    const mdSlugMatch = content.match(/\*\*URL Slug\*\*:\s*([^\n]+)/);
+    const mdH1Match = content.match(/<h1>([^<]+)<\/h1>/);
+    const mdMetaDescMatch = content.match(/\*\*Meta Description\*\*:\s*([^\n]+)/);
+    
+    const title = generatedContent.title || (titleMatch ? titleMatch[1] : (mdTitleMatch ? mdTitleMatch[1].trim() : 'Untitled'));
+    const slug = generatedContent.slug || (slugMatch ? slugMatch[1] : (mdSlugMatch ? mdSlugMatch[1].trim().replace(/^\//, '').replace(/\/$/, '') : ''));
+    const h1 = generatedContent.h1 || (h1Match ? h1Match[1] : (mdH1Match ? mdH1Match[1].trim() : ''));
     const meta_title = generatedContent.meta_title || (metaTitleMatch ? metaTitleMatch[1] : '');
-    const meta_description = generatedContent.meta_description || (metaDescMatch ? metaDescMatch[1] : '');
+    const meta_description = generatedContent.meta_description || (metaDescMatch ? metaDescMatch[1] : (mdMetaDescMatch ? mdMetaDescMatch[1].trim() : ''));
     const intro = generatedContent.intro || (introMatch ? introMatch[1] : '');
     const cta = generatedContent.cta_block || generatedContent.cta || (ctaMatch ? ctaMatch[1] : '');
     
