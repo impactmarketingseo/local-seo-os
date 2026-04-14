@@ -1,0 +1,16 @@
+name: Weekly Content Generation
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday at 6 AM
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate content for approved queue items
+        run: |
+          curl -X POST "${{ secrets.APP_URL }}/api/generate/weekly" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SERVICE_API_KEY }}"
