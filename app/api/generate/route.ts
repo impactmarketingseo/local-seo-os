@@ -106,8 +106,9 @@ export async function POST(req: NextRequest) {
     const h1 = generatedContent.h1 || (h1Match ? h1Match[1] : (mdH1Match ? mdH1Match[1].trim() : ''));
     const meta_title = generatedContent.meta_title || (metaTitleMatch ? metaTitleMatch[1] : '');
     const meta_description = generatedContent.meta_description || (metaDescMatch ? metaDescMatch[1] : (mdMetaDescMatch ? mdMetaDescMatch[1].trim() : ''));
-    const intro = generatedContent.intro || (introMatch ? introMatch[1] : '');
-    const cta = generatedContent.cta_block || generatedContent.cta || (ctaMatch ? ctaMatch[1] : '');
+const intro = generatedContent.intro || (introMatch ? introMatch[1] : '');
+    const additional_keywords = generatedContent.additional_keywords || [];
+    const schema_notes = generatedContent.schema_notes || {};
     
     const { data: draft, error: draftError } = await supabase.from('drafts').insert({
       queue_id: queue_item_id,
@@ -122,9 +123,10 @@ export async function POST(req: NextRequest) {
       faqs: generatedContent.faqs || [],
       cta_block: cta,
       internal_links: generatedContent.internal_links || [],
-      schema_notes: generatedContent.schema_notes || {},
+      additional_keywords: additional_keywords,
+      schema_notes: schema_notes,
       content_json: generatedContent,
-      content_text: content, // Save the raw full content
+      content_text: content,
       status: 'draft',
       generation_model: 'llama-3.3-70b-versatile',
       token_count: data.usage?.total_tokens || 0,
@@ -211,31 +213,10 @@ OUTPUT JSON:
 {
   "title": "...",
   "slug": "ac-repair-riverton-ut",
-  "meta_title": "AC Repair in Riverton, UT | ABC Heating & Cooling",
-  "meta_description": "Expert AC repair in Riverton, UT. Same-day service, 5-year warranty. Call (555) 123-4567 for immediate help.",
+  "meta_title": "AC Repair in Riverton, UT | ABC Heating",
+  "meta_description": "Expert AC repair in Riverton. Same-day service, 5-year warranty. Call (555) 123-4567.",
   "h1": "AC Repair in Riverton, Utah",
-  "intro": "...",
-  "hero_subheadline": "...",
-  "trust_signals": [{"label": "Years in Business", "value": "15+ years"}],
-  "sections": [
-    {"heading": "Why AC Problems Are Common in Riverton Homes", "content": "..."},
-    {"heading": "Common AC Issues We Fix", "content": "..."},
-    {"heading": "Our 5-Step Repair Process", "content": "..."},
-    {"heading": "Why Choose a Local Riverton HVAC Company", "content": "..."},
-    {"heading": "DIY vs Professional AC Repair", "content": "..."}
-  ],
-  "warning_signs": ["...", "..."],
-  "process_steps": [
-    {"step": 1, "title": "Diagnosis", "description": "..."},
-    ...
-  ],
-  "comparison_table": {"diy": "Limited", "professional": "Complete"},
-  "faqs": [
-    {"question": "How much does AC repair cost in Riverton?", "answer": "..."},
-    ...
-  ],
-  "cta": "Call (555) 123-4567 for same-day Riverton AC repair",
-  "internal_links": [{"title": "Furnace Repair Riverton", "url": "/furnace-repair-riverton-ut"}],
+  "additional_keywords": ["AC repair near me", "emergency AC repair Riverton UT", "AC installation Riverton", "AC maintenance Riverton", "cheap AC repair Riverton"],
   "schema_notes": {
     "@context": "https://schema.org",
     "@type": ["LocalBusiness", "Service"],
@@ -243,6 +224,7 @@ OUTPUT JSON:
     "areaServed": "${params.city}, ${params.state}",
     "serviceType": "${params.niche}"
   }
+}
 }
 
 Write in human tone - vary sentence length, use contractions, avoid AI filler words (crucial, comprehensive, leverage, foster, pivotal). Include specific city details.`;
