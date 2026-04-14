@@ -41,10 +41,17 @@ export async function POST(req: NextRequest) {
     });
 
     // Use Groq API (OpenAI-compatible)
+    const groqKey = process.env.GROQ_API_KEY;
+    if (!groqKey) {
+      console.error('GROQ_API_KEY not set');
+      await supabase.from('page_queue').update({ status: 'approved' }).eq('id', queue_item_id);
+      return NextResponse.json({ error: 'GROQ_API_KEY not configured in environment' }, { status: 500 });
+    }
+    
     const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+        'Authorization': `Bearer ${groqKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
