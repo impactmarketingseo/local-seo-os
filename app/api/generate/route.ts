@@ -84,24 +84,36 @@ export async function POST(req: NextRequest) {
     }
 
     const generatedContent = parseOutput(content);
-    const contentText = generateReadableText(generatedContent);
-
+    const contentText = content; // Save raw content for fallback
+    
+    // Extract title from content even if JSON parsing fails
+    const titleMatch = content.match(/"title"\s*:\s*"([^"]+)"/) || content.match(/<title>([^<]+)<\/title>/);
+    const title = generatedContent.title || (titleMatch ? titleMatch[1] : 'Untitled');
+    
+    // Extract slug
+    const slugMatch = content.match(/"slug"\s*:\s*"([^"]+)"/);
+    const slug = generatedContent.slug || (slugMatch ? slugMatch[1] : '');
+    
+    // Extract H1
+    const h1Match = content.match(/"h1"\s*:\s*"([^"]+)"/) || content.match(/<h1>([^<]+)<\/h1>/);
+    const h1 = generatedContent.h1 || (h1Match ? h1Match[1] : '');
+    
     const { data: draft, error: draftError } = await supabase.from('drafts').insert({
       queue_id: queue_item_id,
       client_id,
-      title: generatedContent.title || 'Untitled',
-      slug: generatedContent.slug,
-      meta_title: generatedContent.meta_title,
-      meta_description: generatedContent.meta_description,
-      h1: generatedContent.h1,
-      intro: generatedContent.intro,
+      title: title,
+      slug: slug,
+      meta_title: generatedContent.meta_title || '',
+      meta_description: generatedContent.meta_description || '',
+      h1: h1,
+      intro: generatedContent.intro || '',
       sections: generatedContent.sections || [],
       faqs: generatedContent.faqs || [],
-      cta_block: generatedContent.cta,
+      cta_block: generatedContent.cta || '',
       internal_links: generatedContent.internal_links || [],
       schema_notes: generatedContent.schema_notes || {},
       content_json: generatedContent,
-      content_text: contentText,
+      content_text: content, // Save the raw full content
       status: 'draft',
       generation_model: 'llama-3.3-70b-versatile',
       token_count: data.usage?.total_tokens || 0,
