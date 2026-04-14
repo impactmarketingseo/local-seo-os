@@ -35,6 +35,11 @@ export default function EditClientPage() {
     name: '',
     niche: '',
     website_url: '',
+    phone: '',
+    email: '',
+    address: '',
+    city: '',
+    state: '',
     voice_notes: '',
     cta_preference: '',
     banned_phrases: '',
@@ -61,6 +66,11 @@ export default function EditClientPage() {
           name: clientRes.data.name,
           niche: clientRes.data.niche,
           website_url: clientRes.data.website_url || '',
+          phone: clientRes.data.phone || '',
+          email: clientRes.data.email || '',
+          address: clientRes.data.address || '',
+          city: clientRes.data.city || '',
+          state: clientRes.data.state || '',
           voice_notes: clientRes.data.voice_notes || '',
           cta_preference: clientRes.data.cta_preference || '',
           banned_phrases: clientRes.data.banned_phrases?.join(', ') || '',
@@ -96,6 +106,11 @@ export default function EditClientPage() {
       name: form.name,
       niche: form.niche,
       website_url: form.website_url || null,
+      phone: form.phone || null,
+      email: form.email || null,
+      address: form.address || null,
+      city: form.city || null,
+      state: form.state || null,
       voice_notes: form.voice_notes || null,
       cta_preference: form.cta_preference || null,
       banned_phrases: banned.length > 0 ? banned : null,
@@ -175,6 +190,63 @@ export default function EditClientPage() {
             onChange={e => setForm({ ...form, website_url: e.target.value })}
             className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium">Phone Number</label>
+            <input
+              type="tel"
+              value={form.phone}
+              onChange={e => setForm({ ...form, phone: e.target.value })}
+              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              placeholder="(555) 123-4567"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Email</label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={e => setForm({ ...form, email: e.target.value })}
+              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              placeholder="info@company.com"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium">Business Address</label>
+          <input
+            type="text"
+            value={form.address}
+            onChange={e => setForm({ ...form, address: e.target.value })}
+            className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            placeholder="123 Main Street"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium">City</label>
+            <input
+              type="text"
+              value={form.city}
+              onChange={e => setForm({ ...form, city: e.target.value })}
+              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              placeholder="Riverton"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">State</label>
+            <input
+              type="text"
+              value={form.state}
+              onChange={e => setForm({ ...form, state: e.target.value })}
+              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              placeholder="UT"
+            />
+          </div>
         </div>
 
         <div>
