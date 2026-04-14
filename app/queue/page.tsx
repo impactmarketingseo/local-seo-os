@@ -19,7 +19,7 @@ interface QueueItem {
 
 const statusColors: Record<string, string> = {
   planned: 'bg-gray-100 text-gray-800',
-  approved: 'bg-blue-100 text-blue-800',
+  approved_for_gen: 'bg-blue-100 text-blue-800',
   generating: 'bg-yellow-100 text-yellow-800',
   draft_ready: 'bg-purple-100 text-purple-800',
   needs_review: 'bg-orange-100 text-orange-800',
