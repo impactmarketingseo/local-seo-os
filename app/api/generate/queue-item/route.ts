@@ -10,8 +10,6 @@ export async function POST(req: NextRequest) {
   try {
     const { queue_item_id } = await req.json();
 
-    console.log('queue_item_id:', queue_item_id);
-
     if (!queue_item_id) {
       return NextResponse.json({ error: 'Missing queue_item_id' }, { status: 400 });
     }
@@ -22,13 +20,12 @@ export async function POST(req: NextRequest) {
         *,
         services(name),
         cities(name, state),
-        clients(niche, voice_notes, cta_preference, banned_phrases)
+        clients(id, name, niche, voice_notes, cta_preference, banned_phrases)
       `)
       .eq('id', queue_item_id)
       .single();
 
     if (queueError || !queueItem) {
-      console.log('Queue error:', queueError);
       return NextResponse.json({ error: 'Queue item not found' }, { status: 404 });
     }
 
@@ -44,8 +41,6 @@ export async function POST(req: NextRequest) {
     const city = queueItem.cities as any;
 
     const generateUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://local-seo-os.vercel.app';
-    
-    console.log('Calling generate API...');
 
     const generateResponse = await fetch(`${generateUrl}/api/generate`, {
       method: 'POST',
@@ -61,11 +56,13 @@ export async function POST(req: NextRequest) {
         brand_voice: client?.voice_notes,
         cta_preference: client?.cta_preference,
         banned_phrases: client?.banned_phrases,
+        client_name: client?.name,
+        city: city?.name,
+        state: city?.state,
       }),
     });
 
     const result = await generateResponse.json();
-    console.log('Generate result:', result);
 
     if (!result.success) {
       return NextResponse.json({ error: 'Generation failed', details: result.error }, { status: 500 });

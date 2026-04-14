@@ -17,13 +17,16 @@ interface GenerationPacket {
   brand_voice?: string;
   cta_preference?: string;
   banned_phrases?: string[];
+  client_name?: string;
+  city?: string;
+  state?: string;
 }
 
 export async function POST(req: NextRequest) {
   try {
     const packet: GenerationPacket = await req.json();
     
-    const { queue_item_id, client_id, service_id, city_id, primary_keyword, synonym, niche, brand_voice, cta_preference, banned_phrases } = packet;
+    const { queue_item_id, client_id, service_id, city_id, primary_keyword, synonym, niche, brand_voice, cta_preference, banned_phrases, client_name, city, state } = packet;
 
     if (!queue_item_id || !service_id || !city_id || !primary_keyword || !niche) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -38,6 +41,9 @@ export async function POST(req: NextRequest) {
       banned_phrases: banned_phrases || [],
       keyword: primary_keyword,
       synonym,
+      client_name: client_name || '',
+      city: city || '',
+      state: state || '',
     });
 
     // Use Groq API (OpenAI-compatible)
@@ -57,7 +63,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 4000,
+        max_tokens: 4500,
         temperature: 0.7,
       }),
     });
@@ -133,50 +139,90 @@ function buildPrompt(params: {
   banned_phrases: string[];
   keyword: string;
   synonym?: string;
+  client_name: string;
+  city: string;
+  state: string;
 }): string {
   const bannedList = params.banned_phrases.length > 0 
     ? `Avoid these phrases: ${params.banned_phrases.join(', ')}` 
     : '';
 
-  return `You are a professional SEO content writer specializing in local ${params.niche} service businesses.
+  return `You are an expert SEO content writer for local service businesses. Write a complete 1800-2000 word city+service landing page for "${params.keyword}".
 
-Write a complete 1800-2000 word SEO city+service page optimized for the keyword "${params.keyword}"${params.synonym ? ` (also consider: "${params.synonym}")` : ''}.
+CLIENT: ${params.client_name || 'A local ' + params.niche + ' company'}
+LOCATION: ${params.city}, ${params.state}
+NICHE: ${params.niche}
+BRAND VOICE: ${params.brand_voice || 'Professional, friendly, expert'}
+CTA: ${params.cta_preference}
+${bannedList}
 
-CONTEXT:
-- Business niche: ${params.niche}
-- Brand voice: ${params.brand_voice || 'Professional, friendly, trustworthy'}
-- CTA style: ${params.cta_preference}
-- ${bannedList}
+CRITICAL REQUIREMENTS:
+1. ALWAYS mention the business name "${params.client_name}" naturally throughout the content - NOT "At ${params.city} ${params.niche}" - use the actual business name
+2. Write unique, substantive content - every paragraph must earn its place
+3. Include specific local references: neighborhood names, local landmarks, city-specific conditions
+4. Use FAQPage Schema markup for the FAQ section
+5. Use LocalBusiness + Service + FAQPage schema in JSON-LD format
 
-REQUIRED OUTPUT STRUCTURE (JSON):
+PAGE STRUCTURE (follow exactly):
+
+1. HERO: 40-70 words with H1, subheadline, two CTAs
+2. TRUST SIGNALS BAR: icons with labels (years, license, reviews, guarantee, response time)
+3. LOCAL INTRO: 150-200 words - 2 paragraphs establishing local presence
+4. PROBLEM SECTION: 250-350 words - H2 about city-specific problems (housing stock, climate, geography)
+5. TYPES/SYMPTOMS: 300-400 words - H2 with 3-5 H3 subsections
+6. WARNING SIGNS: 150-200 words - checklist of 5-7 symptoms
+7. OUR PROCESS: 250-300 words - 5 numbered steps
+8. MID-PAGE CTA: 30-40 words - conversion block
+9. WHY LOCAL: 200-250 words - why local expertise matters
+10. DIY VS PRO: 150-200 words + comparison table
+11. FAQS: 250-350 words - minimum 5 FAQs with city-specific questions
+12. FINAL CTA: 40-60 words - confident close
+
+SEO REQUIREMENTS:
+- Title: "[Service] in [City], [State] | [Brand Name]" (60 chars max)
+- Meta: Include phone number, trigger urgency (160 chars max)  
+- URL slug: /service-city-state/ format
+- H1 exactly: "[Service] in [City], [State]"
+
+OUTPUT JSON:
 {
-  "title": "Keyword | Service in City, State | Company Name",
-  "meta_title": "Keyword in City, State | Company - Service",
-  "meta_description": "Compelling 150-160 char description with keyword",
-  "slug": "service-city-state",
-  "h1": "Service in City, State",
-  "intro": "2-3 paragraph introduction with local context",
+  "title": "...",
+  "slug": "ac-repair-riverton-ut",
+  "meta_title": "AC Repair in Riverton, UT | ABC Heating & Cooling",
+  "meta_description": "Expert AC repair in Riverton, UT. Same-day service, 5-year warranty. Call (555) 123-4567 for immediate help.",
+  "h1": "AC Repair in Riverton, Utah",
+  "intro": "...",
+  "hero_subheadline": "...",
+  "trust_signals": [{"label": "Years in Business", "value": "15+ years"}],
   "sections": [
-    {"heading": "Section title", "content": "Paragraphs of content", "order": 1},
+    {"heading": "Why AC Problems Are Common in Riverton Homes", "content": "..."},
+    {"heading": "Common AC Issues We Fix", "content": "..."},
+    {"heading": "Our 5-Step Repair Process", "content": "..."},
+    {"heading": "Why Choose a Local Riverton HVAC Company", "content": "..."},
+    {"heading": "DIY vs Professional AC Repair", "content": "..."}
+  ],
+  "warning_signs": ["...", "..."],
+  "process_steps": [
+    {"step": 1, "title": "Diagnosis", "description": "..."},
     ...
   ],
+  "comparison_table": {"diy": "Limited", "professional": "Complete"},
   "faqs": [
-    {"question": "Common question", "answer": "Helpful answer"},
+    {"question": "How much does AC repair cost in Riverton?", "answer": "..."},
     ...
   ],
-  "cta": "Call to action block",
-  "internal_links": [{"title": "Link text", "url": "/service-city"}],
-  "schema_notes": {"@type": "LocalBusiness", ...}
+  "cta": "Call (555) 123-4567 for same-day Riverton AC repair",
+  "internal_links": [{"title": "Furnace Repair Riverton", "url": "/furnace-repair-riverton-ut"}],
+  "schema_notes": {
+    "@context": "https://schema.org",
+    "@type": ["LocalBusiness", "Service"],
+    "name": "${params.client_name}",
+    "areaServed": "${params.city}, ${params.state}",
+    "serviceType": "${params.niche}"
+  }
 }
 
-GUIDELINES:
-1. Write in a natural, human tone - not robotic or over-optimized
-2. Include local city/area context naturally throughout
-3. Use the primary keyword in H1, intro, and at least 2 section headings
-4. Include 4-6 FAQs relevant to the service and local area
-5. Keep secondary keywords to 2-3 mentions max each
-6. Write for both customers and search engines
-7. Format as proper JSON with no markdown code fences`;
+Write in human tone - vary sentence length, use contractions, avoid AI filler words (crucial, comprehensive, leverage, foster, pivotal). Include specific city details.`;
 
 }
 
