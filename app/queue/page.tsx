@@ -74,6 +74,32 @@ export default function QueuePage() {
     setItems(items.filter(item => item.id !== id));
   }
 
+  async function generateContent(id: string) {
+    if (!confirm('Generate content for this item? This uses your free Groq API.')) return;
+    
+    try {
+      const response = await fetch('/api/generate/queue-item', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ queue_item_id: id }),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('Content generated! Check Drafts.');
+        // Refresh the list
+        const supabase = createSupabaseBrowserClient();
+        const { data } = await supabase.from('page_queue').select('*, clients(name, niche), services(name), cities(name, state)').order('created_at', { ascending: false });
+        if (data) setItems(data as any);
+      } else {
+        alert('Error: ' + result.error);
+      }
+    } catch (e) {
+      alert('Failed to generate: ' + e);
+    }
+  }
+
   if (loading) {
     return <div className="p-6 text-muted-foreground">Loading...</div>;
   }
@@ -153,6 +179,14 @@ export default function QueuePage() {
                   </td>
                   <td className="p-3">
                     <div className="flex gap-1">
+                      {(item.status === 'planned' || item.status === 'approved') && (
+                        <button
+                          onClick={() => generateContent(item.id)}
+                          className="rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700"
+                        >
+                          Generate
+                        </button>
+                      )}
                       {item.status === 'planned' && (
                         <button
                           onClick={() => updateStatus(item.id, 'approved')}
