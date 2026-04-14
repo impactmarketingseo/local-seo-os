@@ -107,6 +107,7 @@ export async function POST(req: NextRequest) {
     const meta_title = generatedContent.meta_title || (metaTitleMatch ? metaTitleMatch[1] : '');
     const meta_description = generatedContent.meta_description || (metaDescMatch ? metaDescMatch[1] : (mdMetaDescMatch ? mdMetaDescMatch[1].trim() : ''));
 const intro = generatedContent.intro || (introMatch ? introMatch[1] : '');
+    const cta_block = generatedContent.cta_block || generatedContent.cta || (ctaMatch ? ctaMatch[1] : '');
     const additional_keywords = generatedContent.additional_keywords || [];
     const schema_notes = generatedContent.schema_notes || {};
     
@@ -121,7 +122,7 @@ const intro = generatedContent.intro || (introMatch ? introMatch[1] : '');
       intro: intro,
       sections: generatedContent.sections || [],
       faqs: generatedContent.faqs || [],
-      cta_block: cta,
+      cta_block: cta_block,
       internal_links: generatedContent.internal_links || [],
       additional_keywords: additional_keywords,
       schema_notes: schema_notes,
