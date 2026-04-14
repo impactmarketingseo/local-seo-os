@@ -162,6 +162,60 @@ export default function DraftDetailPage() {
             </div>
           </div>
 
+          {draft.h1 ? (
+            <div className="rounded-lg border bg-card p-4">
+              <p className="text-sm text-muted-foreground">H1</p>
+              <p className="text-xl font-bold">{draft.h1}</p>
+            </div>
+          ) : null}
+
+          {draft.meta_description ? (
+            <div className="rounded-lg border bg-card p-4">
+              <p className="text-sm text-muted-foreground">Meta Description</p>
+              <p>{draft.meta_description}</p>
+            </div>
+          ) : null}
+
+          {/* Additional Keywords */}
+          {(draft as any).additional_keywords && (draft as any).additional_keywords?.length > 0 ? (
+            <div className="rounded-lg border bg-card p-4">
+              <p className="text-sm text-muted-foreground mb-2">Additional Keywords</p>
+              <div className="flex flex-wrap gap-2">
+                {(draft as any).additional_keywords.map((kw: string, i: number) => (
+                  <span key={i} className="bg-secondary px-2 py-1 rounded text-sm">{kw}</span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Schema */}
+          {(draft as any).schema_notes && Object.keys((draft as any).schema_notes).length > 0 ? (
+            <div className="rounded-lg border border-green-500 bg-card p-4">
+              <p className="text-sm text-green-600 font-semibold mb-2">Schema Markup</p>
+              <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
+                {JSON.stringify((draft as any).schema_notes, null, 2)}
+              </pre>
+            </div>
+          ) : null}
+
+          {draft.intro ? (
+            <div className="rounded-lg border bg-card p-4">
+              <p className="text-sm text-muted-foreground">Introduction</p>
+              <p>{draft.intro}</p>
+            </div>
+          ) : null}
+          {/* Core SEO Fields */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-lg border bg-card p-4">
+              <p className="text-sm text-muted-foreground">Title</p>
+              <p className="font-medium">{draft.title || 'Not set'}</p>
+            </div>
+            <div className="rounded-lg border bg-card p-4">
+              <p className="text-sm text-muted-foreground">URL Slug</p>
+              <p className="font-medium">{draft.slug || 'Not set'}</p>
+            </div>
+          </div>
+
           {draft.h1 && (
             <div className="rounded-lg border bg-card p-4">
               <p className="text-sm text-muted-foreground">H1</p>
@@ -197,9 +251,13 @@ export default function DraftDetailPage() {
               </pre>
             </div>
           )}
-            <p className="text-sm text-muted-foreground">Introduction</p>
-            <p>{draft.intro || 'Not set'}</p>
-          </div>
+
+          {draft.intro && (
+            <div className="rounded-lg border bg-card p-4">
+              <p className="text-sm text-muted-foreground">Introduction</p>
+              <p>{draft.intro}</p>
+            </div>
+          )}
 
           {draft.sections && draft.sections.length > 0 && (
             <div className="space-y-4">
