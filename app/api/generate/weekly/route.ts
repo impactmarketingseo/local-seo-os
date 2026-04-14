@@ -18,6 +18,8 @@ export async function POST(req: NextRequest) {
       .select(`
         id,
         client_id,
+        service_id,
+        city_id,
         services(name),
         cities(name, state),
         clients(niche, voice_notes, cta_preference, banned_phrases)
@@ -34,10 +36,10 @@ export async function POST(req: NextRequest) {
 
     const results = [];
     
-    for (const queueItem of queueItems) {
-      const client = (queueItem as any).clients as any;
-      const service = (queueItem as any).services as any;
-      const city = (queueItem as any).cities as any;
+    for (const queueItem of queueItems as any) {
+      const client = queueItem.clients as any;
+      const service = queueItem.services as any;
+      const city = queueItem.cities as any;
 
       try {
         const generateResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/generate`, {
