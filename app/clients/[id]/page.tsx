@@ -60,17 +60,20 @@ export default function ClientDetailPage() {
     async function loadClient() {
       const supabase = createSupabaseBrowserClient();
       
-      const [clientRes, servicesRes, citiesRes, keywordsRes] = await Promise.all([
+      const [clientRes, servicesRes, citiesRes] = await Promise.all([
         supabase.from('clients').select('*').eq('id', clientId).single(),
         supabase.from('services').select('*').eq('client_id', clientId).order('priority', { ascending: false }),
         supabase.from('cities').select('*').eq('client_id', clientId).order('priority', { ascending: false }),
-        supabase.from('keyword_targets').select('*').eq('service_id', servicesRes.data?.[0]?.id),
       ]);
 
       if (clientRes.data) setClient(clientRes.data);
       if (servicesRes.data) setServices(servicesRes.data);
       if (citiesRes.data) setCities(citiesRes.data);
-      if (keywordsRes.data) setKeywords(keywordsRes.data);
+
+      if (servicesRes.data?.[0]?.id) {
+        const keywordsRes = await supabase.from('keyword_targets').select('*').eq('service_id', servicesRes.data[0].id);
+        if (keywordsRes.data) setKeywords(keywordsRes.data);
+      }
       setLoading(false);
     }
 
