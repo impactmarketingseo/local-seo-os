@@ -20,13 +20,17 @@ interface GenerationPacket {
   client_name?: string;
   city?: string;
   state?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  website_url?: string;
 }
 
 export async function POST(req: NextRequest) {
   try {
     const packet: GenerationPacket = await req.json();
     
-    const { queue_item_id, client_id, service_id, city_id, primary_keyword, synonym, niche, brand_voice, cta_preference, banned_phrases, client_name, city, state } = packet;
+    const { queue_item_id, client_id, service_id, city_id, primary_keyword, synonym, niche, brand_voice, cta_preference, banned_phrases, client_name, city, state, phone, email, address, website_url } = packet;
 
     if (!queue_item_id || !service_id || !city_id || !primary_keyword || !niche) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -44,6 +48,10 @@ export async function POST(req: NextRequest) {
       client_name: client_name || '',
       city: city || '',
       state: state || '',
+      phone: phone || '',
+      email: email || '',
+      address: address || '',
+      website_url: website_url || '',
     });
 
     // Use Groq API (OpenAI-compatible)
@@ -168,6 +176,10 @@ function buildPrompt(params: {
   client_name: string;
   city: string;
   state: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  website_url?: string;
 }): string {
   const bannedList = params.banned_phrases.length > 0 
     ? `Avoid these phrases: ${params.banned_phrases.join(', ')}` 
@@ -217,14 +229,32 @@ OUTPUT JSON:
   "meta_title": "AC Repair in Riverton, UT | ABC Heating",
   "meta_description": "Expert AC repair in Riverton. Same-day service, 5-year warranty. Call (555) 123-4567.",
   "h1": "AC Repair in Riverton, Utah",
-  "additional_keywords": ["AC repair near me", "emergency AC repair Riverton UT", "AC installation Riverton", "AC maintenance Riverton", "cheap AC repair Riverton"],
+  "additional_keywords": ["AC repair near me", "emergency AC repair Riverton UT", "AC installation Riverton", "AC maintenance Riverton"],
   "schema_notes": {
     "@context": "https://schema.org",
-    "@type": ["LocalBusiness", "Service"],
+    "@type": "LocalBusiness",
     "name": "${params.client_name}",
-    "areaServed": "${params.city}, ${params.state}",
-    "serviceType": "${params.niche}"
+    "image": "${params.website_url || ''}/logo.png",
+    "telephone": "${params.phone || ''}",
+    "email": "${params.email || ''}",
+    "url": "${params.website_url || ''}",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "${params.address || ''}",
+      "addressLocality": "${params.city}",
+      "addressRegion": "${params.state}",
+      "postalCode": "84095"
+    },
+    "areaServed": {
+      "@type": "State",
+      "name": "${params.state}"
+    },
+    "priceRange": "$$",
+    "openingHours": "Mo-Fr 08:00-18:00, Sa 09:00-14:00",
+    "serviceType": "${params.niche}",
+    "description": "Professional ${params.niche} services in ${params.city}, ${params.state}. Call ${params.phone || ''} for expert service."
   }
+}
 }
 }
 

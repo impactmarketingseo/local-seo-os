@@ -59,6 +59,10 @@ export async function POST(req: NextRequest) {
         client_name: client?.name,
         city: city?.name,
         state: city?.state,
+        phone: client?.phone,
+        email: client?.email,
+        address: client?.address,
+        website_url: client?.website_url,
       }),
     });
 
