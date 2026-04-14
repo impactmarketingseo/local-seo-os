@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || '',
-});
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -45,22 +40,37 @@ export async function POST(req: NextRequest) {
       synonym,
     });
 
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4000,
-      temperature: 0.7,
-      messages: [
-        { role: 'user', content: prompt }
-      ],
+    // Use Groq API (OpenAI-compatible)
+    const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 4000,
+        temperature: 0.7,
+      }),
     });
 
-    const content = response.content[0];
-    if (!content || content.type !== 'text') {
+    if (!groqResponse.ok) {
+      const error = await groqResponse.text();
+      console.error('Groq error:', error);
       await supabase.from('page_queue').update({ status: 'draft_ready' }).eq('id', queue_item_id);
-      return NextResponse.json({ error: 'Invalid response from Claude' }, { status: 500 });
+      return NextResponse.json({ error: 'Groq API failed' }, { status: 500 });
     }
 
-    const generatedContent = parseOutput(content.text);
+    const data = await groqResponse.json();
+    const content = data.choices?.[0]?.message?.content;
+
+    if (!content) {
+      await supabase.from('page_queue').update({ status: 'draft_ready' }).eq('id', queue_item_id);
+      return NextResponse.json({ error: 'Invalid response from Groq' }, { status: 500 });
+    }
+
+    const generatedContent = parseOutput(content);
     const contentText = generateReadableText(generatedContent);
 
     const { data: draft, error: draftError } = await supabase.from('drafts').insert({
@@ -80,8 +90,8 @@ export async function POST(req: NextRequest) {
       content_json: generatedContent,
       content_text: contentText,
       status: 'draft',
-      generation_model: 'claude-sonnet-4-20250514',
-      token_count: response.usage.input_tokens + response.usage.output_tokens,
+      generation_model: 'llama-3.3-70b-versatile',
+      token_count: data.usage?.total_tokens || 0,
     }).select().single();
 
     if (draftError) {
@@ -95,7 +105,7 @@ export async function POST(req: NextRequest) {
       queue_id: queue_item_id,
       draft_id: draft.id,
       status: 'success',
-      token_count: response.usage.input_tokens + response.usage.output_tokens,
+      token_count: data.usage?.total_tokens || 0,
     });
 
     return NextResponse.json({
