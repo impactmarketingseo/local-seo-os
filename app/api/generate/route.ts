@@ -73,40 +73,99 @@ export async function POST(req: NextRequest) {
 
     // Use Groq API (OpenAI-compatible)
     const groqKey = process.env.GROQ_API_KEY;
-    if (!groqKey) {
-      console.error('GROQ_API_KEY not set');
-      await supabase.from('page_queue').update({ status: 'approved' }).eq('id', queue_item_id);
-      return NextResponse.json({ error: 'GROQ_API_KEY not configured in environment' }, { status: 500 });
+    const geminiKey = process.env.GEMINI_API_KEY;
+    
+    let groqSuccess = false;
+    let groqError = '';
+    
+    if (groqKey) {
+      try {
+        const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${groqKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages: [{ role: 'user', content: prompt }],
+            max_tokens: 8000,
+            temperature: 0.7,
+          }),
+        });
+
+        if (groqResponse.ok) {
+          const data = await groqResponse.json();
+          const content = data.choices?.[0]?.message?.content;
+          
+          if (content) {
+            groqSuccess = true;
+            console.log('Groq generation successful');
+            return processGeneratedContent(content, data, queue_item_id, client_id, supabase);
+          }
+        } else {
+          const error = await groqResponse.text();
+          groqError = error;
+          console.error('Groq error:', error);
+        }
+      } catch (e) {
+        groqError = String(e);
+        console.error('Groq exception:', e);
+      }
     }
     
-    const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${groqKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 8000,
-        temperature: 0.7,
-      }),
-    });
+    // Fallback to Google Gemini
+    if (geminiKey && !groqSuccess) {
+      console.log('Falling back to Google Gemini...');
+      try {
+        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 8000,
+            },
+          }),
+        });
 
-    if (!groqResponse.ok) {
-      const error = await groqResponse.text();
-      console.error('Groq error:', error);
+        if (geminiResponse.ok) {
+          const data = await geminiResponse.json();
+          const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          
+          if (content) {
+            console.log('Gemini generation successful');
+            return processGeneratedContent(content, data, queue_item_id, client_id, supabase);
+          }
+        } else {
+          const error = await geminiResponse.text();
+          console.error('Gemini error:', error);
+          await supabase.from('page_queue').update({ status: 'failed' }).eq('id', queue_item_id);
+          return NextResponse.json({ error: 'Both Groq and Gemini failed', details: { groq: groqError, gemini: error } }, { status: 500 });
+        }
+      } catch (e) {
+        console.error('Gemini exception:', e);
+      }
+    }
+    
+    // No keys configured or both failed
+    if (!groqKey && !geminiKey) {
+      console.error('No API keys configured');
       await supabase.from('page_queue').update({ status: 'failed' }).eq('id', queue_item_id);
-      return NextResponse.json({ error: 'Groq API failed', details: error }, { status: 500 });
+      return NextResponse.json({ error: 'No AI API keys configured. Add GROQ_API_KEY or GEMINI_API_KEY' }, { status: 500 });
     }
+    
+    await supabase.from('page_queue').update({ status: 'failed' }).eq('id', queue_item_id);
+    return NextResponse.json({ error: 'Generation failed', details: groqError }, { status: 500 });
+  } catch (error) {
+    console.error('Generation error:', error);
+    await supabase.from('page_queue').update({ status: 'failed' }).eq('id', queue_item_id);
+    return NextResponse.json({ error: 'Generation failed: ' + String(error) }, { status: 500 });
+  }
+}
 
-    const data = await groqResponse.json();
-    const content = data.choices?.[0]?.message?.content;
-
-    if (!content) {
-      await supabase.from('page_queue').update({ status: 'draft_ready' }).eq('id', queue_item_id);
-      return NextResponse.json({ error: 'Invalid response from Groq' }, { status: 500 });
-    }
+async function processGeneratedContent(content: string, data: any, queue_item_id: string, client_id: string, supabase: any) {
 
     const generatedContent = parseOutput(content);
     const contentText = content;
