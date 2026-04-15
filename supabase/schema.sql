@@ -287,3 +287,21 @@ VALUES (
     'You are a professional SEO content writer specializing in local service business websites...',
     '{"model": "claude-sonnet-4-20250514", "max_tokens": 4000}'
 );
+-- ============================================
+-- APP SETTINGS - Branding & configuration
+-- ============================================
+CREATE TABLE app_settings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    key TEXT UNIQUE NOT NULL,
+    value JSONB NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Default settings
+INSERT INTO app_settings (key, value) VALUES 
+    ('branding', '{"logo_url": null, "app_name": "SEO OS", "accent_color": "#3B82F6"}'),
+    ('general', '{"timezone": "America/New_York"}');
+
+-- RLS
+ALTER TABLE app_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Authenticated users can manage settings" ON app_settings FOR ALL USING (auth.role() = 'authenticated');

@@ -14,10 +14,15 @@
     --popover: #141620;
     --popover-foreground: #F1F3F9;
     
-    --primary: #3B82F6;
+    /* These can be customized via settings */
+    --app-accent: #3B82F6;
+    --app-accent-hover: #2563EB;
+    --app-accent-active: #1D4ED8;
+    
+    --primary: var(--app-accent);
     --primary-foreground: #FFFFFF;
-    --primary-hover: #2563EB;
-    --primary-active: #1D4ED8;
+    --primary-hover: var(--app-accent-hover);
+    --primary-active: var(--app-accent-active);
     
     --secondary: #1A1D2B;
     --secondary-foreground: #C4C9DB;
@@ -25,7 +30,7 @@
     --muted: #1A1D2B;
     --muted-foreground: #7A8199;
     
-    --accent: #3B82F6;
+    --accent: var(--app-accent);
     --accent-foreground: #FFFFFF;
     
     --destructive: #EF4444;
@@ -33,7 +38,7 @@
     
     --border: #2A2F45;
     --input: #222639;
-    --ring: #3B82F6;
+    --ring: var(--app-accent);
     
     --radius: 12px;
     

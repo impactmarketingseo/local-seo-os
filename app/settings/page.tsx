@@ -105,7 +105,24 @@ function GeneralTab() {
 
 function BrandingTab() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [appName, setAppName] = useState('SEO OS');
+  const [accentColor, setAccentColor] = useState('#3B82F6');
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadSettings() {
+      const res = await fetch('/api/settings');
+      const data = await res.json();
+      if (data.branding) {
+        setAppName(data.branding.app_name || 'SEO OS');
+        setAccentColor(data.branding.accent_color || '#3B82F6');
+        setLogoPreview(data.branding.logo_url || null);
+      }
+      setLoading(false);
+    }
+    loadSettings();
+  }, []);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -118,10 +135,37 @@ function BrandingTab() {
     }
   };
 
-  const save = () => {
+  const save = async () => {
     setSaved(true);
+    
+    // Save to database
+    await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        key: 'branding',
+        value: {
+          logo_url: logoPreview,
+          app_name: appName,
+          accent_color: accentColor,
+        },
+      }),
+    });
+
+    // Apply CSS variables
+    document.documentElement.style.setProperty('--app-accent', accentColor);
+    document.documentElement.style.setProperty('--app-accent-hover', adjustColor(accentColor, -20));
+    document.documentElement.style.setProperty('--app-accent-active', adjustColor(accentColor, -40));
+    document.documentElement.style.setProperty('--primary', accentColor);
+    document.documentElement.style.setProperty('--ring', accentColor);
+    document.documentElement.style.setProperty('--accent', accentColor);
+
     setTimeout(() => setSaved(false), 2000);
   };
+
+  if (loading) {
+    return <div className="skeleton h-40 rounded-lg" />;
+  }
 
   return (
     <div className="space-y-6">
@@ -153,14 +197,24 @@ function BrandingTab() {
 
         <div>
           <label className="input-label">App Name</label>
-          <input type="text" defaultValue="SEO OS" className="input-field" />
+          <input 
+            type="text" 
+            value={appName} 
+            onChange={(e) => setAppName(e.target.value)}
+            className="input-field" 
+          />
         </div>
 
         <div>
           <label className="input-label">Accent Color</label>
           <div className="flex items-center gap-3 mt-2">
-            <input type="color" defaultValue="#3B82F6" className="w-10 h-10 rounded cursor-pointer" />
-            <span className="text-sm text-text-tertiary">#3B82F6</span>
+            <input 
+              type="color" 
+              value={accentColor} 
+              onChange={(e) => setAccentColor(e.target.value)} 
+              className="w-10 h-10 rounded cursor-pointer" 
+            />
+            <span className="text-sm text-text-tertiary mono">{accentColor}</span>
           </div>
         </div>
 
@@ -172,6 +226,15 @@ function BrandingTab() {
       </div>
     </div>
   );
+}
+
+// Helper to adjust color brightness
+function adjustColor(hex: string, amount: number): string {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
+  const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
 }
 
 function ApiKeysTab() {

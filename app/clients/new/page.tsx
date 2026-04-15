@@ -54,151 +54,146 @@ export default function NewClientPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl p-6">
-      <h1 className="mb-6 text-2xl font-bold">Add New Client</h1>
+    <div className="mx-auto max-w-2xl p-6 lg:p-8">
+      <button onClick={() => router.back()} className="text-sm text-text-tertiary hover:underline">
+        ← Back to Clients
+      </button>
+      
+      <h1 className="mt-2 mb-6 page-title">Add New Client</h1>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium">Client Name *</label>
+          <label className="input-label">Client Name *</label>
           <input
             type="text"
             required
             value={form.name}
             onChange={e => setForm({ ...form, name: e.target.value })}
-            className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className="input-field"
             placeholder="ABC Heating & Cooling"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Niche *</label>
+          <label className="input-label">Niche *</label>
           <input
             type="text"
             required
             value={form.niche}
             onChange={e => setForm({ ...form, niche: e.target.value })}
-            className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className="input-field"
             placeholder="HVAC, Plumbing, Roofing..."
           />
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium">Phone Number</label>
+            <label className="input-label">Phone Number</label>
             <input
               type="tel"
               value={form.phone}
               onChange={e => setForm({ ...form, phone: e.target.value })}
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="input-field"
               placeholder="(555) 123-4567"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Email</label>
+            <label className="input-label">Email</label>
             <input
               type="email"
               value={form.email}
               onChange={e => setForm({ ...form, email: e.target.value })}
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              placeholder="info@abc.com"
+              className="input-field"
+              placeholder="info@company.com"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Website URL</label>
+          <label className="input-label">Website URL</label>
           <input
             type="url"
             value={form.website_url}
             onChange={e => setForm({ ...form, website_url: e.target.value })}
-            className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            placeholder="https://example.com"
+            className="input-field"
+            placeholder="https://abc-hvac.com"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Business Address</label>
+          <label className="input-label">Business Address</label>
           <input
             type="text"
             value={form.address}
             onChange={e => setForm({ ...form, address: e.target.value })}
-            className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className="input-field"
             placeholder="123 Main Street"
           />
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium">City</label>
+            <label className="input-label">City</label>
             <input
               type="text"
               value={form.city}
               onChange={e => setForm({ ...form, city: e.target.value })}
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="input-field"
               placeholder="Riverton"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">State</label>
+            <label className="input-label">State</label>
             <input
               type="text"
               value={form.state}
               onChange={e => setForm({ ...form, state: e.target.value })}
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="input-field"
               placeholder="UT"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Brand Voice Notes</label>
+          <label className="input-label">Brand Voice Notes</label>
           <textarea
             value={form.voice_notes}
             onChange={e => setForm({ ...form, voice_notes: e.target.value })}
-            className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className="input-field"
             rows={3}
-            placeholder="Tone, style preferences, banned phrases..."
+            placeholder="Notes about brand voice, tone, style..."
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium">CTA Preference</label>
+          <label className="input-label">CTA Preference</label>
           <input
             type="text"
             value={form.cta_preference}
             onChange={e => setForm({ ...form, cta_preference: e.target.value })}
-            className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            placeholder="Call now for free quote"
+            className="input-field"
+            placeholder="Call now, request quote..."
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Banned Phrases (comma-separated)</label>
+          <label className="input-label">Banned Phrases (comma-separated)</label>
           <input
             type="text"
             value={form.banned_phrases}
             onChange={e => setForm({ ...form, banned_phrases: e.target.value })}
-            className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            placeholder="cheap, best, guarantee..."
+            className="input-field"
+            placeholder="cheap, affordable, bargain..."
           />
         </div>
 
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-          >
-            {loading ? 'Creating...' : 'Create Client'}
-          </button>
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="rounded-lg bg-muted px-4 py-2 text-sm font-medium hover:bg-muted/80"
-          >
-            Cancel
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="btn-primary"
+        >
+          {loading ? 'Creating...' : 'Create Client'}
+        </button>
       </form>
     </div>
   );
