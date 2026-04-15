@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
     
     console.log('Extracted fields:', { title, slug, h1, meta_title, meta_description, intro: intro?.substring(0, 50), service_schema, local_business_schema });
     
-    const { data: draft, error: draftError } = await supabase.from('drafts').insert({
+    const draftData: Record<string, unknown> = {
       queue_id: queue_item_id,
       client_id,
       title: title,
@@ -146,38 +146,51 @@ export async function POST(req: NextRequest) {
       cta_block: cta_block,
       internal_links: generatedContent.internal_links || [],
       additional_keywords: additional_keywords,
-      schema_notes: service_schema, // Primary: service schema
-      service_schema: service_schema,
-      local_business_schema: local_business_schema,
+      schema_notes: service_schema,
       content_json: generatedContent,
       content_text: content,
       status: 'draft',
       generation_model: 'llama-3.3-70b-versatile',
       token_count: data.usage?.total_tokens || 0,
-    }).select().single();
+    };
+    
+    // Add schema fields if they exist in database
+    if (service_schema && Object.keys(service_schema).length > 0) {
+      draftData.service_schema = service_schema;
+    }
+    if (local_business_schema && Object.keys(local_business_schema).length > 0) {
+      draftData.local_business_schema = local_business_schema;
+    }
+    
+    const { data: draft, error: draftError } = await supabase.from('drafts').insert(draftData).select().single();
 
+    console.log('Draft insert result:', { draft, draftError });
+    
     if (draftError) {
       console.error('Draft save error:', draftError);
-      return NextResponse.json({ error: 'Failed to save draft' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to save draft', details: draftError.message }, { status: 500 });
     }
 
     await supabase.from('page_queue').update({ status: 'needs_review' }).eq('id', queue_item_id);
 
-    await supabase.from('generation_logs').insert({
-      queue_id: queue_item_id,
-      draft_id: draft.id,
-      status: 'success',
-      token_count: data.usage?.total_tokens || 0,
-    });
+    if (draft && draft.id) {
+      await supabase.from('generation_logs').insert({
+        queue_id: queue_item_id,
+        draft_id: draft.id,
+        status: 'success',
+        token_count: data.usage?.total_tokens || 0,
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      draft_id: draft.id,
+      draft_id: draft?.id,
       content: generatedContent,
     });
   } catch (error) {
     console.error('Generation error:', error);
-    return NextResponse.json({ error: 'Generation failed' }, { status: 500 });
+    await supabase.from('page_queue').update({ status: 'failed' }).eq('id', queue_item_id);
+    return NextResponse.json({ error: 'Generation failed: ' + String(error) }, { status: 500 });
   }
 }
 
