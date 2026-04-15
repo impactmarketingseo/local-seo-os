@@ -3,7 +3,7 @@ import './globals.css';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { AppSettingsProvider } from '@/lib/settings-context';
 import { cookies } from 'next/headers';
-import { ToastContainer, useToast } from '@/components/Toast';
+import { ToastContainer } from '@/components/Toast';
 
 export const metadata: Metadata = {
   title: 'SEO OS - Impact Marketing',
@@ -13,11 +13,6 @@ export const metadata: Metadata = {
     apple: '/favicon.svg',
   },
 };
-
-function ToastHandler() {
-  const toasts = useToast();
-  return <ToastContainer toasts={toasts} />;
-}
 
 export default async function RootLayout({
   children,
@@ -31,7 +26,7 @@ export default async function RootLayout({
     <html lang="en">
       <body className="min-h-screen bg-app antialiased">
         <AppSettingsProvider>
-          <ToastHandler />
+          <ToastContainer />
           {isAuthenticated && <Sidebar />}
           <main className={isAuthenticated ? 'pt-14 lg:pt-0 lg:ml-64 min-h-screen' : 'min-h-screen'}>
             {children}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 
 interface Toast {
   id: number;
@@ -9,34 +9,37 @@ interface Toast {
 }
 
 let toastId = 0;
-const listeners: ((toast: Toast) => void)[] = [];
+const listeners: Set<(toast: Toast) => void> = new Set();
 
 export function toast(message: string, type: 'success' | 'error' | 'info' = 'info') {
   const newToast = { id: ++toastId, message, type };
   listeners.forEach(fn => fn(newToast));
 }
 
-export function useToast() {
+const emptyStore = () => [];
+const subscribe = (callback: (t: Toast) => void) => {
+  listeners.add(callback);
+  return () => listeners.delete(callback);
+};
+
+export function useToastStore() {
+  return useSyncExternalStore(subscribe, emptyStore, emptyStore);
+}
+
+export function ToastContainer() {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
-    const listener = (toast: Toast) => {
-      setToasts(prev => [...prev, toast]);
+    const listener = (newToast: Toast) => {
+      setToasts(prev => [...prev, newToast]);
       setTimeout(() => {
-        setToasts(prev => prev.filter(t => t.id !== toast.id));
+        setToasts(prev => prev.filter(t => t.id !== newToast.id));
       }, 4000);
     };
-    listeners.push(listener);
-    return () => {
-      const idx = listeners.indexOf(listener);
-      if (idx > -1) listeners.splice(idx, 1);
-    };
+    listeners.add(listener);
+    return () => { listeners.delete(listener); };
   }, []);
 
-  return toasts;
-}
-
-export function ToastContainer({ toasts }: { toasts: Toast[] }) {
   if (toasts.length === 0) return null;
   
   return (
