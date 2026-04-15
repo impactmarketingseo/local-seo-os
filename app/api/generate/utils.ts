@@ -35,14 +35,19 @@ export function buildPrompt(params: {
   prompt += 'CRITICAL REQUIREMENTS:\n';
   prompt += '1. ALWAYS use EXACTLY this phone number in all CTAs: "' + (params.phone || 'NO PHONE') + '" - NEVER use any other phone number\n';
   prompt += '2. ALWAYS mention the business name "' + params.client_name + '" naturally throughout the content\n';
-  prompt += '3. Write unique, substantive content\n';
+  prompt += '3. Write unique, substantive content with lists to break up text\n';
   prompt += '4. Include specific local references: neighborhood names, local landmarks, city-specific conditions\n';
   prompt += '5. Use LocalBusiness + Service + FAQPage schema in JSON-LD format\n';
-  prompt += '6. IMPORTANT: All content must be in the JSON output - not in prose. The JSON must contain ALL sections.\n\n';
+  prompt += '6. Use lists (bullet points or numbered) for common issues, benefits, and services to improve visual appeal\n';
+  prompt += '7. IMPORTANT: All content must be in the JSON output - not in prose. The JSON must contain ALL sections.\n\n';
 
   prompt += 'PAGE STRUCTURE - output EACH in JSON fields:\n';
   prompt += '- "hero": Hero section content (40-70 words with CTA)\n';
-  prompt += '- "sections": Array of {heading, content} objects\n';
+  prompt += '- "trust_signals": Array of {icon, label, value} for trust signals (years in business, license, etc.)\n';
+  prompt += '- "common_issues": Array of strings for common problems/issues checklist\n';
+  prompt += '- "benefits": Array of strings for key benefits of the service\n';
+  prompt += '- "sections": Array of {heading, content} objects for H2 sections\n';
+  prompt += '- "services": Array of strings for services offered\n';
   prompt += '- "faqs": Array of {question, answer} objects (minimum 5)\n';
   prompt += '- "cta_block": CTA content (30-60 words)\n\n';
 
@@ -55,7 +60,8 @@ export function buildPrompt(params: {
   prompt += 'OUTPUT: Return ONLY valid JSON in a code block. Use this format:\n';
   prompt += '{"title": "...", "slug": "...", "meta_title": "...", "meta_description": "...", "h1": "...", ';
   prompt += '"additional_keywords": [...], "service_schema": {...}, "local_business_schema": {...}, ';
-  prompt += '"hero": "...", "sections": [...], "faqs": [...], "cta_block": "..."}\n';
+  prompt += '"hero": "...", "trust_signals": [...], "common_issues": [...], "benefits": [...], ';
+  prompt += '"sections": [...], "services": [...], "faqs": [...], "cta_block": "..."}\n';
 
   prompt += '\nIMPORTANT: Return ONLY the JSON code block. No other text.';
 

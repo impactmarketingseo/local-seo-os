@@ -270,8 +270,12 @@ export default function DraftDetailPage() {
               const faqs = (draft.content_json?.faqs as any[]) || [];
               const hero = draft.content_json?.hero;
               const cta = draft.content_json?.cta_block || draft.content_json?.cta;
+              const trustSignals = (draft.content_json?.trust_signals as any[]) || [];
+              const commonIssues = (draft.content_json?.common_issues as any[]) || [];
+              const benefits = (draft.content_json?.benefits as any[]) || [];
+              const services = (draft.content_json?.services as any[]) || [];
               
-              const hasContent = sections.length > 0 || faqs.length > 0 || (hero && typeof hero === 'string') || (cta && typeof cta === 'string');
+              const hasContent = sections.length > 0 || faqs.length > 0 || (hero && typeof hero === 'string') || (cta && typeof cta === 'string') || trustSignals.length > 0 || commonIssues.length > 0 || benefits.length > 0 || services.length > 0;
               
               if (!hasContent) {
                 return (
@@ -287,6 +291,62 @@ export default function DraftDetailPage() {
                     <div className="card-standard">
                       <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Hero Section</p>
                       <p className="text-text-secondary whitespace-pre-wrap">{hero}</p>
+                    </div>
+                  )}
+                  
+                  {trustSignals.length > 0 && (
+                    <div className="card-standard">
+                      <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-3">Trust Signals</p>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {trustSignals.map((signal: any, i: number) => (
+                          <div key={i} className="text-center p-3 bg-input rounded-lg">
+                            <p className="text-lg mb-1">{signal.icon || '✓'}</p>
+                            <p className="text-xs text-text-disabled">{signal.label}</p>
+                            <p className="text-sm font-medium text-text-primary">{signal.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {commonIssues.length > 0 && (
+                    <div className="card-standard">
+                      <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-3">Common Issues</p>
+                      <ul className="space-y-2">
+                        {commonIssues.map((issue: any, i: number) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-warning">⚠</span>
+                            <span className="text-text-secondary">{typeof issue === 'string' ? issue : issue.text}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {benefits.length > 0 && (
+                    <div className="card-standard">
+                      <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-3">Benefits</p>
+                      <ul className="space-y-2">
+                        {benefits.map((benefit: any, i: number) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-success">✓</span>
+                            <span className="text-text-secondary">{typeof benefit === 'string' ? benefit : benefit.text}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {services.length > 0 && (
+                    <div className="card-standard">
+                      <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-3">Services Offered</p>
+                      <div className="flex flex-wrap gap-2">
+                        {services.map((service: any, i: number) => (
+                          <span key={i} className="bg-accent/10 text-accent px-3 py-1 rounded-md text-sm">
+                            {typeof service === 'string' ? service : service.name}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
                   {sections.map((section: any, i: number) => (
