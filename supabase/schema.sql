@@ -290,18 +290,23 @@ VALUES (
 -- ============================================
 -- APP SETTINGS - Branding & configuration
 -- ============================================
-CREATE TABLE app_settings (
+CREATE TABLE IF NOT EXISTS app_settings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     key TEXT UNIQUE NOT NULL,
     value JSONB NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Default settings
-INSERT INTO app_settings (key, value) VALUES 
-    ('branding', '{"logo_url": null, "app_name": "SEO OS", "accent_color": "#3B82F6"}'),
-    ('general', '{"timezone": "America/New_York"}');
+-- Default settings (only if table is empty)
+INSERT INTO app_settings (key, value) 
+SELECT 'branding', '{"logo_url": null, "app_name": "SEO OS", "accent_color": "#3B82F6"}'
+WHERE NOT EXISTS (SELECT 1 FROM app_settings WHERE key = 'branding');
 
--- RLS
+INSERT INTO app_settings (key, value) 
+SELECT 'general', '{"timezone": "America/New_York"}'
+WHERE NOT EXISTS (SELECT 1 FROM app_settings WHERE key = 'general');
+
+-- RLS - allow public read/write for this internal app
 ALTER TABLE app_settings ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Authenticated users can manage settings" ON app_settings FOR ALL USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Authenticated users can manage settings" ON app_settings;
+CREATE POLICY "Allow public access" ON app_settings FOR ALL USING (true) WITH CHECK (true);
