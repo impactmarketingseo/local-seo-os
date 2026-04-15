@@ -64,45 +64,39 @@ export default function NewQueueItemPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.client_id || !form.service_id || !form.city_id) return;
-
     setLoading(true);
-    const supabase = createSupabaseBrowserClient();
 
-    const { data: queueItem, error } = await supabase.from('page_queue').insert({
+    const supabase = createSupabaseBrowserClient();
+    await supabase.from('page_queue').insert({
       client_id: form.client_id,
       service_id: form.service_id,
       city_id: form.city_id,
+      primary_keyword: form.keyword,
+      synonym: form.synonym || null,
       scheduled_for: form.scheduled_for || null,
       priority: form.priority,
-      generation_mode: form.scheduled_for ? 'scheduled' : 'manual',
       status: 'planned',
-    }).select().single();
-
-    if (!error && queueItem && form.keyword) {
-      await supabase.from('keyword_targets').insert({
-        service_id: form.service_id,
-        city_id: form.city_id,
-        primary_keyword: form.keyword,
-        synonym: form.synonym || null,
-      });
-    }
+    });
 
     router.push('/queue');
   }
 
   return (
-    <div className="mx-auto max-w-2xl p-6">
-      <h1 className="mb-6 text-2xl font-bold">Add to Content Queue</h1>
+    <div className="mx-auto max-w-2xl p-6 lg:p-8">
+      <button onClick={() => router.back()} className="text-sm text-text-tertiary hover:underline">
+        ← Back to Queue
+      </button>
+      
+      <h1 className="mt-2 mb-6 page-title">Add to Content Queue</h1>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium">Client *</label>
+          <label className="input-label">Client *</label>
           <select
             required
             value={form.client_id}
             onChange={e => setForm({ ...form, client_id: e.target.value, service_id: '', city_id: '' })}
-            className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className="input-field"
           >
             <option value="">Select client...</option>
             {clients.map(c => (
@@ -113,12 +107,12 @@ export default function NewQueueItemPage() {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium">Service *</label>
+            <label className="input-label">Service *</label>
             <select
               required
               value={form.service_id}
               onChange={e => setForm({ ...form, service_id: e.target.value })}
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="input-field"
             >
               <option value="">Select service...</option>
               {services.map(s => (
@@ -128,12 +122,12 @@ export default function NewQueueItemPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium">City *</label>
+            <label className="input-label">City *</label>
             <select
               required
               value={form.city_id}
               onChange={e => setForm({ ...form, city_id: e.target.value })}
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="input-field"
             >
               <option value="">Select city...</option>
               {cities.map(c => (
@@ -145,66 +139,54 @@ export default function NewQueueItemPage() {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium">Primary Keyword</label>
+            <label className="input-label">Primary Keyword</label>
             <input
               type="text"
               value={form.keyword}
               onChange={e => setForm({ ...form, keyword: e.target.value })}
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              placeholder="AC repair Riverton"
+              className="input-field"
+              placeholder="AC repair Salt Lake City"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Synonym (optional)</label>
+            <label className="input-label">Synonym (optional)</label>
             <input
               type="text"
               value={form.synonym}
               onChange={e => setForm({ ...form, synonym: e.target.value })}
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              placeholder="air conditioning service"
+              className="input-field"
+              placeholder="air conditioning repair"
             />
           </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium">Scheduled For</label>
+            <label className="input-label">Schedule For</label>
             <input
               type="datetime-local"
               value={form.scheduled_for}
               onChange={e => setForm({ ...form, scheduled_for: e.target.value })}
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="input-field"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Priority</label>
+            <label className="input-label">Priority</label>
             <input
               type="number"
               value={form.priority}
               onChange={e => setForm({ ...form, priority: parseInt(e.target.value) || 0 })}
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="input-field"
+              min="0"
             />
           </div>
         </div>
 
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-          >
-            {loading ? 'Adding...' : 'Add to Queue'}
-          </button>
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="rounded-lg bg-muted px-4 py-2 text-sm font-medium hover:bg-muted/80"
-          >
-            Cancel
-          </button>
-        </div>
+        <button type="submit" disabled={loading} className="btn-primary">
+          {loading ? 'Adding...' : 'Add to Queue'}
+        </button>
       </form>
     </div>
   );

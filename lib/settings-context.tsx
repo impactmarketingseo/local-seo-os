@@ -29,6 +29,17 @@ export function useAppSettings() {
   return useContext(AppSettingsContext);
 }
 
+function applyBranding(branding: AppSettings['branding']) {
+  if (!branding) return;
+  
+  if (branding.accent_color) {
+    document.documentElement.style.setProperty('--app-accent', branding.accent_color);
+    document.documentElement.style.setProperty('--primary', branding.accent_color);
+    document.documentElement.style.setProperty('--ring', branding.accent_color);
+    document.documentElement.style.setProperty('--accent', branding.accent_color);
+  }
+}
+
 export function AppSettingsProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,14 +51,9 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
         const data = await res.json();
         setSettings(data);
         
-        // Apply branding settings
+        // Apply branding settings on load
         if (data.branding) {
-          if (data.branding.accent_color) {
-            document.documentElement.style.setProperty('--app-accent', data.branding.accent_color);
-            document.documentElement.style.setProperty('--primary', data.branding.accent_color);
-            document.documentElement.style.setProperty('--ring', data.branding.accent_color);
-            document.documentElement.style.setProperty('--accent', data.branding.accent_color);
-          }
+          applyBranding(data.branding);
         }
       } catch (e) {
         console.error('Failed to load settings:', e);
@@ -56,6 +62,18 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
     }
 
     loadSettings();
+    
+    // Listen for settings updates from other components
+    const handleSettingsUpdate = (e: CustomEvent) => {
+      const newSettings = e.detail;
+      setSettings(prev => ({ ...prev, ...newSettings }));
+      if (newSettings.branding) {
+        applyBranding(newSettings.branding);
+      }
+    };
+    
+    window.addEventListener('settings-updated', handleSettingsUpdate as EventListener);
+    return () => window.removeEventListener('settings-updated', handleSettingsUpdate as EventListener);
   }, []);
 
   const updateSettings = (newSettings: AppSettings) => {

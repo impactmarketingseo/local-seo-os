@@ -157,6 +157,11 @@ function BrandingTab() {
     document.documentElement.style.setProperty('--primary', accentColor);
     document.documentElement.style.setProperty('--ring', accentColor);
     document.documentElement.style.setProperty('--accent', accentColor);
+    
+    // Trigger a custom event that the settings context can listen to
+    window.dispatchEvent(new CustomEvent('settings-updated', { 
+      detail: { branding: { logo_url: logoPreview, app_name: appName, accent_color: accentColor } } 
+    }));
 
     setTimeout(() => setSaved(false), 2000);
   };
