@@ -27,6 +27,7 @@ interface Draft {
   version_number: number;
   created_at: string;
   client_id: string;
+  queue_id?: string;
   clients: { name: string } | null;
 }
 
