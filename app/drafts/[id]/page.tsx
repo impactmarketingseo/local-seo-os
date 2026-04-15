@@ -211,30 +211,54 @@ export default function DraftDetailPage() {
         {/* Schema Tab */}
         {activeTab === 'schema' && (
           <div className="space-y-6">
-            <div className="card-standard">
-              <div className="flex justify-between items-center mb-4">
-                <p className="text-sm font-semibold text-text-primary">Service Schema</p>
-                <button type="button" onClick={() => navigator.clipboard.writeText(JSON.stringify(draft.service_schema, null, 2))}
-                  className="btn-secondary text-sm">
-                  Copy
-                </button>
-              </div>
-              <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md">
-                {JSON.stringify(draft.service_schema || {}, null, 2)}
-              </pre>
-            </div>
-            <div className="card-standard">
-              <div className="flex justify-between items-center mb-4">
-                <p className="text-sm font-semibold text-text-primary">Local Business Schema</p>
-                <button type="button" onClick={() => navigator.clipboard.writeText(JSON.stringify(draft.local_business_schema, null, 2))}
-                  className="btn-secondary text-sm">
-                  Copy
-                </button>
-              </div>
-              <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md">
-                {JSON.stringify(draft.local_business_schema || {}, null, 2)}
-              </pre>
-            </div>
+            {(() => {
+              const serviceSchema = (draft.service_schema || draft.schema_notes || draft.content_json?.service_schema) as Record<string, unknown> || {};
+              const localBusinessSchema = (draft.local_business_schema || draft.content_json?.local_business_schema) as Record<string, unknown> || {};
+              
+              const hasService = Object.keys(serviceSchema).length > 0;
+              const hasLocal = Object.keys(localBusinessSchema).length > 0;
+              
+              if (!hasService && !hasLocal) {
+                return (
+                  <div className="card-standard text-center">
+                    <p className="text-text-tertiary">No schema generated</p>
+                  </div>
+                );
+              }
+              
+              return (
+                <>
+                  {hasService && (
+                    <div className="card-standard">
+                      <div className="flex justify-between items-center mb-4">
+                        <p className="text-sm font-semibold text-text-primary">Service Schema</p>
+                        <button type="button" onClick={() => navigator.clipboard.writeText(JSON.stringify(serviceSchema, null, 2))}
+                          className="btn-secondary text-sm">
+                          Copy
+                        </button>
+                      </div>
+                      <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md">
+                        {JSON.stringify(serviceSchema, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                  {hasLocal && (
+                    <div className="card-standard">
+                      <div className="flex justify-between items-center mb-4">
+                        <p className="text-sm font-semibold text-text-primary">Local Business Schema</p>
+                        <button type="button" onClick={() => navigator.clipboard.writeText(JSON.stringify(localBusinessSchema, null, 2))}
+                          className="btn-secondary text-sm">
+                          Copy
+                        </button>
+                      </div>
+                      <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md">
+                        {JSON.stringify(localBusinessSchema, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
         )}
 
@@ -244,15 +268,15 @@ export default function DraftDetailPage() {
             {(() => {
               const sections = (draft.content_json?.sections as any[]) || [];
               const faqs = (draft.content_json?.faqs as any[]) || [];
-              const hero = String(draft.content_json?.hero || '');
-              const cta = String(draft.content_json?.cta_block || draft.content_json?.cta || '');
+              const hero = draft.content_json?.hero;
+              const cta = draft.content_json?.cta_block || draft.content_json?.cta;
               
               return (
                 <>
-                  {hero && (
+                  {hero && typeof hero === 'string' && (
                     <div className="card-standard">
                       <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Hero Section</p>
-                      <p className="text-text-secondary whitespace-pre-wrap">{String(hero)}</p>
+                      <p className="text-text-secondary whitespace-pre-wrap">{hero}</p>
                     </div>
                   )}
                   {sections.map((section: any, i: number) => (
@@ -275,10 +299,10 @@ export default function DraftDetailPage() {
                       ))}
                     </div>
                   )}
-                  {cta && (
+                  {cta && typeof cta === 'string' && (
                     <div className="card-standard">
                       <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">CTA Block</p>
-                      <p className="text-text-secondary whitespace-pre-wrap">{String(cta)}</p>
+                      <p className="text-text-secondary whitespace-pre-wrap">{cta}</p>
                     </div>
                   )}
                 </>
