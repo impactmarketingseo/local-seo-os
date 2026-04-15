@@ -196,14 +196,19 @@ LOCATION: ${params.city}, ${params.state}
 NICHE: ${params.niche}
 BRAND VOICE: ${params.brand_voice || 'Professional, friendly, expert'}
 CTA: ${params.cta_preference}
+PHONE: ${params.phone || 'NO PHONE'}
+EMAIL: ${params.email || 'NO EMAIL'}
+ADDRESS: ${params.address || 'NO ADDRESS'}
+WEBSITE: ${params.website_url || 'NO WEBSITE'}
 ${bannedList}
 
 CRITICAL REQUIREMENTS:
-1. ALWAYS mention the business name "${params.client_name}" naturally throughout the content - NOT "At ${params.city} ${params.niche}" - use the actual business name
-2. Write unique, substantive content - every paragraph must earn its place
-3. Include specific local references: neighborhood names, local landmarks, city-specific conditions
-4. Use FAQPage Schema markup for the FAQ section
-5. Use LocalBusiness + Service + FAQPage schema in JSON-LD format
+1. ALWAYS use EXACTLY this phone number in all CTAs: "${params.phone || 'NO PHONE'}" - NEVER use any other phone number
+2. ALWAYS mention the business name "${params.client_name}" naturally throughout the content - NOT "At ${params.city} ${params.niche}" - use the actual business name
+3. Write unique, substantive content - every paragraph must earn its place
+4. Include specific local references: neighborhood names, local landmarks, city-specific conditions
+5. Use FAQPage Schema markup for the FAQ section
+6. Use LocalBusiness + Service + FAQPage schema in JSON-LD format
 
 PAGE STRUCTURE (follow exactly):
 
@@ -231,23 +236,23 @@ OUTPUT JSON:
   "title": "...",
   "slug": "ac-repair-riverton-ut",
   "meta_title": "AC Repair in Riverton, UT | ABC Heating",
-  "meta_description": "Expert AC repair in Riverton. Same-day service, 5-year warranty. Call (555) 123-4567.",
+  "meta_description": "Expert AC repair in Riverton. Same-day service, 5-year warranty. Call ${params.phone || '(555) 123-4567'}.",
   "h1": "AC Repair in Riverton, Utah",
   "additional_keywords": ["AC repair near me", "emergency AC repair Riverton UT", "AC installation Riverton", "AC maintenance Riverton"],
   "schema_notes": {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "name": "${params.client_name}",
-    "image": "${params.website_url || ''}/logo.png",
-    "telephone": "${params.phone || ''}",
-    "email": "${params.email || ''}",
-    "url": "${params.website_url || ''}",
+    "image": "${params.website_url}/logo.png",
+    "telephone": "${params.phone}",
+    "email": "${params.email}",
+    "url": "${params.website_url}",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "${params.address || ''}",
+      "streetAddress": "${params.address}",
       "addressLocality": "${params.city}",
       "addressRegion": "${params.state}",
-      "postalCode": "84095"
+      "postalCode": "REPLACE_WITH_POSTAL_CODE"
     },
     "areaServed": {
       "@type": "State",
@@ -256,7 +261,7 @@ OUTPUT JSON:
     "priceRange": "$$",
     "openingHours": "Mo-Fr 08:00-18:00, Sa 09:00-14:00",
     "serviceType": "${params.niche}",
-    "description": "Professional ${params.niche} services in ${params.city}, ${params.state}. Call ${params.phone || ''} for expert service."
+    "description": "Professional ${params.niche} services in ${params.city}, ${params.state}. Call ${params.phone} for expert service."
   }
 }
 }
