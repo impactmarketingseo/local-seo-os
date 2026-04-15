@@ -242,7 +242,7 @@ export default function DraftDetailPage() {
                   {hero && (
                     <div className="card-standard">
                       <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Hero Section</p>
-                      <p className="text-text-secondary whitespace-pre-wrap">{hero}</p>
+                      <p className="text-text-secondary whitespace-pre-wrap">{String(hero)}</p>
                     </div>
                   )}
                   {sections.map((section: any, i: number) => (
@@ -251,7 +251,7 @@ export default function DraftDetailPage() {
                         <p className="text-xs font-medium uppercase tracking-wider text-text-disabled">{section.heading}</p>
                         <button onClick={() => navigator.clipboard.writeText(section.content)} className="btn-secondary text-xs">Copy</button>
                       </div>
-                      <p className="text-text-secondary whitespace-pre-wrap">{section.content}</p>
+                      <p className="text-text-secondary whitespace-pre-wrap">{String(section.content)}</p>
                     </div>
                   ))}
                   {faqs.length > 0 && (
@@ -268,7 +268,7 @@ export default function DraftDetailPage() {
                   {cta && (
                     <div className="card-standard">
                       <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">CTA Block</p>
-                      <p className="text-text-secondary whitespace-pre-wrap">{cta}</p>
+                      <p className="text-text-secondary whitespace-pre-wrap">{String(cta)}</p>
                     </div>
                   )}
                 </>
