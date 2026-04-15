@@ -134,8 +134,8 @@ export async function POST(req: NextRequest) {
     const local_business_schema = generatedContent.local_business_schema || {};
     
     const hero = generatedContent.hero || '';
-    const sections = generatedContent.sections || [];
-    const faqs = generatedContent.faqs || [];
+    const sections = (generatedContent.sections as any[]) || [];
+    const faqs = (generatedContent.faqs as any[]) || [];
     
     console.log('Extracted fields:', { title, slug, h1, meta_title, meta_description: meta_description?.substring(0, 50), hero, sections: sections.length, faqs: faqs.length });
     
