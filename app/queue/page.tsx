@@ -107,13 +107,6 @@ function QueueRow({ item, onUpdate, onDelete, onGenerate, delay }: { item: Queue
         </div>
       </div>
 
-        {/* Scheduled */}
-        <div className="hidden lg:block w-24 text-sm text-text-tertiary mono">
-          {item.scheduled_for ? new Date(item.scheduled_for).toLocaleDateString() : '—'}
-        </div>
-
-      </div>
-
       {/* Error Detail */}
       {showError && item.error_message && (
         <div className="px-4 pb-4 pt-0">
