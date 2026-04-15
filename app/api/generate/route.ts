@@ -40,9 +40,16 @@ export async function POST(req: NextRequest) {
     console.log('Generate request:', { queue_item_id, service_id, city_id, primary_keyword, niche, years_in_business });
     
     // Validate IDs are not empty strings
-    if (!queue_item_id || !service_id || !city_id || !primary_keyword || !niche) {
-      console.error('Missing fields:', { queue_item_id, service_id, city_id, primary_keyword, niche });
-      return NextResponse.json({ error: 'Missing required fields', received: { queue_item_id, service_id, city_id, primary_keyword, niche } }, { status: 400 });
+    if (!queue_item_id) {
+      console.error('Missing queue_item_id');
+      return NextResponse.json({ error: 'Missing queue_item_id' }, { status: 400 });
+    }
+    if (!service_id || !city_id || !primary_keyword || !niche) {
+      console.error('Missing fields:', { service_id, city_id, primary_keyword, niche });
+      return NextResponse.json({ 
+        error: 'Missing required fields', 
+        received: { service_id: !!service_id, city_id: !!city_id, primary_keyword: !!primary_keyword, niche: !!niche } 
+      }, { status: 400 });
     }
 
     await supabase.from('page_queue').update({ status: 'generating' }).eq('id', queue_item_id);
@@ -89,8 +96,8 @@ export async function POST(req: NextRequest) {
     if (!groqResponse.ok) {
       const error = await groqResponse.text();
       console.error('Groq error:', error);
-      await supabase.from('page_queue').update({ status: 'draft_ready' }).eq('id', queue_item_id);
-      return NextResponse.json({ error: 'Groq API failed' }, { status: 500 });
+      await supabase.from('page_queue').update({ status: 'failed' }).eq('id', queue_item_id);
+      return NextResponse.json({ error: 'Groq API failed', details: error }, { status: 500 });
     }
 
     const data = await groqResponse.json();
