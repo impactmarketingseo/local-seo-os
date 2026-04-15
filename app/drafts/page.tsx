@@ -97,15 +97,15 @@ export default function DraftsPage() {
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1 min-w-0 mr-3">
-                    <h3 className="font-semibold text-text-primary truncate">{draft.title}</h3>
+                    <h3 className="font-semibold text-text-primary truncate">{draft.meta_title || draft.title || 'Untitled'}</h3>
                     <p className="text-sm text-text-tertiary">{draft.clients?.name}</p>
                   </div>
                   <span className={`px-2.5 py-1 rounded-md text-xs font-medium shrink-0 ${status.bg} ${status.text}`}>
                     {draft.status}
                   </span>
                 </div>
-                {draft.meta_description && (
-                  <p className="text-sm text-text-tertiary line-clamp-2 mb-3">{draft.meta_description}</p>
+                {draft.slug && (
+                  <p className="text-xs text-text-disabled mb-2">/{draft.slug}</p>
                 )}
                 <div className="flex gap-4 text-xs text-text-disabled mono">
                   <span>/{draft.slug}</span>

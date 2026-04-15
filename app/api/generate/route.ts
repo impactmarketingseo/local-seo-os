@@ -121,19 +121,23 @@ export async function POST(req: NextRequest) {
     const mdH1Match = content.match(/<h1>([^<]+)<\/h1>/);
     const mdMetaDescMatch = content.match(/\*\*Meta Description\*\*:\s*([^\n]+)/);
     
-    const title = generatedContent.title || (titleMatch ? titleMatch[1] : (mdTitleMatch ? mdTitleMatch[1].trim() : 'Untitled'));
-    const slug = generatedContent.slug || (slugMatch ? slugMatch[1] : (mdSlugMatch ? mdSlugMatch[1].trim().replace(/^\//, '').replace(/\/$/, '') : ''));
-    const h1 = generatedContent.h1 || (h1Match ? h1Match[1] : (mdH1Match ? mdH1Match[1].trim() : ''));
-    const meta_title = generatedContent.meta_title || (metaTitleMatch ? metaTitleMatch[1] : '');
-    const meta_description = generatedContent.meta_description || (metaDescMatch ? metaDescMatch[1] : (mdMetaDescMatch ? mdMetaDescMatch[1].trim() : ''));
-    const intro = generatedContent.intro || (introMatch ? introMatch[1] : '');
-    const cta_block = generatedContent.cta_block || generatedContent.cta || (ctaMatch ? ctaMatch[1] : '');
+    const title = generatedContent.title || titleMatch?.[1] || mdTitleMatch?.[1] || content.substring(0, 50).replace(/\n/g, ' ').trim() || 'Untitled';
+    const slug = generatedContent.slug || slugMatch?.[1] || mdSlugMatch?.[1]?.replace(/^\//, '').replace(/\/$/, '') || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const h1 = generatedContent.h1 || h1Match?.[1] || mdH1Match?.[1] || '';
+    const meta_title = generatedContent.meta_title || metaTitleMatch?.[1] || '';
+    const meta_description = generatedContent.meta_description || metaDescMatch?.[1] || mdMetaDescMatch?.[1] || content.substring(0, 160).replace(/\n/g, ' ').trim();
+    const intro = generatedContent.intro || introMatch?.[1] || '';
+    const cta_block = generatedContent.cta_block || generatedContent.cta || ctaMatch?.[1] || '';
     const additional_keywords = generatedContent.additional_keywords || [];
     const schema_notes = generatedContent.schema_notes || {};
     const service_schema = generatedContent.service_schema || {};
     const local_business_schema = generatedContent.local_business_schema || {};
     
-    console.log('Extracted fields:', { title, slug, h1, meta_title, meta_description, intro: intro?.substring(0, 50), service_schema, local_business_schema });
+    const hero = generatedContent.hero || '';
+    const sections = generatedContent.sections || [];
+    const faqs = generatedContent.faqs || [];
+    
+    console.log('Extracted fields:', { title, slug, h1, meta_title, meta_description: meta_description?.substring(0, 50), hero, sections: sections.length, faqs: faqs.length });
     
     const draftData: Record<string, unknown> = {
       queue_id: queue_item_id,
@@ -144,8 +148,8 @@ export async function POST(req: NextRequest) {
       meta_description: meta_description,
       h1: h1,
       intro: intro,
-      sections: generatedContent.sections || [],
-      faqs: generatedContent.faqs || [],
+      sections: sections,
+      faqs: faqs,
       cta_block: cta_block,
       internal_links: generatedContent.internal_links || [],
       additional_keywords: additional_keywords,
@@ -156,6 +160,11 @@ export async function POST(req: NextRequest) {
       generation_model: 'llama-3.3-70b-versatile',
       token_count: data.usage?.total_tokens || 0,
     };
+    
+    // Add hero field
+    if (hero) {
+      (draftData as any).hero = hero;
+    }
     
     // Add schema fields if they exist in database
     if (service_schema && Object.keys(service_schema).length > 0) {
@@ -356,23 +365,30 @@ function parseOutput(text: string): Record<string, unknown> {
     // Try to find JSON in code blocks first
     const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/);
     if (jsonMatch) {
+      console.log('Found JSON in code blocks');
       return JSON.parse(jsonMatch[1]);
     }
     
     // Try to find JSON object directly
     const jsonObjMatch = text.match(/\{[\s\S]*\}/);
     if (jsonObjMatch) {
+      console.log('Found JSON object directly');
       return JSON.parse(jsonObjMatch[0]);
     }
     
     const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?$/g, '').trim();
+    console.log('Trying cleaned JSON');
     return JSON.parse(cleaned);
-  } catch {
+  } catch (e) {
+    console.error('JSON parse error:', e);
+    console.log('Raw text sample:', text.substring(0, 300));
     return {
       title: 'Generated Content',
       content_text: text,
       sections: [],
       faqs: [],
+      hero: text.substring(0, 500),
+      cta_block: '',
     };
   }
 }
