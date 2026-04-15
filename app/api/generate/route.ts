@@ -206,20 +206,20 @@ async function processGeneratedContent(content: string, data: any, queue_item_id
   const slugMatch = content.match(/"slug"\s*:\s*"([^"]+)"/);
   const metaDescMatch = content.match(/"meta_description"\s*:\s*"([^"]+)"/);
   
-  const title = generatedContent.title || titleMatch?.[1] || content.substring(0, 50).replace(/\n/g, ' ').trim() || 'Untitled';
-  const slug = generatedContent.slug || slugMatch?.[1] || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  const meta_description = generatedContent.meta_description || metaDescMatch?.[1] || content.substring(0, 160).replace(/\n/g, ' ').trim();
+  const title = String(generatedContent.title || titleMatch?.[1] || content.substring(0, 50).replace(/\n/g, ' ').trim() || 'Untitled');
+  const slug = String(generatedContent.slug || slugMatch?.[1] || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
+  const meta_description = String(generatedContent.meta_description || metaDescMatch?.[1] || content.substring(0, 160).replace(/\n/g, ' ').trim());
   
   const draftData = {
     queue_id: queue_item_id,
     client_id,
     title,
     slug,
-    meta_title: generatedContent.meta_title || '',
+    meta_title: String(generatedContent.meta_title || ''),
     meta_description,
-    h1: generatedContent.h1 || '',
-    intro: generatedContent.intro || '',
-    cta_block: generatedContent.cta_block || '',
+    h1: String(generatedContent.h1 || ''),
+    intro: String(generatedContent.intro || ''),
+    cta_block: String(generatedContent.cta_block || ''),
     additional_keywords: JSON.stringify(generatedContent.additional_keywords || []),
     schema_notes: generatedContent.service_schema || {},
     content_json: generatedContent,
