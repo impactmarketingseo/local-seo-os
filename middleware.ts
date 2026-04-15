@@ -14,8 +14,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
   
-  // Check for password in cookie or header
-  const password = request.cookies.get('access_password')?.value || request.headers.get('x-access-password');
+  // Check for password in cookie
+  const password = request.cookies.get('access_password')?.value;
   
   if (password !== PROTECTED_PASSWORD) {
     // Allow access to login page
@@ -24,16 +24,7 @@ export function middleware(request: NextRequest) {
     }
     
     // Redirect to login for all other pages
-    if (!request.nextUrl.pathname.startsWith('/api')) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-    
-    return new NextResponse('Password Required', {
-      status: 401,
-      headers: {
-        'WWW-Authenticate': 'Basic realm="Private Area"',
-      },
-    });
+    return NextResponse.redirect(new URL('/login', request.url));
   }
   
   return NextResponse.next();
