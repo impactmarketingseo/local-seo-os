@@ -147,7 +147,7 @@ export default function ClientDetailPage() {
             Edit
           </Link>
           <Link
-            href={`/clients/${clientId}/queue`}
+            href="/queue"
             className="btn-primary"
           >
             View Queue

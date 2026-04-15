@@ -57,13 +57,18 @@ export default function EditClientPage() {
     async function loadClient() {
       const supabase = createSupabaseBrowserClient();
       
-      const [clientRes, wpRes] = await Promise.all([
+      const [clientRes, wpRes, servicesRes, citiesRes] = await Promise.all([
         supabase.from('clients').select('*').eq('id', clientId).single(),
         supabase.from('wordpress_connections').select('*').eq('client_id', clientId).single(),
+        supabase.from('services').select('name').eq('client_id', clientId).order('priority'),
+        supabase.from('cities').select('name').eq('client_id', clientId).order('priority'),
       ]);
 
       if (clientRes.data) {
         setClient(clientRes.data);
+        const existingServices = servicesRes.data?.map((s: any) => s.name).join(', ') || '';
+        const existingCities = citiesRes.data?.map((c: any) => c.name).join(', ') || '';
+        
         setForm({
           name: clientRes.data.name,
           niche: clientRes.data.niche,
@@ -77,8 +82,8 @@ export default function EditClientPage() {
           cta_preference: clientRes.data.cta_preference || '',
           banned_phrases: clientRes.data.banned_phrases?.join(', ') || '',
           status: clientRes.data.status,
-          services_raw: '',
-          cities_raw: '',
+          services_raw: existingServices,
+          cities_raw: existingCities,
         });
       }
       if (wpRes.data) {
