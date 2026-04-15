@@ -203,8 +203,6 @@ export default function QueuePage() {
   }
 
   async function generateContent(id: string) {
-    if (!confirm('Generate content for this item? This uses your free Groq API.')) return;
-    
     try {
       setItems(items.map(i => i.id === id ? { ...i, status: 'generating' } : i));
       
@@ -214,12 +212,19 @@ export default function QueuePage() {
         body: JSON.stringify({ queue_item_id: id }),
       });
       
+      if (!response.ok) {
+        const text = await response.text();
+        alert('Error ' + response.status + ': ' + text.substring(0, 200));
+        loadQueue();
+        return;
+      }
+      
       const result = await response.json();
       
       if (result.success) {
         alert('Content generated! Check Drafts.');
       } else {
-        alert('Error: ' + result.error);
+        alert('Error: ' + result.error + (result.details ? ' - ' + result.details : ''));
       }
       loadQueue();
     } catch (e) {

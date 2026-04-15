@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
         *,
         services(name),
         cities(name, state),
-        clients(id, name, niche, voice_notes, cta_preference, banned_phrases, phone, email, address, website_url)
+        clients(id, name, niche, voice_notes, cta_preference, banned_phrases, phone, email, address, website_url, years_in_business)
       `)
       .eq('id', queue_item_id)
       .single();
@@ -78,11 +78,16 @@ export async function POST(req: NextRequest) {
 
     console.log('Queue item:', { service_id: queueItem.service_id, city_id: queueItem.city_id, service, city, client });
 
-    const generateUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://local-seo-os.vercel.app';
+    const generateUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+    console.log('Generate URL:', generateUrl);
 
     const generateResponse = await fetch(`${generateUrl}/api/generate`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-internal-request': 'true'
+      },
       body: JSON.stringify({
         queue_item_id,
         client_id: queueItem.client_id,
@@ -112,7 +117,28 @@ export async function POST(req: NextRequest) {
       years_in_business: client?.years_in_business,
     });
 
-    const result = await generateResponse.json();
+    if (!generateResponse.ok) {
+      const errorText = await generateResponse.text();
+      console.error('Generate API error:', generateResponse.status, errorText);
+      return NextResponse.json({ 
+        error: 'Generate API failed', 
+        status: generateResponse.status,
+        details: errorText.substring(0, 500)
+      }, { status: 500 });
+    }
+
+    const resultText = await generateResponse.text();
+    let result;
+    try {
+      result = JSON.parse(resultText);
+    } catch (e) {
+      console.error('Non-JSON response from generate API:', resultText.substring(0, 500));
+      return NextResponse.json({ 
+        error: 'Generation failed', 
+        details: 'Invalid response from server. Are you logged in?',
+        debug: resultText.substring(0, 200)
+      }, { status: 500 });
+    }
 
     if (!result.success) {
       return NextResponse.json({ error: 'Generation failed', details: result.error }, { status: 500 });

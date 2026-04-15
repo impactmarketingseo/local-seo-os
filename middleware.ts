@@ -4,9 +4,9 @@ import type { NextRequest } from 'next/server';
 const PROTECTED_PASSWORD = process.env.ACCESS_PASSWORD || 'change-me-in-env';
 
 export function middleware(request: NextRequest) {
-  // Skip password check for auth API routes and static files
+  // Skip password check for auth API routes, all API routes, and static files
   if (
-    request.nextUrl.pathname.startsWith('/api/auth') ||
+    request.nextUrl.pathname.startsWith('/api') ||
     request.nextUrl.pathname.startsWith('/_next') ||
     request.nextUrl.pathname.startsWith('/favicon') ||
     request.nextUrl.pathname.startsWith('/public')
