@@ -168,7 +168,7 @@ function EmptyAttention() {
   );
 }
 
-function EmptyState({ icon, title, description, action, actionHref }: { icon: JSX.Element; title: string; description: string; action: string; actionHref: string }) {
+function EmptyState({ icon, title, description, action, actionHref }: { icon: ReactNode; title: string; description: string; action: string; actionHref: string }) {
   return (
     <div className="rounded-lg bg-card border border-border p-10 text-center">
       <div className="flex h-14 w-14 mx-auto mb-4 items-center justify-center rounded-full bg-input">
