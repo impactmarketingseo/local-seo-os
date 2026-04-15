@@ -54,6 +54,8 @@ function StatCardSkeleton() {
   );
 }
 
+import type { ReactNode } from 'react';
+
 function AttentionCard({ item, delay }: { item: AttentionItem; delay?: number }) {
   const typeColors: Record<string, string> = {
     draft: 'bg-warning/10 text-warning',
@@ -62,7 +64,7 @@ function AttentionCard({ item, delay }: { item: AttentionItem; delay?: number })
     stalled: 'bg-input text-text-tertiary',
   };
 
-  const typeIcons: Record<string, JSX.Element> = {
+  const typeIcons: Record<string, ReactNode> = {
     draft: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />,
     error: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />,
     qa_fail: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />,
@@ -136,7 +138,7 @@ function ActivityItem({ event }: { event: ActivityEvent }) {
   );
 }
 
-function QuickActionCard({ icon, label, description, href, delay }: { icon: JSX.Element; label: string; description: string; href: string; delay?: number }) {
+function QuickActionCard({ icon, label, description, href, delay }: { icon: ReactNode; label: string; description: string; href: string; delay?: number }) {
   return (
     <Link 
       href={href} 
