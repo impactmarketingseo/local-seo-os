@@ -150,59 +150,39 @@ export default function DraftDetailPage() {
         {/* SEO Tab */}
         {activeTab === 'seo' && (
           <div className="space-y-4">
-            {(() => {
-              // Try to get SEO fields from content_json if not in draft directly
-              const seoData = draft.content_json || {};
-              return (
-                <>
-                  <div className="card-standard">
-                    <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Title Tag</p>
-                    <p className="font-medium text-text-primary">{draft.meta_title || (seoData as any).meta_title || draft.title || 'Untitled'}</p>
-                  </div>
-                  <div className="card-standard">
-                    <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">URL Slug</p>
-                    <p className="mono text-text-secondary">/{draft.slug || (seoData as any).slug || ''}</p>
-                  </div>
-                  <div className="card-standard">
-                    <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Meta Description</p>
-                    <p className="text-text-secondary">{draft.meta_description || (seoData as any).meta_description || ''}</p>
-                  </div>
-                  <div className="card-standard">
-                    <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">H1</p>
-                    <p className="font-bold text-text-primary">{draft.h1 || (seoData as any).h1 || ''}</p>
-                  </div>
-                </>
-              );
-            })()}
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Title Tag</p>
+              <p className="font-medium text-text-primary">{draft.title}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">URL Slug</p>
+              <p className="mono text-text-secondary">/{draft.slug}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Meta Description</p>
+              <p className="text-text-secondary">{draft.meta_description}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">H1</p>
+              <p className="font-bold text-text-primary">{draft.h1}</p>
+            </div>
           </div>
         )}
 
         {/* Keywords Tab */}
         {activeTab === 'keywords' && (
           <div className="space-y-4">
-            {(() => {
-              // Handle additional_keywords from various sources
-              let keywords = draft.additional_keywords || [];
-              if (!keywords.length && draft.content_json?.additional_keywords) {
-                keywords = draft.content_json.additional_keywords as string[];
-              }
-              
-              return (
-                <>
-                  {keywords && keywords.length > 0 && (
-                    <div className="card-standard">
-                      <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-3">Target Keywords</p>
-                      <div className="flex flex-wrap gap-2">
-                        {keywords.map((kw: any, i: number) => (
-                          <span key={i} className="bg-accent/10 text-accent px-3 py-1 rounded-md text-sm">{kw}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              );
-            })()}
-            {draft.internal_links && draft.internal_links.length > 0 && (
+            {draft.additional_keywords?.length > 0 && (
+              <div className="card-standard">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-3">Target Keywords</p>
+                <div className="flex flex-wrap gap-2">
+                  {draft.additional_keywords.map((kw, i) => (
+                    <span key={i} className="bg-accent/10 text-accent px-3 py-1 rounded-md text-sm">{kw}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {draft.internal_links?.length > 0 && (
               <div className="card-standard">
                 <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-3">Internal Links</p>
                 {draft.internal_links.map((link, i) => (
@@ -221,72 +201,51 @@ export default function DraftDetailPage() {
         {/* Schema Tab */}
         {activeTab === 'schema' && (
           <div className="space-y-6">
-            {(() => {
-              const serviceSchema = draft.service_schema || draft.schema_notes || draft.content_json?.service_schema || {};
-              const localBusinessSchema = draft.local_business_schema || draft.content_json?.local_business_schema || {};
-              
-              return (
-                <>
-                  <div className="card-standard">
-                    <div className="flex justify-between items-center mb-4">
-                      <p className="text-sm font-semibold text-text-primary">Service Schema</p>
-                      {Object.keys(serviceSchema).length > 0 && (
-                        <button type="button" onClick={() => navigator.clipboard.writeText(JSON.stringify(serviceSchema, null, 2))}
-                          className="btn-secondary text-sm">
-                          Copy
-                        </button>
-                      )}
-                    </div>
-                    <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md">
-                      {JSON.stringify(serviceSchema, null, 2)}
-                    </pre>
-                  </div>
-                  <div className="card-standard">
-                    <div className="flex justify-between items-center mb-4">
-                      <p className="text-sm font-semibold text-text-primary">Local Business Schema</p>
-                      {Object.keys(localBusinessSchema).length > 0 && (
-                        <button type="button" onClick={() => navigator.clipboard.writeText(JSON.stringify(localBusinessSchema, null, 2))}
-                          className="btn-secondary text-sm">
-                          Copy
-                        </button>
-                      )}
-                    </div>
-                    <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md">
-                      {JSON.stringify(localBusinessSchema, null, 2)}
-                    </pre>
-                  </div>
-                </>
-              );
-            })()}
+            <div className="card-standard">
+              <div className="flex justify-between items-center mb-4">
+                <p className="text-sm font-semibold text-text-primary">Service Schema</p>
+                <button type="button" onClick={() => navigator.clipboard.writeText(JSON.stringify(draft.service_schema, null, 2))}
+                  className="btn-secondary text-sm">
+                  Copy
+                </button>
+              </div>
+              <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md">
+                {JSON.stringify(draft.service_schema || {}, null, 2)}
+              </pre>
+            </div>
+            <div className="card-standard">
+              <div className="flex justify-between items-center mb-4">
+                <p className="text-sm font-semibold text-text-primary">Local Business Schema</p>
+                <button type="button" onClick={() => navigator.clipboard.writeText(JSON.stringify(draft.local_business_schema, null, 2))}
+                  className="btn-secondary text-sm">
+                  Copy
+                </button>
+              </div>
+              <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md">
+                {JSON.stringify(draft.local_business_schema || {}, null, 2)}
+              </pre>
+            </div>
           </div>
         )}
 
         {/* Sections Tab */}
-        {activeTab === 'sections' && (() => {
-          // Handle content_json as object or parse from string
-          let parsedContent = draft.content_json;
-          if (!parsedContent && draft.content_text) {
-            try {
-              parsedContent = JSON.parse(draft.content_text);
-            } catch (e) {
-              console.log('Could not parse content_text');
-            }
-          }
-          
-          const sections = (parsedContent?.sections as any[]) || [];
-          const faqs = (parsedContent?.faqs as any[]) || [];
-          const hero = String(parsedContent?.hero || '');
-          const cta = String(parsedContent?.cta_block || parsedContent?.cta || '');
-          
-          return (
-            <>
-              {hero && (
-                <div className="card-standard">
-                  <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Hero Section</p>
-                  <p className="text-text-secondary whitespace-pre-wrap">{hero}</p>
-                </div>
-              )}
-              {sections.map((section: any, i: number) => (
+        {activeTab === 'sections' && draft.content_json && (
+          <div className="space-y-4">
+            {(() => {
+              const sections = (draft.content_json?.sections as any[]) || [];
+              const faqs = (draft.content_json?.faqs as any[]) || [];
+              const hero = String(draft.content_json?.hero || '');
+              const cta = String(draft.content_json?.cta_block || draft.content_json?.cta || '');
+              
+              return (
+                <>
+                  {hero && (
+                    <div className="card-standard">
+                      <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Hero Section</p>
+                      <p className="text-text-secondary whitespace-pre-wrap">{String(hero)}</p>
+                    </div>
+                  )}
+                  {sections.map((section: any, i: number) => (
                     <div key={i} className="card-standard">
                       <div className="flex justify-between items-center mb-2">
                         <p className="text-xs font-medium uppercase tracking-wider text-text-disabled">{section.heading}</p>
@@ -309,7 +268,7 @@ export default function DraftDetailPage() {
                   {cta && (
                     <div className="card-standard">
                       <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">CTA Block</p>
-                      <p className="text-text-secondary whitespace-pre-wrap">{cta}</p>
+                      <p className="text-text-secondary whitespace-pre-wrap">{String(cta)}</p>
                     </div>
                   )}
                 </>
@@ -321,17 +280,12 @@ export default function DraftDetailPage() {
         {/* Content Tab */}
         {activeTab === 'content' && (
           <div className="space-y-4">
-            <button type="button" onClick={() => {
-              const text = typeof draft.content_text === 'string' ? draft.content_text : JSON.stringify(draft.content_text, null, 2);
-              navigator.clipboard.writeText(text);
-            }}
+            <button type="button" onClick={() => navigator.clipboard.writeText(draft.content_text || '')}
               className="btn-primary w-full">
               📋 Copy All Content
             </button>
             <div className="card-standard">
-              <pre className="text-sm whitespace-pre-wrap text-text-secondary overflow-x-auto max-h-[600px]">
-                {typeof draft.content_text === 'string' ? draft.content_text : JSON.stringify(draft.content_text, null, 2)}
-              </pre>
+              <pre className="text-sm whitespace-pre-wrap text-text-secondary">{draft.content_text}</pre>
             </div>
           </div>
         )}
