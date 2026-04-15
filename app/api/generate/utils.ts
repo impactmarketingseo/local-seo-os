@@ -115,5 +115,3 @@ export function generateReadableText(content: Record<string, unknown>): string {
   
   return text;
 }
-
-module.exports = { buildPrompt, parseOutput, generateReadableText };
