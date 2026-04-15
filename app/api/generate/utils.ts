@@ -93,7 +93,7 @@ export function parseOutput(text: string): Record<string, unknown> {
   }
 }
 
-function generateReadableText(content) {
+export function generateReadableText(content: Record<string, unknown>): string {
   let text = '';
   
   if (content.intro) text += content.intro + '\n\n';
