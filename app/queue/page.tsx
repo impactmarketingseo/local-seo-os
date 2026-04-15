@@ -6,6 +6,9 @@ import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
 interface QueueItem {
   id: string;
+  client_id: string;
+  service_id: string | null;
+  city_id: string | null;
   status: string;
   scheduled_for: string | null;
   priority: number;
@@ -47,7 +50,14 @@ function QueueRow({ item, onUpdate, onDelete, onGenerate, delay }: { item: Queue
         <div className="flex-1 min-w-0">
           <p className="font-medium text-text-primary truncate">{item.clients?.name || 'Unknown Client'}</p>
           <p className="text-sm text-text-tertiary truncate">
-            <span className="mono">{item.services?.name || 'No service'}</span> in {item.cities?.name}, {item.cities?.state}
+            {item.services?.name ? (
+              <span className="mono">{item.services.name}</span>
+            ) : item.service_id ? (
+              <span className="mono text-warning">Service ID: {item.service_id}</span>
+            ) : (
+              <span className="mono text-error">No service selected</span>
+            )}
+            {item.cities?.name ? ` in ${item.cities.name}, ${item.cities.state}` : item.city_id ? ` (City ID: ${item.city_id})` : ' - No city'}
           </p>
         </div>
 
@@ -243,9 +253,6 @@ export default function QueuePage() {
 
   return (
     <div className="p-6 lg:p-8">
-      <div style={{backgroundColor: 'red', color: 'white', padding: '20px', marginBottom: '20px', display: 'block'}}>
-        DEBUG: Client filter test - clients loaded: {clients.length}
-      </div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="page-title">Content Queue</h1>
