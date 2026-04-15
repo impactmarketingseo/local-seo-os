@@ -10,6 +10,8 @@ export async function POST(req: NextRequest) {
   try {
     const { queue_item_id } = await req.json();
 
+    console.log('Queue-item generate request:', { queue_item_id });
+    
     if (!queue_item_id) {
       return NextResponse.json({ error: 'Missing queue_item_id' }, { status: 400 });
     }
@@ -25,9 +27,19 @@ export async function POST(req: NextRequest) {
       .eq('id', queue_item_id)
       .single();
 
+    console.log('Queue item query result:', { queueItem, queueError });
+    
     if (queueError || !queueItem) {
-      return NextResponse.json({ error: 'Queue item not found' }, { status: 404 });
+      console.error('Queue item query error:', queueError);
+      return NextResponse.json({ error: 'Queue item not found', details: queueError?.message }, { status: 404 });
     }
+
+    console.log('Queue item details:', {
+      service_id: queueItem.service_id,
+      city_id: queueItem.city_id,
+      services: queueItem.services,
+      cities: queueItem.cities
+    });
 
     const { data: keywordTarget } = await supabase
       .from('keyword_targets')

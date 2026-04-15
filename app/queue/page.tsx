@@ -176,7 +176,7 @@ export default function QueuePage() {
       clients(name, niche),
       services(name),
       cities(name, state)
-    `).order('created_at', { ascending: false });
+    `, { count: 'exact' }).order('created_at', { ascending: false });
 
     if (filter === 'planned') {
       query = query.eq('status', 'planned');
