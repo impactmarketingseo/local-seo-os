@@ -247,7 +247,7 @@ SEO REQUIREMENTS:
 - H1 exactly: "[Service] in [City], [State]"
 
 OUTPUT IN VALID JSON CODE BLOCK format:
-```json
+${'`'}json
 {
   "title": "AC Repair in Sandy, UT | Business Name",
   "slug": "ac-repair-sandy-ut",
@@ -280,7 +280,7 @@ OUTPUT IN VALID JSON CODE BLOCK format:
   ],
   "cta_block": "Final CTA with phone PHONE..."
 }
-```
+${'`'}
 
 IMPORTANT: Return ONLY valid JSON in a code block. No other text.
 
