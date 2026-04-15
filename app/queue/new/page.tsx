@@ -72,7 +72,7 @@ export default function NewQueueItemPage() {
       client_id: form.client_id,
       service_id: form.service_id || null,
       city_id: form.city_id || null,
-      primary_keyword: form.keyword || null,
+      notes: form.keyword || null,
       synonym: form.synonym || null,
       scheduled_for: form.scheduled_for || null,
       priority: form.priority,
@@ -80,7 +80,6 @@ export default function NewQueueItemPage() {
     };
     
     console.log('Inserting queue item:', insertData);
-    console.log('Form state:', form);
     
     const { data, error } = await supabase.from('page_queue').insert(insertData).select();
     

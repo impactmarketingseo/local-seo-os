@@ -13,6 +13,8 @@ interface QueueItem {
   scheduled_for: string | null;
   priority: number;
   generation_mode: string;
+  notes: string | null;
+  synonym: string | null;
   created_at: string;
   clients: { name: string; niche: string } | null;
   services: { name: string } | null;
@@ -59,6 +61,7 @@ function QueueRow({ item, onUpdate, onDelete, onGenerate, delay }: { item: Queue
             )}
             {item.cities?.name ? ` in ${item.cities.name}, ${item.cities.state}` : item.city_id ? ` (City ID: ${item.city_id})` : ' - No city'}
           </p>
+          {item.notes && <p className="text-xs text-accent mt-1">Keyword: {item.notes}</p>}
         </div>
 
         {/* Deliverable Type */}
