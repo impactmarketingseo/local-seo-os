@@ -271,6 +271,16 @@ export default function DraftDetailPage() {
               const hero = draft.content_json?.hero;
               const cta = draft.content_json?.cta_block || draft.content_json?.cta;
               
+              const hasContent = sections.length > 0 || faqs.length > 0 || (hero && typeof hero === 'string') || (cta && typeof cta === 'string');
+              
+              if (!hasContent) {
+                return (
+                  <div className="card-standard text-center">
+                    <p className="text-text-tertiary">No structured sections found. Check Content tab for full output.</p>
+                  </div>
+                );
+              }
+              
               return (
                 <>
                   {hero && typeof hero === 'string' && (
