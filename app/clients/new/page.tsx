@@ -51,11 +51,15 @@ export default function NewClientPage() {
     }).select().single();
 
     if (!error && client) {
-      // Process services
+      // Process services - split by comma, newline, or semicolon
       if (form.services_raw.trim()) {
-        const services = form.services_raw.split(',').map(s => s.trim()).filter(Boolean);
-        if (services.length > 0) {
-          const serviceRecords = services.map((name, index) => ({
+        const rawServices = form.services_raw
+          .split(/[,;\n]+/)  // Split by comma, semicolon, or newline
+          .map(s => s.trim())
+          .filter(s => s.length > 0);
+        
+        if (rawServices.length > 0) {
+          const serviceRecords = rawServices.map((name, index) => ({
             client_id: client.id,
             name,
             slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
@@ -66,14 +70,19 @@ export default function NewClientPage() {
         }
       }
 
-      // Process cities
+      // Process cities - split by comma, newline, or semicolon
       if (form.cities_raw.trim()) {
-        const cities = form.cities_raw.split(',').map(c => c.trim()).filter(Boolean);
-        if (cities.length > 0) {
-          const cityRecords = cities.map((name, index) => ({
+        const rawCities = form.cities_raw
+          .split(/[,;\n]+/)
+          .map(c => c.trim())
+          .filter(c => c.length > 0);
+        
+        if (rawCities.length > 0) {
+          const cityRecords = rawCities.map((name, index) => ({
             client_id: client.id,
             name,
             state: form.state || '',
+            slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
             active: true,
             priority: index,
           }));
