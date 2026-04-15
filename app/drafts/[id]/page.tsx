@@ -135,7 +135,7 @@ export default function DraftDetailPage() {
       {/* Tabs */}
       <div className="flex gap-1 mb-6 overflow-x-auto border-b border-border">
         {(['seo', 'keywords', 'schema', 'sections', 'content'] as const).map((tab) => (
-          <button key={tab} onClick={() => setActiveTab(tab)}
+          <button type="button" key={tab} onClick={() => setActiveTab(tab)}
             className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
               activeTab === tab 
                 ? 'border-accent text-accent' 
@@ -204,7 +204,7 @@ export default function DraftDetailPage() {
             <div className="card-standard">
               <div className="flex justify-between items-center mb-4">
                 <p className="text-sm font-semibold text-text-primary">Service Schema</p>
-                <button onClick={() => navigator.clipboard.writeText(JSON.stringify(draft.service_schema, null, 2))}
+                <button type="button" onClick={() => navigator.clipboard.writeText(JSON.stringify(draft.service_schema, null, 2))}
                   className="btn-secondary text-sm">
                   Copy
                 </button>
@@ -216,7 +216,7 @@ export default function DraftDetailPage() {
             <div className="card-standard">
               <div className="flex justify-between items-center mb-4">
                 <p className="text-sm font-semibold text-text-primary">Local Business Schema</p>
-                <button onClick={() => navigator.clipboard.writeText(JSON.stringify(draft.local_business_schema, null, 2))}
+                <button type="button" onClick={() => navigator.clipboard.writeText(JSON.stringify(draft.local_business_schema, null, 2))}
                   className="btn-secondary text-sm">
                   Copy
                 </button>
@@ -249,7 +249,7 @@ export default function DraftDetailPage() {
                     <div key={i} className="card-standard">
                       <div className="flex justify-between items-center mb-2">
                         <p className="text-xs font-medium uppercase tracking-wider text-text-disabled">{section.heading}</p>
-                        <button onClick={() => navigator.clipboard.writeText(section.content)} className="btn-secondary text-xs">Copy</button>
+                        <button type="button" onClick={() => navigator.clipboard.writeText(section.content)} className="btn-secondary text-xs">Copy</button>
                       </div>
                       <p className="text-text-secondary whitespace-pre-wrap">{String(section.content)}</p>
                     </div>
@@ -280,7 +280,7 @@ export default function DraftDetailPage() {
         {/* Content Tab */}
         {activeTab === 'content' && (
           <div className="space-y-4">
-            <button onClick={() => navigator.clipboard.writeText(draft.content_text || '')}
+            <button type="button" onClick={() => navigator.clipboard.writeText(draft.content_text || '')}
               className="btn-primary w-full">
               📋 Copy All Content
             </button>
@@ -295,13 +295,13 @@ export default function DraftDetailPage() {
       {draft.status !== 'approved' && draft.status !== 'published' && (
         <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4">
           <div className="flex gap-3 lg:ml-64">
-            <button onClick={handleApprove} className="flex-1 btn-primary">
+            <button type="button" onClick={handleApprove} className="flex-1 btn-primary">
               ✓ Approve
             </button>
-            <button onClick={handleReject} className="btn-secondary text-error">
+            <button type="button" onClick={handleReject} className="btn-secondary text-error">
               Reject
             </button>
-            <button onClick={() => setShowDelete(true)} className="btn-ghost text-error">
+            <button type="button" onClick={() => setShowDelete(true)} className="btn-ghost text-error">
               🗑
             </button>
           </div>
@@ -315,10 +315,10 @@ export default function DraftDetailPage() {
             <h3 className="font-semibold text-lg text-text-primary mb-2">Delete Draft?</h3>
             <p className="text-sm text-text-tertiary mb-4">This action cannot be undone. You can always generate a new version.</p>
             <div className="flex gap-3">
-              <button onClick={handleDelete} className="flex-1 btn-danger">
-                Delete
+              <button type="button" onClick={handleDelete} className="flex-1 btn-danger">
+                Delete Draft
               </button>
-              <button onClick={() => setShowDelete(false)} className="flex-1 btn-secondary">
+              <button type="button" onClick={() => setShowDelete(false)} className="flex-1 btn-secondary">
                 Cancel
               </button>
             </div>
