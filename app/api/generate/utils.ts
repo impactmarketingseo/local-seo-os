@@ -1,4 +1,19 @@
-export function buildPrompt(params) {
+export function buildPrompt(params: {
+  niche: string;
+  brand_voice: string;
+  cta_preference: string;
+  banned_phrases: string[];
+  keyword: string;
+  synonym?: string;
+  client_name: string;
+  city: string;
+  state: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  website_url?: string;
+  years_in_business?: string;
+}): string {
   const bannedList = params.banned_phrases.length > 0 
     ? 'Avoid these phrases: ' + params.banned_phrases.join(', ')
     : '';
@@ -47,7 +62,7 @@ export function buildPrompt(params) {
   return prompt;
 }
 
-export function parseOutput(text) {
+export function parseOutput(text: string): Record<string, unknown> {
   try {
     const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/);
     if (jsonMatch) {
