@@ -1,6 +1,4 @@
-'use strict';
-
-function buildPrompt(params) {
+export function buildPrompt(params) {
   const bannedList = params.banned_phrases.length > 0 
     ? 'Avoid these phrases: ' + params.banned_phrases.join(', ')
     : '';
@@ -49,7 +47,7 @@ function buildPrompt(params) {
   return prompt;
 }
 
-function parseOutput(text) {
+export function parseOutput(text) {
   try {
     const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/);
     if (jsonMatch) {
