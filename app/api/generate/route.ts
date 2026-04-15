@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
     const sections = (generatedContent.sections as any[]) || [];
     const faqs = (generatedContent.faqs as any[]) || [];
     
-    console.log('Extracted fields:', { title, slug, h1, meta_title, meta_description: meta_description?.substring(0, 50), hero, sections: sections.length, faqs: faqs.length });
+    console.log('Extracted fields:', { title, slug, h1, meta_title, meta_description: meta_description?.substring(0, 50), sections: sections.length, faqs: faqs.length });
     
     const draftData: Record<string, unknown> = {
       queue_id: queue_item_id,
@@ -148,11 +148,8 @@ export async function POST(req: NextRequest) {
       meta_description: meta_description,
       h1: h1,
       intro: intro,
-      sections: sections,
-      faqs: faqs,
       cta_block: cta_block,
-      internal_links: generatedContent.internal_links || [],
-      additional_keywords: additional_keywords,
+      additional_keywords: JSON.stringify(additional_keywords),
       schema_notes: service_schema,
       content_json: generatedContent,
       content_text: content,
@@ -160,19 +157,6 @@ export async function POST(req: NextRequest) {
       generation_model: 'llama-3.3-70b-versatile',
       token_count: data.usage?.total_tokens || 0,
     };
-    
-    // Add hero field
-    if (hero) {
-      (draftData as any).hero = hero;
-    }
-    
-    // Add schema fields if they exist in database
-    if (service_schema && Object.keys(service_schema).length > 0) {
-      draftData.service_schema = service_schema;
-    }
-    if (local_business_schema && Object.keys(local_business_schema).length > 0) {
-      draftData.local_business_schema = local_business_schema;
-    }
     
     const { data: draft, error: draftError } = await supabase.from('drafts').insert(draftData).select().single();
 
