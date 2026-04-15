@@ -231,23 +231,14 @@ CRITICAL REQUIREMENTS:
 4. Include specific local references: neighborhood names, local landmarks, city-specific conditions
 5. Use FAQPage Schema markup for the FAQ section
 6. Use LocalBusiness + Service + FAQPage schema in JSON-LD format
+7. IMPORTANT: All content must be in the JSON output - not in prose. The JSON must contain ALL sections.
 
-PAGE STRUCTURE (follow exactly):
+PAGE STRUCTURE (follow exactly - output EACH in JSON fields):
 
-1. HERO: 40-70 words with H1, subheadline, two CTAs - output as "hero" field
-2. TRUST SIGNALS BAR: icons with labels (years, license, reviews, guarantee, response time)
-3. LOCAL INTRO: 150-200 words - 2 paragraphs establishing local presence - output in "sections"
-4. PROBLEM SECTION: 250-350 words - H2 about city-specific problems (housing stock, climate, geography) - output in "sections"
-5. TYPES/SYMPTOMS: 300-400 words - H2 with 3-5 H3 subsections - output in "sections"
-6. WARNING SIGNS: 150-200 words - checklist of 5-7 symptoms - output in "sections"
-7. OUR PROCESS: 250-300 words - 5 numbered steps - output in "sections"
-8. MID-PAGE CTA: 30-40 words - conversion block - output in "cta_block"
-9. WHY LOCAL: 200-250 words - why local expertise matters - output in "sections"
-10. DIY VS PRO: 150-200 words + comparison table - output in "sections"
-11. FAQS: 250-350 words - minimum 5 FAQs with city-specific questions - output in "faqs"
-12. FINAL CTA: 40-60 words - confident close - append to "cta_block"
-
-OUTPUT ALL SECTIONS IN STRUCTURED JSON FORMAT with these exact keys: title, slug, meta_title, meta_description (150-160 chars), h1, additional_keywords, service_schema, local_business_schema, hero, sections (array with heading+content), faqs (array with question+answer), cta_block
+- "hero": Hero section content (40-70 words with CTA)
+- "sections": Array of {heading, content} objects for each H2 section
+- "faqs": Array of {question, answer} objects (minimum 5)
+- "cta_block": CTA content (30-60 words)
 
 SEO REQUIREMENTS:
 - Title: "[Service] in [City], [State] | [Brand Name]" (60 chars max)
@@ -255,94 +246,43 @@ SEO REQUIREMENTS:
 - URL slug: /service-city-state/ format
 - H1 exactly: "[Service] in [City], [State]"
 
-OUTPUT JSON:
+OUTPUT IN VALID JSON CODE BLOCK format:
+```json
 {
-  "title": "...",
-  "slug": "ac-repair-riverton-ut",
-  "meta_title": "AC Repair in Riverton, UT | ABC Heating",
-  "meta_description": "Expert AC repair in Riverton, UT. Same-day service, 5-year warranty on all repairs. Call now for a free quote! Servicing Riverton, South Jordan, and surrounding areas.",
-  "h1": "AC Repair in Riverton, Utah",
-  "additional_keywords": ["AC repair near me", "emergency AC repair Riverton UT", "AC installation Riverton", "AC maintenance Riverton"],
+  "title": "AC Repair in Sandy, UT | Business Name",
+  "slug": "ac-repair-sandy-ut",
+  "meta_title": "AC Repair in Sandy, UT | Business Name",
+  "meta_description": "Expert AC repair in Sandy, UT. Same-day service, 5-year warranty. Call now for free quote!",
+  "h1": "AC Repair in Sandy, Utah",
+  "additional_keywords": ["AC repair near me", "emergency AC repair Sandy UT"],
   "service_schema": {
     "@context": "https://schema.org",
     "@type": "Service",
-    "name": "AC Repair in Riverton",
-    "provider": {
-      "@type": "LocalBusiness",
-      "name": "${params.client_name}",
-      "telephone": "${params.phone}"
-    },
-    "areaServed": {
-      "@type": "City",
-      "name": "${params.city}, ${params.state}"
-    },
-    "description": "Professional ${params.niche} services in ${params.city}, ${params.state}. Call ${params.phone} for expert service."
+    "name": "AC Repair in Sandy",
+    "provider": { "@type": "LocalBusiness", "name": "Business Name", "telephone": "PHONE" },
+    "areaServed": { "@type": "City", "name": "Sandy, UT" }
   },
   "local_business_schema": {
-    "@context": "https://schema.org",
+    "@context": "https://schema.org", 
     "@type": "LocalBusiness",
-    "name": "${params.client_name}",
-    "image": "${params.website_url}/logo.png",
-    "telephone": "${params.phone}",
-    "email": "${params.email}",
-    "url": "${params.website_url}",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "${params.address}",
-      "addressLocality": "${params.city}",
-      "addressRegion": "${params.state}",
-      "postalCode": "REPLACE_WITH_POSTAL_CODE"
-    },
-    "areaServed": {
-      "@type": "State",
-      "name": "${params.state}"
-    },
-    "priceRange": "$$",
-    "openingHours": "Mo-Fr 08:00-18:00, Sa 09:00-14:00",
-    "serviceType": "${params.niche}",
-    "description": "Professional ${params.niche} services in ${params.city}, ${params.state}. Call ${params.phone} for expert service."
-  }
-}
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "name": "${params.client_name}",
-    "image": "${params.website_url}/logo.png",
-    "telephone": "${params.phone}",
-    "email": "${params.email}",
-    "url": "${params.website_url}",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "${params.address}",
-      "addressLocality": "${params.city}",
-      "addressRegion": "${params.state}",
-      "postalCode": "REPLACE_WITH_POSTAL_CODE"
-    },
-    "areaServed": {
-      "@type": "State",
-      "name": "${params.state}"
-    },
-    "priceRange": "$$",
-    "openingHours": "Mo-Fr 08:00-18:00, Sa 09:00-14:00",
-    "serviceType": "${params.niche}",
-      "description": "Professional ${params.niche} services in ${params.city}, ${params.state}. Call ${params.phone} for expert service."
+    "name": "Business Name",
+    "telephone": "PHONE",
+    "address": { "@type": "PostalAddress", "addressLocality": "Sandy", "addressRegion": "UT" }
   },
-  "hero": "Hero section content here...",
+  "hero": "Hero section text with CTAs using phone PHONE...",
   "sections": [
-    { "heading": "Local Introduction", "content": "150-200 words..." },
-    { "heading": "Problem Section", "content": "250-350 words..." },
-    { "heading": "Our Process", "content": "250-300 words..." }
+    { "heading": "Local Introduction", "content": "150-200 words about local presence..." },
+    { "heading": "City-Specific Problems", "content": "250-350 words about local issues..." },
+    { "heading": "Our Process", "content": "5 numbered steps..." }
   ],
   "faqs": [
-    { "question": "City-specific question?", "answer": "Detailed answer..." }
+    { "question": "Question?", "answer": "Answer..." }
   ],
-  "cta_block": "CTA content here..."
+  "cta_block": "Final CTA with phone PHONE..."
 }
-}
-}
+```
 
-Write in human tone - vary sentence length, use contractions, avoid AI filler words (crucial, comprehensive, leverage, foster, pivotal). Include specific city details.`;
-
-}
+IMPORTANT: Return ONLY valid JSON in a code block. No other text.
 
 function parseOutput(text: string): Record<string, unknown> {
   try {
