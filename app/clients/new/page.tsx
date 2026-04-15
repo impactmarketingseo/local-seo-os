@@ -19,6 +19,8 @@ export default function NewClientPage() {
     voice_notes: '',
     cta_preference: '',
     banned_phrases: '',
+    services_raw: '',
+    cities_raw: '',
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -32,7 +34,8 @@ export default function NewClientPage() {
       .map(p => p.trim())
       .filter(Boolean);
 
-    const { error } = await supabase.from('clients').insert({
+    // Create client first
+    const { data: client, error } = await supabase.from('clients').insert({
       name: form.name,
       niche: form.niche,
       website_url: form.website_url || null,
@@ -45,9 +48,39 @@ export default function NewClientPage() {
       cta_preference: form.cta_preference || null,
       banned_phrases: banned.length > 0 ? banned : null,
       status: 'active',
-    });
+    }).select().single();
 
-    if (!error) {
+    if (!error && client) {
+      // Process services
+      if (form.services_raw.trim()) {
+        const services = form.services_raw.split(',').map(s => s.trim()).filter(Boolean);
+        if (services.length > 0) {
+          const serviceRecords = services.map((name, index) => ({
+            client_id: client.id,
+            name,
+            slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+            active: true,
+            priority: index,
+          }));
+          await supabase.from('services').insert(serviceRecords);
+        }
+      }
+
+      // Process cities
+      if (form.cities_raw.trim()) {
+        const cities = form.cities_raw.split(',').map(c => c.trim()).filter(Boolean);
+        if (cities.length > 0) {
+          const cityRecords = cities.map((name, index) => ({
+            client_id: client.id,
+            name,
+            state: form.state || '',
+            active: true,
+            priority: index,
+          }));
+          await supabase.from('cities').insert(cityRecords);
+        }
+      }
+
       router.push('/clients');
     }
     setLoading(false);
@@ -184,6 +217,30 @@ export default function NewClientPage() {
             onChange={e => setForm({ ...form, banned_phrases: e.target.value })}
             className="input-field"
             placeholder="cheap, affordable, bargain..."
+          />
+        </div>
+
+        <div className="border-t border-border pt-6 mt-6">
+          <h3 className="section-title mb-4">Quick Add Services</h3>
+          <p className="text-xs text-text-tertiary mb-3">Paste services separated by commas - they'll be created automatically</p>
+          <textarea
+            value={form.services_raw}
+            onChange={e => setForm({ ...form, services_raw: e.target.value })}
+            className="input-field"
+            rows={3}
+            placeholder="AC Repair, Furnace Repair, Water Heater Services, HVAC Maintenance..."
+          />
+        </div>
+
+        <div>
+          <h3 className="section-title mb-4">Quick Add Cities</h3>
+          <p className="text-xs text-text-tertiary mb-3">Paste cities separated by commas - they'll be created automatically</p>
+          <textarea
+            value={form.cities_raw}
+            onChange={e => setForm({ ...form, cities_raw: e.target.value })}
+            className="input-field"
+            rows={3}
+            placeholder="Salt Lake City, West Valley City, Provo, Ogden..."
           />
         </div>
 

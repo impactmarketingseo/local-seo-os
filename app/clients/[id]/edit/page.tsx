@@ -43,6 +43,8 @@ export default function EditClientPage() {
     voice_notes: '',
     cta_preference: '',
     banned_phrases: '',
+    services_raw: '',
+    cities_raw: '',
     status: 'active',
   });
   const [wpForm, setWpForm] = useState({
@@ -75,6 +77,8 @@ export default function EditClientPage() {
           cta_preference: clientRes.data.cta_preference || '',
           banned_phrases: clientRes.data.banned_phrases?.join(', ') || '',
           status: clientRes.data.status,
+          services_raw: '',
+          cities_raw: '',
         });
       }
       if (wpRes.data) {
@@ -102,6 +106,7 @@ export default function EditClientPage() {
       .map(p => p.trim())
       .filter(Boolean);
 
+    // Update client
     await supabase.from('clients').update({
       name: form.name,
       niche: form.niche,
@@ -116,6 +121,46 @@ export default function EditClientPage() {
       banned_phrases: banned.length > 0 ? banned : null,
       status: form.status,
     }).eq('id', clientId);
+
+    // Process services - split by comma and create records
+    if (form.services_raw.trim()) {
+      const services = form.services_raw.split(',').map(s => s.trim()).filter(Boolean);
+      
+      // Delete existing services first
+      await supabase.from('services').delete().eq('client_id', clientId);
+      
+      // Insert new services
+      if (services.length > 0) {
+        const serviceRecords = services.map((name, index) => ({
+          client_id: clientId,
+          name,
+          slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+          active: true,
+          priority: index,
+        }));
+        await supabase.from('services').insert(serviceRecords);
+      }
+    }
+
+    // Process cities - split by comma and create records
+    if (form.cities_raw.trim()) {
+      const cities = form.cities_raw.split(',').map(c => c.trim()).filter(Boolean);
+      
+      // Delete existing cities first
+      await supabase.from('cities').delete().eq('client_id', clientId);
+      
+      // Insert new cities
+      if (cities.length > 0) {
+        const cityRecords = cities.map((name, index) => ({
+          client_id: clientId,
+          name,
+          state: form.state || '',
+          active: true,
+          priority: index,
+        }));
+        await supabase.from('cities').insert(cityRecords);
+      }
+    }
 
     router.push(`/clients/${clientId}`);
   }
@@ -276,6 +321,30 @@ export default function EditClientPage() {
             value={form.banned_phrases}
             onChange={e => setForm({ ...form, banned_phrases: e.target.value })}
             className="input-field"
+          />
+        </div>
+
+        <div className="border-t border-border pt-6 mt-6">
+          <h3 className="section-title mb-4">Quick Add Services</h3>
+          <p className="text-xs text-text-tertiary mb-3">Paste services separated by commas - they'll be created automatically</p>
+          <textarea
+            value={form.services_raw}
+            onChange={e => setForm({ ...form, services_raw: e.target.value })}
+            className="input-field"
+            rows={3}
+            placeholder="AC Repair, Furnace Repair, Water Heater Services, HVAC Maintenance..."
+          />
+        </div>
+
+        <div>
+          <h3 className="section-title mb-4">Quick Add Cities</h3>
+          <p className="text-xs text-text-tertiary mb-3">Paste cities separated by commas - they'll be created automatically</p>
+          <textarea
+            value={form.cities_raw}
+            onChange={e => setForm({ ...form, cities_raw: e.target.value })}
+            className="input-field"
+            rows={3}
+            placeholder="Salt Lake City, West Valley City, Provo, Ogden..."
           />
         </div>
 
