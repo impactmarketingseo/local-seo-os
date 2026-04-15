@@ -35,21 +35,29 @@ export function buildPrompt(params: {
   prompt += 'CRITICAL REQUIREMENTS:\n';
   prompt += '1. ALWAYS use EXACTLY this phone number in all CTAs: "' + (params.phone || 'NO PHONE') + '" - NEVER use any other phone number\n';
   prompt += '2. ALWAYS mention the business name "' + params.client_name + '" naturally throughout the content\n';
-  prompt += '3. Write unique, substantive content with lists to break up text\n';
-  prompt += '4. Include specific local references: neighborhood names, local landmarks, city-specific conditions\n';
+  prompt += '3. Write COMPREHENSIVE content - each section must be 200-400 words minimum to be authoritative and SEO-friendly\n';
+  prompt += '4. Include specific local references: neighborhood names, local landmarks, city-specific conditions, local statistics\n';
   prompt += '5. Use LocalBusiness + Service + FAQPage schema in JSON-LD format\n';
   prompt += '6. Use lists (bullet points or numbered) for common issues, benefits, and services to improve visual appeal\n';
-  prompt += '7. IMPORTANT: All content must be in the JSON output - not in prose. The JSON must contain ALL sections.\n\n';
+  prompt += '7. IMPORTANT: All content must be in the JSON output - not in prose. The JSON must contain ALL sections.\n';
+  prompt += '8. Write as an industry expert - include specific details, examples, and proof points to establish authority\n\n';
 
-  prompt += 'PAGE STRUCTURE - output EACH in JSON fields:\n';
-  prompt += '- "hero": Hero section content (40-70 words with CTA)\n';
-  prompt += '- "trust_signals": Array of {icon, label, value} for trust signals (years in business, license, etc.)\n';
-  prompt += '- "common_issues": Array of strings for common problems/issues checklist\n';
-  prompt += '- "benefits": Array of strings for key benefits of the service\n';
-  prompt += '- "sections": Array of {heading, content} objects for H2 sections\n';
-  prompt += '- "services": Array of strings for services offered\n';
-  prompt += '- "faqs": Array of {question, answer} objects (minimum 5)\n';
-  prompt += '- "cta_block": CTA content (30-60 words)\n\n';
+  prompt += 'PAGE STRUCTURE - output EACH in JSON fields with 200-400+ words each:\n';
+  prompt += '- "hero": Hero section content (60-100 words with CTA)\n';
+  prompt += '- "trust_signals": Array of {icon, label, value} for trust signals\n';
+  prompt += '- "common_issues": Array of strings for common problems (minimum 7 items)\n';
+  prompt += '- "benefits": Array of strings for key benefits (minimum 7 items)\n';
+  prompt += '- "sections": Array of {heading, content} objects - EACH section must be 250-400 words\n';
+  prompt += '- "services": Array of strings for services offered (minimum 5 items)\n';
+  prompt += '- "faqs": Array of {question, answer} objects (minimum 7, each answer 50-100 words)\n';
+  prompt += '- "cta_block": CTA content (50-80 words)\n\n';
+
+  prompt += 'SEO CONTENT REQUIREMENTS:\n';
+  prompt += '- Each section heading should target specific keywords\n';
+  prompt += '- Include LSI keywords naturally throughout content\n';
+  prompt += '- Add specific numbers, statistics, and proof points\n';
+  prompt += '- Include neighborhood names and local landmarks\n';
+  prompt += '- Write in semi-formal tone that builds trust\n\n';
 
   prompt += 'SEO REQUIREMENTS:\n';
   prompt += '- Title: "[Service] in [City], [State] | [Brand Name]" (60 chars max)\n';
