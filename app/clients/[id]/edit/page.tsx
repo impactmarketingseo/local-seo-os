@@ -123,11 +123,11 @@ export default function EditClientPage() {
     }).eq('id', clientId);
 
     // Process services - split by comma, newline, or semicolon
-    if (form.services_raw.trim()) {
+    if (form.services_raw && form.services_raw.trim()) {
       const rawServices = form.services_raw
-        .split(/[,;\n]+/)  // Split by comma, semicolon, or newline
+        .split(/(?:,|;|\n)+/)
         .map(s => s.trim())
-        .filter(s => s.length > 0);
+        .filter(s => s && s.length > 0);
       
       // Delete existing services first
       await supabase.from('services').delete().eq('client_id', clientId);
@@ -136,7 +136,7 @@ export default function EditClientPage() {
       if (rawServices.length > 0) {
         const serviceRecords = rawServices.map((name, index) => ({
           client_id: clientId,
-          name,
+          name: name,
           slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
           active: true,
           priority: index,
@@ -146,11 +146,11 @@ export default function EditClientPage() {
     }
 
     // Process cities - split by comma, newline, or semicolon
-    if (form.cities_raw.trim()) {
+    if (form.cities_raw && form.cities_raw.trim()) {
       const rawCities = form.cities_raw
-        .split(/[,;\n]+/)
+        .split(/(?:,|;|\n)+/)
         .map(c => c.trim())
-        .filter(c => c.length > 0);
+        .filter(c => c && c.length > 0);
       
       // Delete existing cities first
       await supabase.from('cities').delete().eq('client_id', clientId);
@@ -159,7 +159,7 @@ export default function EditClientPage() {
       if (rawCities.length > 0) {
         const cityRecords = rawCities.map((name, index) => ({
           client_id: clientId,
-          name,
+          name: name,
           state: form.state || '',
           slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
           active: true,
