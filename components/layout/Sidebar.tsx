@@ -49,11 +49,7 @@ export function Sidebar() {
           </svg>
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md bg-accent flex items-center justify-center">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
+          <img src="/favicon.svg" alt="Logo" className="w-7 h-7 rounded-md" />
           <h1 className="font-bold text-lg text-text-primary tracking-tight">SEO OS</h1>
         </div>
         <div className="w-10" />
@@ -64,11 +60,7 @@ export function Sidebar() {
         <div className="lg:hidden fixed inset-0 z-50 bg-sidebar">
           <div className="p-4 flex justify-between items-center border-b border-border">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-md bg-accent flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
+              <img src="/favicon.svg" alt="Logo" className="w-7 h-7 rounded-md" />
               <div>
                 <h1 className="font-bold text-lg text-text-primary tracking-tight">SEO OS</h1>
                 <p className="text-xs text-text-tertiary">Impact Marketing</p>
@@ -125,16 +117,10 @@ export function Sidebar() {
         {/* Logo Area */}
         <div className="p-5 border-b border-border">
           <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
-            <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
+            <img src="/favicon.svg" alt="Logo" className="w-8 h-8 rounded-lg" />
             {!collapsed && (
               <div>
-                <h1 className="font-bold text-lg tracking-tight text-text-primary">
-                  SEO<span className="gradient-text">OS</span>
-                </h1>
+                <h1 className="font-bold text-lg tracking-tight text-text-primary">SEO OS</h1>
                 <p className="text-xs text-text-tertiary">Impact Marketing</p>
               </div>
             )}
