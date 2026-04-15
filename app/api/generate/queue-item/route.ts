@@ -40,6 +40,8 @@ export async function POST(req: NextRequest) {
     const service = queueItem.services as any;
     const city = queueItem.cities as any;
 
+    console.log('Queue item:', { service_id: queueItem.service_id, city_id: queueItem.city_id, service, city, client });
+
     const generateUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://local-seo-os.vercel.app';
 
     const generateResponse = await fetch(`${generateUrl}/api/generate`, {

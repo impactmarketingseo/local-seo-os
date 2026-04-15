@@ -32,8 +32,12 @@ export async function POST(req: NextRequest) {
     
     const { queue_item_id, client_id, service_id, city_id, primary_keyword, synonym, niche, brand_voice, cta_preference, banned_phrases, client_name, city, state, phone, email, address, website_url } = packet;
 
+    console.log('Generate request:', { queue_item_id, service_id, city_id, primary_keyword, niche });
+    
+    // Validate IDs are not empty strings
     if (!queue_item_id || !service_id || !city_id || !primary_keyword || !niche) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      console.error('Missing fields:', { queue_item_id, service_id, city_id, primary_keyword, niche });
+      return NextResponse.json({ error: 'Missing required fields', received: { queue_item_id, service_id, city_id, primary_keyword, niche } }, { status: 400 });
     }
 
     await supabase.from('page_queue').update({ status: 'generating' }).eq('id', queue_item_id);
