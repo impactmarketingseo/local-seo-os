@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, type ReactNode } from 'react';
+import { useAppSettings } from '@/lib/settings-context';
 
 const navItems = [
   { name: 'Dashboard', href: '/', icon: 'home' },
@@ -35,9 +36,30 @@ export function Sidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const { settings, loading } = useAppSettings();
+
+  const logoUrl = settings?.branding?.logo_url;
+  const appName = settings?.branding?.app_name || 'SEO OS';
+  const agencyName = 'Impact Marketing';
 
   useEffect(() => setIsOpen(false), [pathname]);
   useEffect(() => { if (isOpen) document.body.style.overflow = 'hidden'; else document.body.style.overflow = 'unset'; }, [isOpen]);
+
+  const LogoImage = () => {
+    if (loading) {
+      return <div className="w-8 h-8 rounded-lg bg-input animate-pulse" />;
+    }
+    if (logoUrl) {
+      return <img src={logoUrl} alt="Logo" className="w-8 h-8 rounded-lg object-cover" />;
+    }
+    return (
+      <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
+        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -60,10 +82,10 @@ export function Sidebar() {
         <div className="lg:hidden fixed inset-0 z-50 bg-sidebar">
           <div className="p-4 flex justify-between items-center border-b border-border">
             <div className="flex items-center gap-2">
-              <img src="/favicon.svg" alt="Logo" className="w-7 h-7 rounded-md" />
+              <LogoImage />
               <div>
-                <h1 className="font-bold text-lg text-text-primary tracking-tight">SEO OS</h1>
-                <p className="text-xs text-text-tertiary">Impact Marketing</p>
+                <h1 className="font-bold text-lg text-text-primary tracking-tight">{appName}</h1>
+                <p className="text-xs text-text-tertiary">{agencyName}</p>
               </div>
             </div>
             <button onClick={() => setIsOpen(false)} className="p-2">
@@ -117,11 +139,11 @@ export function Sidebar() {
         {/* Logo Area */}
         <div className="p-5 border-b border-border">
           <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
-            <img src="/favicon.svg" alt="Logo" className="w-8 h-8 rounded-lg" />
+            <LogoImage />
             {!collapsed && (
               <div>
-                <h1 className="font-bold text-lg tracking-tight text-text-primary">SEO OS</h1>
-                <p className="text-xs text-text-tertiary">Impact Marketing</p>
+                <h1 className="font-bold text-lg tracking-tight text-text-primary">{appName}</h1>
+                <p className="text-xs text-text-tertiary">{agencyName}</p>
               </div>
             )}
           </div>

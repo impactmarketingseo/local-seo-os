@@ -152,10 +152,8 @@ function BrandingTab() {
       }),
     });
 
-    // Apply CSS variables
+    // Apply CSS variables immediately
     document.documentElement.style.setProperty('--app-accent', accentColor);
-    document.documentElement.style.setProperty('--app-accent-hover', adjustColor(accentColor, -20));
-    document.documentElement.style.setProperty('--app-accent-active', adjustColor(accentColor, -40));
     document.documentElement.style.setProperty('--primary', accentColor);
     document.documentElement.style.setProperty('--ring', accentColor);
     document.documentElement.style.setProperty('--accent', accentColor);
