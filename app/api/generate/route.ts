@@ -127,8 +127,10 @@ export async function POST(req: NextRequest) {
     const cta_block = generatedContent.cta_block || generatedContent.cta || (ctaMatch ? ctaMatch[1] : '');
     const additional_keywords = generatedContent.additional_keywords || [];
     const schema_notes = generatedContent.schema_notes || {};
+    const service_schema = generatedContent.service_schema || {};
+    const local_business_schema = generatedContent.local_business_schema || {};
     
-    console.log('Extracted fields:', { title, slug, h1, meta_title, meta_description, intro: intro?.substring(0, 50) });
+    console.log('Extracted fields:', { title, slug, h1, meta_title, meta_description, intro: intro?.substring(0, 50), service_schema, local_business_schema });
     
     const { data: draft, error: draftError } = await supabase.from('drafts').insert({
       queue_id: queue_item_id,
@@ -144,7 +146,9 @@ export async function POST(req: NextRequest) {
       cta_block: cta_block,
       internal_links: generatedContent.internal_links || [],
       additional_keywords: additional_keywords,
-      schema_notes: schema_notes,
+      schema_notes: service_schema, // Primary: service schema
+      service_schema: service_schema,
+      local_business_schema: local_business_schema,
       content_json: generatedContent,
       content_text: content,
       status: 'draft',
@@ -221,22 +225,24 @@ CRITICAL REQUIREMENTS:
 
 PAGE STRUCTURE (follow exactly):
 
-1. HERO: 40-70 words with H1, subheadline, two CTAs
+1. HERO: 40-70 words with H1, subheadline, two CTAs - output as "hero" field
 2. TRUST SIGNALS BAR: icons with labels (years, license, reviews, guarantee, response time)
-3. LOCAL INTRO: 150-200 words - 2 paragraphs establishing local presence
-4. PROBLEM SECTION: 250-350 words - H2 about city-specific problems (housing stock, climate, geography)
-5. TYPES/SYMPTOMS: 300-400 words - H2 with 3-5 H3 subsections
-6. WARNING SIGNS: 150-200 words - checklist of 5-7 symptoms
-7. OUR PROCESS: 250-300 words - 5 numbered steps
-8. MID-PAGE CTA: 30-40 words - conversion block
-9. WHY LOCAL: 200-250 words - why local expertise matters
-10. DIY VS PRO: 150-200 words + comparison table
-11. FAQS: 250-350 words - minimum 5 FAQs with city-specific questions
-12. FINAL CTA: 40-60 words - confident close
+3. LOCAL INTRO: 150-200 words - 2 paragraphs establishing local presence - output in "sections"
+4. PROBLEM SECTION: 250-350 words - H2 about city-specific problems (housing stock, climate, geography) - output in "sections"
+5. TYPES/SYMPTOMS: 300-400 words - H2 with 3-5 H3 subsections - output in "sections"
+6. WARNING SIGNS: 150-200 words - checklist of 5-7 symptoms - output in "sections"
+7. OUR PROCESS: 250-300 words - 5 numbered steps - output in "sections"
+8. MID-PAGE CTA: 30-40 words - conversion block - output in "cta_block"
+9. WHY LOCAL: 200-250 words - why local expertise matters - output in "sections"
+10. DIY VS PRO: 150-200 words + comparison table - output in "sections"
+11. FAQS: 250-350 words - minimum 5 FAQs with city-specific questions - output in "faqs"
+12. FINAL CTA: 40-60 words - confident close - append to "cta_block"
+
+OUTPUT ALL SECTIONS IN STRUCTURED JSON FORMAT with these exact keys: title, slug, meta_title, meta_description (150-160 chars), h1, additional_keywords, service_schema, local_business_schema, hero, sections (array with heading+content), faqs (array with question+answer), cta_block
 
 SEO REQUIREMENTS:
 - Title: "[Service] in [City], [State] | [Brand Name]" (60 chars max)
-- Meta: Include phone number, trigger urgency (160 chars max)  
+- Meta: Include phone number, trigger urgency (150-160 chars max)  
 - URL slug: /service-city-state/ format
 - H1 exactly: "[Service] in [City], [State]"
 
@@ -245,10 +251,25 @@ OUTPUT JSON:
   "title": "...",
   "slug": "ac-repair-riverton-ut",
   "meta_title": "AC Repair in Riverton, UT | ABC Heating",
-  "meta_description": "Expert AC repair in Riverton. Same-day service, 5-year warranty. Call ${params.phone || '(555) 123-4567'}.",
+  "meta_description": "Expert AC repair in Riverton, UT. Same-day service, 5-year warranty on all repairs. Call now for a free quote! Servicing Riverton, South Jordan, and surrounding areas.",
   "h1": "AC Repair in Riverton, Utah",
   "additional_keywords": ["AC repair near me", "emergency AC repair Riverton UT", "AC installation Riverton", "AC maintenance Riverton"],
-  "schema_notes": {
+  "service_schema": {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "AC Repair in Riverton",
+    "provider": {
+      "@type": "LocalBusiness",
+      "name": "${params.client_name}",
+      "telephone": "${params.phone}"
+    },
+    "areaServed": {
+      "@type": "City",
+      "name": "${params.city}, ${params.state}"
+    },
+    "description": "Professional ${params.niche} services in ${params.city}, ${params.state}. Call ${params.phone} for expert service."
+  },
+  "local_business_schema": {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "name": "${params.client_name}",
@@ -272,6 +293,40 @@ OUTPUT JSON:
     "serviceType": "${params.niche}",
     "description": "Professional ${params.niche} services in ${params.city}, ${params.state}. Call ${params.phone} for expert service."
   }
+}
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "${params.client_name}",
+    "image": "${params.website_url}/logo.png",
+    "telephone": "${params.phone}",
+    "email": "${params.email}",
+    "url": "${params.website_url}",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "${params.address}",
+      "addressLocality": "${params.city}",
+      "addressRegion": "${params.state}",
+      "postalCode": "REPLACE_WITH_POSTAL_CODE"
+    },
+    "areaServed": {
+      "@type": "State",
+      "name": "${params.state}"
+    },
+    "priceRange": "$$",
+    "openingHours": "Mo-Fr 08:00-18:00, Sa 09:00-14:00",
+    "serviceType": "${params.niche}",
+      "description": "Professional ${params.niche} services in ${params.city}, ${params.state}. Call ${params.phone} for expert service."
+  },
+  "hero": "Hero section content here...",
+  "sections": [
+    { "heading": "Local Introduction", "content": "150-200 words..." },
+    { "heading": "Problem Section", "content": "250-350 words..." },
+    { "heading": "Our Process", "content": "250-300 words..." }
+  ],
+  "faqs": [
+    { "question": "City-specific question?", "answer": "Detailed answer..." }
+  ],
+  "cta_block": "CTA content here..."
 }
 }
 }

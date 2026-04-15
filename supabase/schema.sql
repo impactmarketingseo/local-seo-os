@@ -121,6 +121,8 @@ CREATE TABLE drafts (
     cta_block TEXT,
     internal_links JSONB,
     schema_notes JSONB,
+    service_schema JSONB,
+    local_business_schema JSONB,
     content_json JSONB NOT NULL,
     content_text TEXT,
     status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'review', 'approved', 'rejected', 'published')),

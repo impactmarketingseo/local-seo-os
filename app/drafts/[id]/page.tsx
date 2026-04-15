@@ -18,7 +18,10 @@ interface Draft {
   internal_links: { title: string; url: string }[];
   additional_keywords: string[];
   schema_notes: Record<string, unknown>;
+  service_schema: Record<string, unknown>;
+  local_business_schema: Record<string, unknown>;
   content_text: string;
+  content_json: Record<string, unknown>;
   status: string;
   version_number: number;
   created_at: string;
@@ -33,7 +36,7 @@ export default function DraftDetailPage() {
   
   const [draft, setDraft] = useState<Draft | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'seo' | 'keywords' | 'schema' | 'content'>('seo');
+  const [activeTab, setActiveTab] = useState<'seo' | 'keywords' | 'schema' | 'sections' | 'content'>('seo');
   const [showDelete, setShowDelete] = useState(false);
 
   useEffect(() => {
@@ -131,14 +134,14 @@ export default function DraftDetailPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 overflow-x-auto border-b border-border">
-        {(['seo', 'keywords', 'schema', 'content'] as const).map((tab) => (
+        {(['seo', 'keywords', 'schema', 'sections', 'content'] as const).map((tab) => (
           <button key={tab} onClick={() => setActiveTab(tab)}
             className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
               activeTab === tab 
                 ? 'border-accent text-accent' 
                 : 'border-transparent text-text-tertiary hover:text-text-secondary'
             }`}>
-            {tab === 'seo' ? 'SEO' : tab === 'keywords' ? 'Keywords' : tab === 'schema' ? 'Schema' : 'Content'}
+            {tab === 'seo' ? 'SEO' : tab === 'keywords' ? 'Keywords' : tab === 'schema' ? 'Schema' : tab === 'sections' ? 'Sections' : 'Content'}
           </button>
         ))}
       </div>
@@ -197,17 +200,80 @@ export default function DraftDetailPage() {
 
         {/* Schema Tab */}
         {activeTab === 'schema' && (
-          <div className="card-standard">
-            <div className="flex justify-between items-center mb-4">
-              <p className="text-sm font-semibold text-text-primary">JSON-LD Schema</p>
-              <button onClick={() => navigator.clipboard.writeText(JSON.stringify(draft.schema_notes, null, 2))}
-                className="btn-secondary text-sm">
-                Copy
-              </button>
+          <div className="space-y-6">
+            <div className="card-standard">
+              <div className="flex justify-between items-center mb-4">
+                <p className="text-sm font-semibold text-text-primary">Service Schema</p>
+                <button onClick={() => navigator.clipboard.writeText(JSON.stringify(draft.service_schema, null, 2))}
+                  className="btn-secondary text-sm">
+                  Copy
+                </button>
+              </div>
+              <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md">
+                {JSON.stringify(draft.service_schema || {}, null, 2)}
+              </pre>
             </div>
-            <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md">
-              {JSON.stringify(draft.schema_notes, null, 2)}
-            </pre>
+            <div className="card-standard">
+              <div className="flex justify-between items-center mb-4">
+                <p className="text-sm font-semibold text-text-primary">Local Business Schema</p>
+                <button onClick={() => navigator.clipboard.writeText(JSON.stringify(draft.local_business_schema, null, 2))}
+                  className="btn-secondary text-sm">
+                  Copy
+                </button>
+              </div>
+              <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md">
+                {JSON.stringify(draft.local_business_schema || {}, null, 2)}
+              </pre>
+            </div>
+          </div>
+        )}
+
+        {/* Sections Tab */}
+        {activeTab === 'sections' && draft.content_json && (
+          <div className="space-y-4">
+            {(() => {
+              const sections = draft.content_json?.sections || [];
+              const faqs = draft.content_json?.faqs || [];
+              const hero = draft.content_json?.hero || '';
+              const cta = draft.content_json?.cta_block || draft.content_json?.cta || '';
+              
+              return (
+                <>
+                  {hero && (
+                    <div className="card-standard">
+                      <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Hero Section</p>
+                      <p className="text-text-secondary whitespace-pre-wrap">{hero}</p>
+                    </div>
+                  )}
+                  {sections.map((section: any, i: number) => (
+                    <div key={i} className="card-standard">
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-xs font-medium uppercase tracking-wider text-text-disabled">{section.heading}</p>
+                        <button onClick={() => navigator.clipboard.writeText(section.content)} className="btn-secondary text-xs">Copy</button>
+                      </div>
+                      <p className="text-text-secondary whitespace-pre-wrap">{section.content}</p>
+                    </div>
+                  ))}
+                  {faqs.length > 0 && (
+                    <div className="card-standard">
+                      <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">FAQs</p>
+                      {faqs.map((faq: any, i: number) => (
+                        <div key={i} className="mb-3">
+                          <p className="font-medium text-text-primary">{faq.question}</p>
+                          <p className="text-text-secondary text-sm">{faq.answer}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {cta && (
+                    <div className="card-standard">
+                      <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">CTA Block</p>
+                      <p className="text-text-secondary whitespace-pre-wrap">{cta}</p>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
         )}
 
