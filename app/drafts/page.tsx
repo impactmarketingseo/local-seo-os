@@ -8,6 +8,7 @@ interface Draft {
   id: string;
   title: string;
   slug: string;
+  meta_title: string;
   meta_description: string;
   status: string;
   version_number: number;
