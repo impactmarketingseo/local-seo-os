@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { toast } from '@/components/Toast';
 
 interface Client {
   id: string;
@@ -85,12 +86,12 @@ export default function NewQueueItemPage() {
     console.log('Insert result:', data, error);
     
     if (error) {
-      alert('Error: ' + error.message);
+      toast('Error: ' + error.message, 'error');
       setLoading(false);
       return;
     }
     
-    alert('Queue item created! ID: ' + (data?.[0]?.id || 'unknown'));
+    toast('Queue item created!', 'success');
 
     router.push('/queue');
   }

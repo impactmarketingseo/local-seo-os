@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { toast } from '@/components/Toast';
 
 interface QueueItem {
   id: string;
@@ -214,7 +215,7 @@ export default function QueuePage() {
       
       if (!response.ok) {
         const text = await response.text();
-        alert('Error ' + response.status + ': ' + text.substring(0, 200));
+        toast('Error ' + response.status + ': ' + text.substring(0, 200), 'error');
         loadQueue();
         return;
       }
@@ -222,13 +223,13 @@ export default function QueuePage() {
       const result = await response.json();
       
       if (result.success) {
-        alert('Content generated! Check Drafts.');
+        toast('Content generated! Check Drafts.', 'success');
       } else {
-        alert('Error: ' + result.error + (result.details ? ' - ' + result.details : ''));
+        toast(result.error + (result.details ? ' - ' + result.details : ''), 'error');
       }
       loadQueue();
     } catch (e) {
-      alert('Failed to generate: ' + e);
+      toast('Failed to generate: ' + e, 'error');
       loadQueue();
     }
   }

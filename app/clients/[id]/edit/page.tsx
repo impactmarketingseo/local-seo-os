@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { toast } from '@/components/Toast';
 
 interface Client {
   id: string;
@@ -204,7 +205,7 @@ export default function EditClientPage() {
       });
     }
 
-    alert('WordPress connection saved');
+    toast('WordPress connection saved', 'success');
   }
 
   if (loading) {

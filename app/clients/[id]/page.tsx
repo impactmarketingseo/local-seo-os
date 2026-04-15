@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { toast } from '@/components/Toast';
 
 interface Client {
   id: string;
@@ -103,7 +104,7 @@ export default function ClientDetailPage() {
     console.log('addCity called:', name, 'state:', stateToUse, 'clientState:', client?.state);
     
     if (!stateToUse) {
-      alert('Client has no state set. Please edit the client and add a state.');
+      toast('Client has no state set. Please edit the client and add a state.', 'error');
       return;
     }
     
@@ -119,7 +120,7 @@ export default function ClientDetailPage() {
     console.log('Insert result:', data, error);
     
     if (error) {
-      alert('Error: ' + error.message);
+      toast('Error: ' + error.message, 'error');
     }
     
     const { data: refreshed } = await supabase.from('cities').select('*').eq('client_id', clientId).order('priority', { ascending: false });
