@@ -172,24 +172,34 @@ export default function DraftDetailPage() {
         {/* Keywords Tab */}
         {activeTab === 'keywords' && (
           <div className="space-y-4">
-            {draft.additional_keywords?.length > 0 && (
-              <div className="card-standard">
-                <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-3">Target Keywords</p>
-                <div className="flex flex-wrap gap-2">
-                  {draft.additional_keywords.map((kw, i) => (
-                    <span key={i} className="bg-accent/10 text-accent px-3 py-1 rounded-md text-sm">{kw}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-            {draft.internal_links?.length > 0 && (
-              <div className="card-standard">
-                <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-3">Internal Links</p>
-                {draft.internal_links.map((link, i) => (
-                  <div key={i} className="text-accent text-sm mb-1">{link.title}</div>
-                ))}
-              </div>
-            )}
+            {(() => {
+              // Handle additional_keywords - could be array or JSON string
+              let keywords: string[] = [];
+              if (Array.isArray(draft.additional_keywords)) {
+                keywords = draft.additional_keywords;
+              } else if (typeof draft.additional_keywords === 'string' && draft.additional_keywords) {
+                try {
+                  keywords = JSON.parse(draft.additional_keywords);
+                } catch (e) {
+                  keywords = [];
+                }
+              }
+              
+              return (
+                <>
+                  {keywords.length > 0 && (
+                    <div className="card-standard">
+                      <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-3">Target Keywords</p>
+                      <div className="flex flex-wrap gap-2">
+                        {keywords.map((kw: string, i: number) => (
+                          <span key={i} className="bg-accent/10 text-accent px-3 py-1 rounded-md text-sm">{kw}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
             {(!draft.additional_keywords?.length && !draft.internal_links?.length) && (
               <div className="card-standard text-center">
                 <p className="text-text-tertiary">No keywords configured</p>
