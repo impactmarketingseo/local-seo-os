@@ -34,7 +34,7 @@ export default function DraftDetailPage() {
   
   const [draft, setDraft] = useState<Draft | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'preview' | 'keywords' | 'schema' | 'content'>('preview');
+  const [activeTab, setActiveTab] = useState<'seo' | 'keywords' | 'schema' | 'content'>('seo');
 
   useEffect(() => {
     async function loadDraft() {
@@ -58,139 +58,126 @@ export default function DraftDetailPage() {
     if (draft) setDraft({ ...draft, status: 'rejected' });
   }
 
-  async function handleExport() {
-    await fetch('/api/generate/weekly', { method: 'POST' });
-    alert('Content exported');
-  }
-
-  if (loading) return <div className="p-6 text-muted-foreground">Loading...</div>;
-  if (!draft) return <div className="p-6">Draft not found</div>;
+  if (loading) return <div className="p-4 text-muted-foreground">Loading...</div>;
+  if (!draft) return <div className="p-4">Draft not found</div>;
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <button onClick={() => router.back()} className="text-sm text-muted-foreground hover:underline">← Back</button>
-          <h1 className="mt-2 text-2xl font-bold">{draft.title}</h1>
-          <p className="text-muted-foreground">{draft.clients?.name} · v{draft.version_number} · {formatDateTime(draft.created_at)}</p>
-        </div>
-        <span className={`px-3 py-1 rounded-full text-sm ${draft.status === 'approved' ? 'bg-green-100 text-green-800' : draft.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
-          {draft.status}
-        </span>
+    <div className="min-h-screen bg-gray-50">
+      {/* Mobile Header */}
+      <div className="bg-white border-b px-4 py-3 sticky top-0 z-10">
+        <button onClick={() => router.back()} className="text-sm text-blue-600">← Back</button>
+        <h1 className="text-lg font-bold mt-1 line-clamp-1">{draft.title}</h1>
       </div>
 
-      {/* Tabs */}
-      <div className="mb-4 flex gap-2 border-b">
-        {(['preview', 'keywords', 'schema', 'content'] as const).map((tab) => (
+      {/* Tabs - scrollable on mobile */}
+      <div className="bg-white border-b flex overflow-x-auto">
+        {(['seo', 'keywords', 'schema', 'content'] as const).map((tab) => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 font-medium capitalize ${activeTab === tab ? 'border-b-2 border-blue-600 text-blue-600' : 'text-muted-foreground'}`}>
-            {tab === 'keywords' ? 'Keywords' : tab === 'schema' ? 'Schema' : tab === 'content' ? 'Full Content' : 'SEO'}
+            className={`px-4 py-3 text-sm font-medium whitespace-nowrap ${activeTab === tab ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>
+            {tab === 'seo' ? 'SEO' : tab === 'keywords' ? 'Keywords' : tab === 'schema' ? 'Schema' : 'Content'}
           </button>
         ))}
       </div>
 
-      {/* Preview Content */}
-      {activeTab === 'preview' && (
-        <div className="space-y-6">
-          {/* Title & Slug */}
-          <div className="rounded-lg border bg-card p-4">
-            <p className="text-xs text-muted-foreground uppercase">Title Tag</p>
-            <p className="font-medium">{draft.title}</p>
-          </div>
-          <div className="rounded-lg border bg-card p-4">
-            <p className="text-xs text-muted-foreground uppercase">URL Slug</p>
-            <p className="font-mono text-sm">/{draft.slug}</p>
-          </div>
-          {draft.h1 && (
-            <div className="rounded-lg border bg-card p-4">
-              <p className="text-xs text-muted-foreground uppercase">H1</p>
-              <p className="text-xl font-bold">{draft.h1}</p>
+      <div className="p-4">
+        {/* SEO Tab */}
+        {activeTab === 'seo' && (
+          <div className="space-y-3">
+            <div className="bg-white rounded-lg border p-3">
+              <p className="text-xs text-gray-500 uppercase">Title</p>
+              <p className="font-medium text-sm">{draft.title}</p>
             </div>
-          )}
-          {draft.meta_description && (
-            <div className="rounded-lg border bg-card p-4">
-              <p className="text-xs text-muted-foreground uppercase">Meta Description</p>
-              <p>{draft.meta_description}</p>
+            <div className="bg-white rounded-lg border p-3">
+              <p className="text-xs text-gray-500 uppercase">URL Slug</p>
+              <p className="font-mono text-sm">/{draft.slug}</p>
             </div>
-          )}
-        </div>
-      )}
-
-      {/* Keywords */}
-      {activeTab === 'keywords' && (
-        <div className="space-y-6">
-          <div className="rounded-lg border bg-card p-4">
-            <p className="text-sm font-semibold mb-3">Additional Keywords</p>
-            <div className="flex flex-wrap gap-2">
-              {draft.additional_keywords?.map((kw, i) => (
-                <span key={i} className="bg-blue-50 px-3 py-1 rounded-full text-sm text-blue-700">{kw}</span>
-              ))}
-            </div>
-          </div>
-          {draft.internal_links && draft.internal_links.length > 0 && (
-            <div className="rounded-lg border bg-card p-4">
-              <p className="text-sm font-semibold mb-3">Internal Link Suggestions</p>
-              <div className="space-y-2">
-                {draft.internal_links.map((link, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="text-blue-600">{link.title}</span>
-                    <span className="text-muted-foreground">{link.url}</span>
-                  </div>
-                ))}
+            {draft.h1 && (
+              <div className="bg-white rounded-lg border p-3">
+                <p className="text-xs text-gray-500 uppercase">H1</p>
+                <p className="font-bold">{draft.h1}</p>
               </div>
-            </div>
-          )}
-          {draft.sections && draft.sections.length > 0 && (
-            <div className="rounded-lg border bg-card p-4">
-              <p className="text-sm font-semibold mb-3">Content Sections</p>
-              <div className="space-y-2">
-                {draft.sections.map((section, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">{i + 1}.</span>
-                    <span>{section.heading}</span>
-                  </div>
-                ))}
+            )}
+            {draft.meta_description && (
+              <div className="bg-white rounded-lg border p-3">
+                <p className="text-xs text-gray-500 uppercase">Meta Description</p>
+                <p className="text-sm">{draft.meta_description}</p>
               </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Schema */}
-      {activeTab === 'schema' && (
-        <div className="rounded-lg border border-green-500 bg-card p-4">
-          <p className="text-sm font-semibold text-green-600 mb-3">JSON-LD Schema</p>
-          <pre className="text-xs bg-slate-900 text-green-400 p-4 rounded overflow-x-auto">
-{JSON.stringify(draft.schema_notes, null, 2)}
-          </pre>
-          <button onClick={() => navigator.clipboard.writeText(JSON.stringify(draft.schema_notes, null, 2))}
-            className="mt-3 bg-green-600 text-white px-4 py-2 rounded text-sm">
-            Copy Schema
-          </button>
-        </div>
-      )}
-
-      {/* Full Content */}
-      {activeTab === 'content' && (
-        <div className="space-y-4">
-          <button onClick={() => navigator.clipboard.writeText(draft.content_text || '')}
-            className="bg-blue-600 text-white px-4 py-2 rounded">
-            Copy All Content
-          </button>
-          <div className="rounded-lg border bg-card p-4">
-            <pre className="whitespace-pre-wrap text-sm">{draft.content_text}</pre>
+            )}
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Keywords Tab */}
+        {activeTab === 'keywords' && (
+          <div className="space-y-3">
+            {draft.additional_keywords?.length > 0 && (
+              <div className="bg-white rounded-lg border p-3">
+                <p className="text-xs text-gray-500 uppercase mb-2">Keywords</p>
+                <div className="flex flex-wrap gap-2">
+                  {draft.additional_keywords.map((kw, i) => (
+                    <span key={i} className="bg-blue-50 px-2 py-1 rounded-full text-xs text-blue-700">{kw}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {draft.internal_links?.length > 0 && (
+              <div className="bg-white rounded-lg border p-3">
+                <p className="text-xs text-gray-500 uppercase mb-2">Internal Links</p>
+                <div className="space-y-1">
+                  {draft.internal_links.map((link, i) => (
+                    <div key={i} className="text-sm text-blue-600">{link.title}</div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Schema Tab */}
+        {activeTab === 'schema' && (
+          <div className="space-y-3">
+            <div className="bg-green-900 rounded-lg border border-green-500 p-3">
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-sm text-green-400 font-semibold">JSON-LD Schema</p>
+                <button onClick={() => navigator.clipboard.writeText(JSON.stringify(draft.schema_notes, null, 2))}
+                  className="bg-green-600 text-white px-3 py-1 rounded text-xs">
+                  Copy
+                </button>
+              </div>
+              <pre className="text-xs text-green-400 overflow-x-auto">
+                {JSON.stringify(draft.schema_notes, null, 2)}
+              </pre>
+            </div>
+          </div>
+        )}
+
+        {/* Content Tab */}
+        {activeTab === 'content' && (
+          <div className="space-y-3">
+            <button onClick={() => navigator.clipboard.writeText(draft.content_text || '')}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium">
+              Copy All Content
+            </button>
+            <div className="bg-white rounded-lg border p-3">
+              <pre className="text-xs whitespace-pre-wrap">{draft.content_text}</pre>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Actions */}
       {(draft.status === 'draft' || draft.status === 'review') && (
-        <div className="mt-6 flex gap-3 border-t pt-4">
-          <button onClick={handleApprove} className="bg-green-600 text-white px-4 py-2 rounded">Approve</button>
-          <button onClick={handleReject} className="bg-red-100 text-red-800 px-4 py-2 rounded">Reject</button>
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-3 flex gap-2">
+          <button onClick={handleApprove} className="flex-1 bg-green-600 text-white py-3 rounded-lg font-medium">
+            Approve
+          </button>
+          <button onClick={handleReject} className="flex-1 bg-red-100 text-red-800 py-3 rounded-lg font-medium">
+            Reject
+          </button>
         </div>
       )}
+      
+      {/* Spacer for fixed bottom buttons */}
+      {(draft.status === 'draft' || draft.status === 'review') && <div className="h-20" />}
     </div>
   );
 }
