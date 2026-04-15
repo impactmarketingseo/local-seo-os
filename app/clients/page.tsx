@@ -25,14 +25,16 @@ const statusColors: Record<string, { bg: string; dot: string; label: string }> =
 };
 
 const nicheColors: Record<string, string> = {
-  'pest control': 'bg-purple-500/10 text-purple-400',
+  'pest': 'bg-purple-500/10 text-purple-400',
   'plumbing': 'bg-blue-500/10 text-blue-400',
   'roofing': 'bg-orange-500/10 text-orange-400',
   'hvac': 'bg-cyan-500/10 text-cyan-400',
+  'heating': 'bg-cyan-500/10 text-cyan-400',
+  'cooling': 'bg-cyan-500/10 text-cyan-400',
   'electrical': 'bg-yellow-500/10 text-yellow-400',
   'landscaping': 'bg-green-500/10 text-green-400',
   'cleaning': 'bg-pink-500/10 text-pink-400',
-  'default': 'bg-input text-text-tertiary',
+  'default': 'bg-accent/10 text-accent',
 };
 
 function getNicheColor(niche: string): string {
@@ -229,7 +231,7 @@ export default function ClientsPage() {
       </div>
 
       {loading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
             <ClientCardSkeleton key={i} />
           ))}
@@ -248,7 +250,7 @@ export default function ClientsPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {filteredClients.map((client, index) => (
             <ClientCard key={client.id} client={client} delay={(index + 1) * 50} />
           ))}

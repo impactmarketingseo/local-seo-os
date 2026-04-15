@@ -47,7 +47,7 @@ function QueueRow({ item, onUpdate, onDelete, onGenerate, delay }: { item: Queue
       className="group rounded-lg bg-card/50 border border-border hover:border-accent/30 transition-all animate-fade-in"
       style={delay ? { animationDelay: `${delay}ms` } : undefined}
     >
-      <div className="flex items-center gap-4 p-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4">
         {/* Client & Target */}
         <div className="flex-1 min-w-0">
           <p className="font-medium text-text-primary truncate">{item.clients?.name || 'Unknown Client'}</p>
@@ -64,13 +64,8 @@ function QueueRow({ item, onUpdate, onDelete, onGenerate, delay }: { item: Queue
           {item.notes && <p className="text-xs text-accent mt-1">Keyword: {item.notes}</p>}
         </div>
 
-        {/* Deliverable Type */}
-        <div className="hidden md:block w-32">
-          <span className="text-sm text-text-secondary">{item.generation_mode || 'City Page'}</span>
-        </div>
-
-        {/* Status */}
-        <div className="w-28">
+        {/* Status - visible on all screens */}
+        <div className="order-2 sm:order-none">
           <button
             onClick={() => item.status === 'failed' && setShowError(!showError)}
             className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium ${status.bg} ${status.text} ${item.status === 'failed' ? 'cursor-pointer hover:opacity-80' : ''}`}
@@ -85,44 +80,38 @@ function QueueRow({ item, onUpdate, onDelete, onGenerate, delay }: { item: Queue
           </button>
         </div>
 
-        {/* Scheduled */}
-        <div className="hidden lg:block w-24 text-sm text-text-tertiary mono">
-          {item.scheduled_for ? new Date(item.scheduled_for).toLocaleDateString() : '—'}
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-1">
-          {(item.status === 'planned' || item.status === 'approved') && (
+        {/* Actions - stack below on mobile */}
+        <div className="flex gap-2 order-1 sm:order-none sm:ml-auto">
+          {item.status === 'planned' && (
             <button
               onClick={() => onGenerate(item.id)}
-              className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-hover transition-colors"
+              className="btn-primary text-xs py-1.5 px-3"
             >
               Generate
             </button>
           )}
-          {item.status === 'planned' && (
-            <button
-              onClick={() => onUpdate(item.id, 'approved')}
-              className="rounded-md bg-success/10 px-2 py-1.5 text-xs font-medium text-success hover:bg-success/20 transition-colors"
-            >
-              Approve
-            </button>
-          )}
           {item.status === 'needs_review' && (
             <Link
-              href={`/drafts?queue=${item.id}`}
-              className="rounded-md bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent hover:bg-accent/20 transition-colors"
+              href={`/drafts`}
+              className="btn-secondary text-xs py-1.5 px-3"
             >
               Review
             </Link>
           )}
           <button
             onClick={() => onDelete(item.id)}
-            className="rounded-md px-2 py-1.5 text-xs text-error hover:bg-error/10 transition-colors opacity-0 group-hover:opacity-100"
+            className="text-xs text-error hover:underline py-1.5"
           >
             Delete
           </button>
         </div>
+      </div>
+
+        {/* Scheduled */}
+        <div className="hidden lg:block w-24 text-sm text-text-tertiary mono">
+          {item.scheduled_for ? new Date(item.scheduled_for).toLocaleDateString() : '—'}
+        </div>
+
       </div>
 
       {/* Error Detail */}
