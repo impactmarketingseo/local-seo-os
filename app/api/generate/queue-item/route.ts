@@ -31,7 +31,23 @@ export async function POST(req: NextRequest) {
     
     if (queueError || !queueItem) {
       console.error('Queue item query error:', queueError);
-      return NextResponse.json({ error: 'Queue item not found', details: queueError?.message }, { status: 404 });
+      console.log('Searching for queue_item_id:', queue_item_id);
+      
+      // Try a direct query to check if the item exists
+      const { data: directCheck, error: directError } = await supabase
+        .from('page_queue')
+        .select('id, client_id, service_id, city_id')
+        .eq('id', queue_item_id)
+        .maybeSingle();
+      
+      console.log('Direct check result:', { directCheck, directError });
+      
+      return NextResponse.json({ 
+        error: 'Queue item not found', 
+        details: queueError?.message,
+        searched_id: queue_item_id,
+        direct_found: !!directCheck
+      }, { status: 404 });
     }
 
     console.log('Queue item details:', {
@@ -47,6 +63,14 @@ export async function POST(req: NextRequest) {
       .eq('service_id', queueItem.service_id)
       .eq('city_id', queueItem.city_id)
       .maybeSingle();
+
+    // If service_id or city_id is null, log it
+    if (!queueItem.service_id || !queueItem.city_id) {
+      console.warn('Missing service_id or city_id:', { 
+        service_id: queueItem.service_id, 
+        city_id: queueItem.city_id 
+      });
+    }
 
     const client = queueItem.clients as any;
     const service = queueItem.services as any;
