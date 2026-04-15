@@ -28,10 +28,13 @@ interface GenerationPacket {
 }
 
 export async function POST(req: NextRequest) {
+  let queue_item_id = '';
+  
   try {
     const packet: GenerationPacket = await req.json();
     
-    const { queue_item_id, client_id, service_id, city_id, primary_keyword, synonym, niche, brand_voice, cta_preference, banned_phrases, client_name, city, state, phone, email, address, website_url, years_in_business } = packet;
+    queue_item_id = packet.queue_item_id;
+    const { client_id, service_id, city_id, primary_keyword, synonym, niche, brand_voice, cta_preference, banned_phrases, client_name, city, state, phone, email, address, website_url, years_in_business } = packet;
 
     console.log('Generate request:', { queue_item_id, service_id, city_id, primary_keyword, niche, years_in_business });
     
