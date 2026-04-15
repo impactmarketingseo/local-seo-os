@@ -41,6 +41,7 @@ export default function EditClientPage() {
     city: '',
     state: '',
     voice_notes: '',
+    years_in_business: '',
     cta_preference: '',
     banned_phrases: '',
     services_raw: '',
@@ -78,6 +79,7 @@ export default function EditClientPage() {
           address: clientRes.data.address || '',
           city: clientRes.data.city || '',
           state: clientRes.data.state || '',
+          years_in_business: clientRes.data.years_in_business || '',
           voice_notes: clientRes.data.voice_notes || '',
           cta_preference: clientRes.data.cta_preference || '',
           banned_phrases: clientRes.data.banned_phrases?.join(', ') || '',
@@ -121,6 +123,7 @@ export default function EditClientPage() {
       address: form.address || null,
       city: form.city || null,
       state: form.state || null,
+      years_in_business: form.years_in_business || null,
       voice_notes: form.voice_notes || null,
       cta_preference: form.cta_preference || null,
       banned_phrases: banned.length > 0 ? banned : null,
@@ -296,7 +299,7 @@ export default function EditClientPage() {
               placeholder="Riverton"
             />
           </div>
-          <div>
+            <div>
             <label className="input-label">State</label>
             <input
               type="text"
@@ -306,6 +309,17 @@ export default function EditClientPage() {
               placeholder="UT"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="input-label">Years in Business</label>
+          <input
+            type="text"
+            value={form.years_in_business}
+            onChange={e => setForm({ ...form, years_in_business: e.target.value })}
+            className="input-field"
+            placeholder="50+ years"
+          />
         </div>
 
         <div>

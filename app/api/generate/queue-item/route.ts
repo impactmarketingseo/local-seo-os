@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
         *,
         services(name),
         cities(name, state),
-        clients(id, name, niche, voice_notes, cta_preference, banned_phrases, phone, email, address, website_url)
+        clients(id, name, niche, voice_notes, cta_preference, banned_phrases, phone, email, address, website_url, years_in_business)
       `)
       .eq('id', queue_item_id)
       .single();
@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
         email: client?.email || 'NO_EMAIL_SET',
         address: client?.address || 'NO_ADDRESS_SET',
         website_url: client?.website_url || 'NO_WEBSITE_SET',
+        years_in_business: client?.years_in_business || '',
       }),
     });
 
@@ -73,6 +74,7 @@ export async function POST(req: NextRequest) {
       email: client?.email,
       address: client?.address,
       website_url: client?.website_url,
+      years_in_business: client?.years_in_business,
     });
 
     const result = await generateResponse.json();

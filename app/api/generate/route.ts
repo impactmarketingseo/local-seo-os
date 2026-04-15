@@ -24,15 +24,16 @@ interface GenerationPacket {
   email?: string;
   address?: string;
   website_url?: string;
+  years_in_business?: string;
 }
 
 export async function POST(req: NextRequest) {
   try {
     const packet: GenerationPacket = await req.json();
     
-    const { queue_item_id, client_id, service_id, city_id, primary_keyword, synonym, niche, brand_voice, cta_preference, banned_phrases, client_name, city, state, phone, email, address, website_url } = packet;
+    const { queue_item_id, client_id, service_id, city_id, primary_keyword, synonym, niche, brand_voice, cta_preference, banned_phrases, client_name, city, state, phone, email, address, website_url, years_in_business } = packet;
 
-    console.log('Generate request:', { queue_item_id, service_id, city_id, primary_keyword, niche });
+    console.log('Generate request:', { queue_item_id, service_id, city_id, primary_keyword, niche, years_in_business });
     
     // Validate IDs are not empty strings
     if (!queue_item_id || !service_id || !city_id || !primary_keyword || !niche) {
@@ -56,6 +57,7 @@ export async function POST(req: NextRequest) {
       email: email || '',
       address: address || '',
       website_url: website_url || '',
+      years_in_business: years_in_business || '',
     });
 
     // Use Groq API (OpenAI-compatible)
@@ -98,6 +100,9 @@ export async function POST(req: NextRequest) {
     const generatedContent = parseOutput(content);
     const contentText = content;
     
+    console.log('Parsed content:', JSON.stringify(generatedContent, null, 2));
+    console.log('Raw content sample:', content.substring(0, 500));
+    
     // Extract fields from JSON code blocks
     const titleMatch = content.match(/"title"\s*:\s*"([^"]+)"/);
     const slugMatch = content.match(/"slug"\s*:\s*"([^"]+)"/);
@@ -118,10 +123,12 @@ export async function POST(req: NextRequest) {
     const h1 = generatedContent.h1 || (h1Match ? h1Match[1] : (mdH1Match ? mdH1Match[1].trim() : ''));
     const meta_title = generatedContent.meta_title || (metaTitleMatch ? metaTitleMatch[1] : '');
     const meta_description = generatedContent.meta_description || (metaDescMatch ? metaDescMatch[1] : (mdMetaDescMatch ? mdMetaDescMatch[1].trim() : ''));
-const intro = generatedContent.intro || (introMatch ? introMatch[1] : '');
+    const intro = generatedContent.intro || (introMatch ? introMatch[1] : '');
     const cta_block = generatedContent.cta_block || generatedContent.cta || (ctaMatch ? ctaMatch[1] : '');
     const additional_keywords = generatedContent.additional_keywords || [];
     const schema_notes = generatedContent.schema_notes || {};
+    
+    console.log('Extracted fields:', { title, slug, h1, meta_title, meta_description, intro: intro?.substring(0, 50) });
     
     const { data: draft, error: draftError } = await supabase.from('drafts').insert({
       queue_id: queue_item_id,
@@ -184,6 +191,7 @@ function buildPrompt(params: {
   email?: string;
   address?: string;
   website_url?: string;
+  years_in_business?: string;
 }): string {
   const bannedList = params.banned_phrases.length > 0 
     ? `Avoid these phrases: ${params.banned_phrases.join(', ')}` 
@@ -195,6 +203,7 @@ CLIENT: ${params.client_name || 'A local ' + params.niche + ' company'}
 LOCATION: ${params.city}, ${params.state}
 NICHE: ${params.niche}
 BRAND VOICE: ${params.brand_voice || 'Professional, friendly, expert'}
+YEARS IN BUSINESS: ${params.years_in_business || 'Not specified'}
 CTA: ${params.cta_preference}
 PHONE: ${params.phone || 'NO PHONE'}
 EMAIL: ${params.email || 'NO EMAIL'}
