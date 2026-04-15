@@ -97,18 +97,33 @@ export default function ClientDetailPage() {
     if (data) setServices(data);
   }
 
-  async function addCity(name: string, state: string) {
+  async function addCity(name: string) {
     const supabase = createSupabaseBrowserClient();
-    await supabase.from('cities').insert({
+    const stateToUse = client?.state || '';
+    console.log('addCity called:', name, 'state:', stateToUse, 'clientState:', client?.state);
+    
+    if (!stateToUse) {
+      alert('Client has no state set. Please edit the client and add a state.');
+      return;
+    }
+    
+    const { data, error } = await supabase.from('cities').insert({
       client_id: clientId,
       name,
-      state,
+      state: stateToUse,
       slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
       active: true,
       priority: cities.length,
-    });
-    const { data } = await supabase.from('cities').select('*').eq('client_id', clientId).order('priority', { ascending: false });
-    if (data) setCities(data);
+    }).select();
+    
+    console.log('Insert result:', data, error);
+    
+    if (error) {
+      alert('Error: ' + error.message);
+    }
+    
+    const { data: refreshed } = await supabase.from('cities').select('*').eq('client_id', clientId).order('priority', { ascending: false });
+    if (refreshed) setCities(refreshed);
   }
 
   async function removeService(id: string) {
@@ -155,10 +170,14 @@ export default function ClientDetailPage() {
         </div>
       </div>
 
-      <div className="mb-6 grid gap-4 md:grid-cols-3">
+      <div className="mb-6 grid gap-4 md:grid-cols-4">
         <div className="card-standard">
           <p className="text-xs font-medium uppercase tracking-wider text-text-disabled">Website</p>
           <p className="mt-1 font-medium text-text-primary">{client.website_url || 'Not set'}</p>
+        </div>
+        <div className="card-standard">
+          <p className="text-xs font-medium uppercase tracking-wider text-text-disabled">State</p>
+          <p className="mt-1 font-medium text-text-primary">{client.state || 'Not set'}</p>
         </div>
         <div className="card-standard">
           <p className="text-xs font-medium uppercase tracking-wider text-text-disabled">Status</p>
@@ -205,6 +224,7 @@ export default function ClientDetailPage() {
           {activeTab === 'cities' && (
             <CityManager
               cities={cities}
+              clientState={client?.state || ''}
               onAdd={addCity}
               onRemove={removeCity}
             />
@@ -223,34 +243,40 @@ function ServiceManager({ services, onAdd, onRemove }: {
   onAdd: (name: string) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
 }) {
-  const [newService, setNewService] = useState('');
+  const [bulkServices, setBulkServices] = useState('');
+
+  async function handleBulkAdd() {
+    if (!bulkServices.trim()) return;
+    
+    const serviceList = bulkServices
+      .split(/(?:,|;|\n)+/)
+      .map(s => s.trim())
+      .filter(s => s && s.length > 0);
+    
+    for (const service of serviceList) {
+      await onAdd(service);
+    }
+    setBulkServices('');
+  }
 
   return (
-    <div>
-      <div className="mb-4 flex gap-2">
-        <input
-          type="text"
-          value={newService}
-          onChange={e => setNewService(e.target.value)}
-          placeholder="Service name"
-          className="input-field flex-1"
-          onKeyDown={async e => {
-            if (e.key === 'Enter' && newService.trim()) {
-              await onAdd(newService.trim());
-              setNewService('');
-            }
-          }}
+    <div className="space-y-4">
+      <div>
+        <label className="input-label">Bulk Add Services (comma-separated)</label>
+        <textarea
+          value={bulkServices}
+          onChange={e => setBulkServices(e.target.value)}
+          className="input-field"
+          rows={3}
+          placeholder="AC Repair, Furnace Repair, Water Heater..."
         />
         <button
-          onClick={async () => {
-            if (newService.trim()) {
-              await onAdd(newService.trim());
-              setNewService('');
-            }
-          }}
-          className="btn-primary"
+          type="button"
+          onClick={handleBulkAdd}
+          disabled={!bulkServices.trim()}
+          className="btn-primary mt-2"
         >
-          Add
+          Add Services
         </button>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -266,56 +292,60 @@ function ServiceManager({ services, onAdd, onRemove }: {
   );
 }
 
-function CityManager({ cities, onAdd, onRemove }: {
+function CityManager({ cities, clientState, onAdd, onRemove }: {
   cities: City[];
-  onAdd: (name: string, state: string) => Promise<void>;
+  clientState: string;
+  onAdd: (name: string) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
 }) {
-  const [newCity, setNewCity] = useState('');
-  const [newState, setNewState] = useState('');
+  const [bulkCities, setBulkCities] = useState('');
+
+  async function handleBulkAdd() {
+    if (!bulkCities.trim() || !clientState) return;
+    
+    const cityList = bulkCities
+      .split(/(?:,|;|\n)+/)
+      .map(c => c.trim())
+      .filter(c => c && c.length > 0);
+    
+    for (const city of cityList) {
+      await onAdd(city);
+    }
+    setBulkCities('');
+  }
 
   return (
-    <div>
-      <div className="mb-4 flex gap-2">
-        <input
-          type="text"
-          value={newCity}
-          onChange={e => setNewCity(e.target.value)}
-          placeholder="City"
-          className="input-field flex-1"
-        />
-        <input
-          type="text"
-          value={newState}
-          onChange={e => setNewState(e.target.value)}
-          placeholder="State"
-          className="input-field w-24"
-          onKeyDown={async e => {
-            if (e.key === 'Enter' && newCity.trim() && newState.trim()) {
-              await onAdd(newCity.trim(), newState.trim());
-              setNewCity('');
-              setNewState('');
-            }
-          }}
-        />
-        <button
-          onClick={async () => {
-            if (newCity.trim() && newState.trim()) {
-              await onAdd(newCity.trim(), newState.trim());
-              setNewCity('');
-              setNewState('');
-            }
-          }}
-          className="btn-primary"
-        >
-          Add
-        </button>
-      </div>
+    <div className="space-y-4">
+      {clientState ? (
+        <div>
+          <label className="input-label">Bulk Add Cities (comma-separated)</label>
+          <textarea
+            value={bulkCities}
+            onChange={e => setBulkCities(e.target.value)}
+            className="input-field"
+            rows={3}
+            placeholder={`Salt Lake City, West Valley City, Provo (will be tagged with ${clientState})`}
+          />
+          <button
+            type="button"
+            onClick={handleBulkAdd}
+            disabled={!bulkCities.trim()}
+            className="btn-primary mt-2"
+          >
+            Add Cities
+          </button>
+        </div>
+      ) : (
+        <div className="rounded-lg border border-warning/30 bg-warning/5 p-4">
+          <p className="text-warning font-medium">Client has no state set</p>
+          <p className="text-sm text-text-tertiary mt-1">Edit this client and add a state to add cities.</p>
+        </div>
+      )}
       <div className="flex flex-wrap gap-2">
         {cities.map(c => (
           <div key={c.id} className="flex items-center gap-2 rounded-full bg-input px-3 py-1">
             <span className="text-sm text-text-primary">{c.name}, {c.state}</span>
-            <button onClick={() => onRemove(c.id)} className="text-text-tertiary hover:text-error">×</button>
+            <button type="button" onClick={() => onRemove(c.id)} className="text-text-tertiary hover:text-error">×</button>
           </div>
         ))}
         {cities.length === 0 && <p className="text-sm text-text-tertiary">No cities added</p>}

@@ -81,6 +81,8 @@ export default function NewClientPage() {
       }
 
       // Process cities - split by comma, newline, or semicolon
+      // Use client's state for all cities
+      const clientState = form.state || '';
       if (form.cities_raw && form.cities_raw.trim()) {
         const rawCities = form.cities_raw
           .split(/(?:,|;|\n)+/)
@@ -91,7 +93,7 @@ export default function NewClientPage() {
           const cityRecords = rawCities.map((name, index) => ({
             client_id: client.id,
             name: name,
-            state: form.state || '',
+            state: clientState,
             slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
             active: true,
             priority: index,

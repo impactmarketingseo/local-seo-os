@@ -152,6 +152,7 @@ export default function QueuePage() {
   const [items, setItems] = useState<QueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<typeof statusTabs[number]>('all');
+  const [clientFilter, setClientFilter] = useState<string>('');
   const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
 
   const loadQueue = useCallback(async () => {
@@ -174,13 +175,17 @@ export default function QueuePage() {
       query = query.eq('status', 'failed');
     }
 
+    if (clientFilter) {
+      query = query.eq('client_id', clientFilter);
+    }
+
     const { data } = await query;
     if (data) setItems(data as any);
 
-    const { data: clientsData } = await supabase.from('clients').select('id, name').eq('status', 'active');
+    const { data: clientsData } = await supabase.from('clients').select('id, name').eq('status', 'active').order('name');
     if (clientsData) setClients(clientsData);
     setLoading(false);
-  }, [filter]);
+  }, [filter, clientFilter]);
 
   useEffect(() => {
     loadQueue();
@@ -238,6 +243,9 @@ export default function QueuePage() {
 
   return (
     <div className="p-6 lg:p-8">
+      <div style={{backgroundColor: 'red', color: 'white', padding: '20px', marginBottom: '20px', display: 'block'}}>
+        DEBUG: Client filter test - clients loaded: {clients.length}
+      </div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="page-title">Content Queue</h1>
@@ -249,6 +257,26 @@ export default function QueuePage() {
           </svg>
           Run New Batch
         </Link>
+      </div>
+
+      {/* Client Filter */}
+      <div className="mb-4 flex items-center gap-4">
+        <label className="text-sm text-text-tertiary">Filter by client:</label>
+        <select
+          value={clientFilter}
+          onChange={e => setClientFilter(e.target.value)}
+          className="input-field w-auto"
+        >
+          <option value="">All Clients</option>
+          {clients.length > 0 ? clients.map(c => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          )) : <option disabled>No clients found</option>}
+        </select>
+        {clientFilter && (
+          <button onClick={() => setClientFilter('')} className="text-sm text-text-tertiary hover:text-accent">
+            Clear filter
+          </button>
+        )}
       </div>
 
       {/* Status Tabs */}

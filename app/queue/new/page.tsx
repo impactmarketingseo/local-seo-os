@@ -67,7 +67,8 @@ export default function NewQueueItemPage() {
     setLoading(true);
 
     const supabase = createSupabaseBrowserClient();
-    await supabase.from('page_queue').insert({
+    
+    const insertData = {
       client_id: form.client_id,
       service_id: form.service_id,
       city_id: form.city_id,
@@ -76,7 +77,19 @@ export default function NewQueueItemPage() {
       scheduled_for: form.scheduled_for || null,
       priority: form.priority,
       status: 'planned',
-    });
+    };
+    
+    console.log('Inserting queue item:', insertData);
+    
+    const { data, error } = await supabase.from('page_queue').insert(insertData).select();
+    
+    console.log('Insert result:', data, error);
+    
+    if (error) {
+      alert('Error: ' + error.message);
+      setLoading(false);
+      return;
+    }
 
     router.push('/queue');
   }

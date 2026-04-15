@@ -110,6 +110,8 @@
     background: linear-gradient(135deg, #3B82F6, #2563EB);
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
     transition: all 0.2s ease;
+    cursor: pointer;
+    display: inline-flex !important;
   }
 
   .btn-primary:hover {
