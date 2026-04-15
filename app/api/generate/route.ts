@@ -26,30 +26,22 @@ interface GenerationPacket {
   address?: string;
   website_url?: string;
   years_in_business?: string;
+  model?: string;
 }
 
 export async function POST(req: NextRequest) {
-  let queue_item_id = '';
-  
   try {
     const packet: GenerationPacket = await req.json();
     
-    queue_item_id = packet.queue_item_id;
-    const { client_id, service_id, city_id, primary_keyword, synonym, niche, brand_voice, cta_preference, banned_phrases, client_name, city, state, phone, email, address, website_url, years_in_business, model } = packet;
+    const { queue_item_id, client_id, service_id, city_id, primary_keyword, synonym, niche, brand_voice, cta_preference, banned_phrases, client_name, city, state, phone, email, address, website_url, years_in_business, model } = packet;
 
-    console.log('Generate request:', { queue_item_id, service_id, city_id, primary_keyword, niche, years_in_business, model });
+    console.log('Generate request:', { queue_item_id, service_id, city_id, primary_keyword, niche, model });
     
-    // Validate IDs are not empty strings
     if (!queue_item_id) {
-      console.error('Missing queue_item_id');
       return NextResponse.json({ error: 'Missing queue_item_id' }, { status: 400 });
     }
     if (!service_id || !city_id || !primary_keyword || !niche) {
-      console.error('Missing fields:', { service_id, city_id, primary_keyword, niche });
-      return NextResponse.json({ 
-        error: 'Missing required fields', 
-        received: { service_id: !!service_id, city_id: !!city_id, primary_keyword: !!primary_keyword, niche: !!niche } 
-      }, { status: 400 });
+      return NextResponse.json({ error: 'Missing required fields', received: { service_id: !!service_id, city_id: !!city_id, primary_keyword: !!primary_keyword, niche: !!niche } }, { status: 400 });
     }
 
     await supabase.from('page_queue').update({ status: 'generating' }).eq('id', queue_item_id);
@@ -71,13 +63,9 @@ export async function POST(req: NextRequest) {
       years_in_business: years_in_business || '',
     });
 
-    // Use selected model first, fallback to other if needed
     const groqKey = process.env.GROQ_API_KEY;
     const geminiKey = process.env.GEMINI_API_KEY;
     const preferredModel = model || 'groq';
-    
-    let groqSuccess = false;
-    let groqError = '';
     
     // Try preferred model first
     if (preferredModel === 'groq' && groqKey) {
@@ -101,17 +89,14 @@ export async function POST(req: NextRequest) {
           const content = data.choices?.[0]?.message?.content;
           
           if (content) {
-            groqSuccess = true;
             console.log('Groq generation successful');
             return processGeneratedContent(content, data, queue_item_id, client_id, supabase);
           }
         } else {
           const error = await groqResponse.text();
-          groqError = error;
           console.error('Groq error:', error);
         }
       } catch (e) {
-        groqError = String(e);
         console.error('Groq exception:', e);
       }
     } else if (preferredModel === 'gemini' && geminiKey) {
@@ -122,10 +107,7 @@ export async function POST(req: NextRequest) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 8000,
-            },
+            generationConfig: { temperature: 0.7, maxOutputTokens: 8000 },
           }),
         });
 
@@ -146,8 +128,8 @@ export async function POST(req: NextRequest) {
       }
     }
     
-    // Fallback to other model if preferred failed
-    if (!groqSuccess && preferredModel === 'gemini' && groqKey) {
+    // Fallback to other model
+    if (preferredModel === 'gemini' && groqKey) {
       console.log('Gemini failed, falling back to Groq...');
       try {
         const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -176,7 +158,7 @@ export async function POST(req: NextRequest) {
       } catch (e) {
         console.error('Groq fallback exception:', e);
       }
-    } else if (!groqSuccess && preferredModel === 'groq' && geminiKey) {
+    } else if (preferredModel === 'groq' && geminiKey) {
       console.log('Groq failed, falling back to Gemini...');
       try {
         const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
@@ -184,10 +166,7 @@ export async function POST(req: NextRequest) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 8000,
-            },
+            generationConfig: { temperature: 0.7, maxOutputTokens: 8000 },
           }),
         });
 
@@ -199,9 +178,6 @@ export async function POST(req: NextRequest) {
             console.log('Gemini fallback successful');
             return processGeneratedContent(content, data, queue_item_id, client_id, supabase);
           }
-        } else {
-          const error = await geminiResponse.text();
-          console.error('Gemini fallback error:', error);
         }
       } catch (e) {
         console.error('Gemini fallback exception:', e);
@@ -216,102 +192,55 @@ export async function POST(req: NextRequest) {
     }
     
     await supabase.from('page_queue').update({ status: 'failed' }).eq('id', queue_item_id);
-    return NextResponse.json({ error: 'Generation failed with both models', details: groqError }, { status: 500 });
+    return NextResponse.json({ error: 'Generation failed with both models' }, { status: 500 });
   } catch (error) {
     console.error('Generation error:', error);
-    await supabase.from('page_queue').update({ status: 'failed' }).eq('id', queue_item_id);
     return NextResponse.json({ error: 'Generation failed: ' + String(error) }, { status: 500 });
   }
 }
 
 async function processGeneratedContent(content: string, data: any, queue_item_id: string, client_id: string, supabase: any) {
+  const generatedContent = parseOutput(content);
+  
+  const titleMatch = content.match(/"title"\s*:\s*"([^"]+)"/);
+  const slugMatch = content.match(/"slug"\s*:\s*"([^"]+)"/);
+  const metaDescMatch = content.match(/"meta_description"\s*:\s*"([^"]+)"/);
+  
+  const title = generatedContent.title || titleMatch?.[1] || content.substring(0, 50).replace(/\n/g, ' ').trim() || 'Untitled';
+  const slug = generatedContent.slug || slugMatch?.[1] || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const meta_description = generatedContent.meta_description || metaDescMatch?.[1] || content.substring(0, 160).replace(/\n/g, ' ').trim();
+  
+  const draftData = {
+    queue_id: queue_item_id,
+    client_id,
+    title,
+    slug,
+    meta_title: generatedContent.meta_title || '',
+    meta_description,
+    h1: generatedContent.h1 || '',
+    intro: generatedContent.intro || '',
+    cta_block: generatedContent.cta_block || '',
+    additional_keywords: JSON.stringify(generatedContent.additional_keywords || []),
+    schema_notes: generatedContent.service_schema || {},
+    content_json: generatedContent,
+    content_text: content,
+    status: 'draft',
+    generation_model: 'llama-3.3-70b-versatile',
+    token_count: data.usage?.total_tokens || 0,
+  };
+  
+  const { data: draft, error: draftError } = await supabase.from('drafts').insert(draftData).select().single();
 
-    const generatedContent = parseOutput(content);
-    const contentText = content;
-    
-    console.log('Parsed content:', JSON.stringify(generatedContent, null, 2));
-    console.log('Raw content sample:', content.substring(0, 500));
-    
-    // Extract fields from JSON code blocks
-    const titleMatch = content.match(/"title"\s*:\s*"([^"]+)"/);
-    const slugMatch = content.match(/"slug"\s*:\s*"([^"]+)"/);
-    const h1Match = content.match(/"h1"\s*:\s*"([^"]+)"/);
-    const metaTitleMatch = content.match(/"meta_title"\s*:\s*"([^"]+)"/);
-    const metaDescMatch = content.match(/"meta_description"\s*:\s*"([^"]+)"/);
-    const introMatch = content.match(/"intro"\s*:\s*"([^"]+)"/);
-    const ctaMatch = content.match(/"cta"\s*:\s*"([^"]+)"/);
-    
-    // Extract from Markdown-style format (**Title:**, etc.)
-    const mdTitleMatch = content.match(/\*\*Title\*\*:\s*([^\n]+)/);
-    const mdSlugMatch = content.match(/\*\*URL Slug\*\*:\s*([^\n]+)/);
-    const mdH1Match = content.match(/<h1>([^<]+)<\/h1>/);
-    const mdMetaDescMatch = content.match(/\*\*Meta Description\*\*:\s*([^\n]+)/);
-    
-    const title = generatedContent.title || titleMatch?.[1] || mdTitleMatch?.[1] || content.substring(0, 50).replace(/\n/g, ' ').trim() || 'Untitled';
-    const slug = generatedContent.slug || slugMatch?.[1] || mdSlugMatch?.[1]?.replace(/^\//, '').replace(/\/$/, '') || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    const h1 = generatedContent.h1 || h1Match?.[1] || mdH1Match?.[1] || '';
-    const meta_title = generatedContent.meta_title || metaTitleMatch?.[1] || '';
-    const meta_description = generatedContent.meta_description || metaDescMatch?.[1] || mdMetaDescMatch?.[1] || content.substring(0, 160).replace(/\n/g, ' ').trim();
-    const intro = generatedContent.intro || introMatch?.[1] || '';
-    const cta_block = generatedContent.cta_block || generatedContent.cta || ctaMatch?.[1] || '';
-    const additional_keywords = generatedContent.additional_keywords || [];
-    const schema_notes = generatedContent.schema_notes || {};
-    const service_schema = generatedContent.service_schema || {};
-    const local_business_schema = generatedContent.local_business_schema || {};
-    
-    const hero = generatedContent.hero || '';
-    const sections = (generatedContent.sections as any[]) || [];
-    const faqs = (generatedContent.faqs as any[]) || [];
-    
-    console.log('Extracted fields:', { title, slug, h1, meta_title, meta_description: meta_description?.substring(0, 50), sections: sections.length, faqs: faqs.length });
-    
-    const draftData: Record<string, unknown> = {
-      queue_id: queue_item_id,
-      client_id,
-      title: title,
-      slug: slug,
-      meta_title: meta_title,
-      meta_description: meta_description,
-      h1: h1,
-      intro: intro,
-      cta_block: cta_block,
-      additional_keywords: JSON.stringify(additional_keywords),
-      schema_notes: service_schema,
-      content_json: generatedContent,
-      content_text: content,
-      status: 'draft',
-      generation_model: 'llama-3.3-70b-versatile',
-      token_count: data.usage?.total_tokens || 0,
-    };
-    
-    const { data: draft, error: draftError } = await supabase.from('drafts').insert(draftData).select().single();
-
-    console.log('Draft insert result:', { draft, draftError });
-    
-    if (draftError) {
-      console.error('Draft save error:', draftError);
-      return NextResponse.json({ error: 'Failed to save draft', details: draftError.message }, { status: 500 });
-    }
-
-    await supabase.from('page_queue').update({ status: 'needs_review' }).eq('id', queue_item_id);
-
-    if (draft && draft.id) {
-      await supabase.from('generation_logs').insert({
-        queue_id: queue_item_id,
-        draft_id: draft.id,
-        status: 'success',
-        token_count: data.usage?.total_tokens || 0,
-      });
-    }
-
-    return NextResponse.json({
-      success: true,
-      draft_id: draft?.id,
-      content: generatedContent,
-    });
-  } catch (error) {
-    console.error('Generation error:', error);
-    await supabase.from('page_queue').update({ status: 'failed' }).eq('id', queue_item_id);
-    return NextResponse.json({ error: 'Generation failed: ' + String(error) }, { status: 500 });
+  if (draftError) {
+    console.error('Draft save error:', draftError);
+    return NextResponse.json({ error: 'Failed to save draft', details: draftError.message }, { status: 500 });
   }
+
+  await supabase.from('page_queue').update({ status: 'needs_review' }).eq('id', queue_item_id);
+
+  return NextResponse.json({
+    success: true,
+    draft_id: draft?.id,
+    content: generatedContent,
+  });
 }
