@@ -39,7 +39,7 @@ const statusColors: Record<string, { bg: string; text: string; label: string }> 
 
 const statusTabs = ['all', 'planned', 'generating', 'completed', 'failed'] as const;
 
-function QueueRow({ item, onUpdate, onDelete, onGenerate, delay }: { item: QueueItem; onUpdate: (id: string, status: string) => void; onDelete: (id: string) => void; onGenerate: (id: string) => void; delay?: number }) {
+function QueueRow({ item, onUpdate, onDelete, onGenerate, delay, selectable, selected, onSelect }: { item: QueueItem; onUpdate: (id: string, status: string) => void; onDelete: (id: string) => void; onGenerate: (id: string) => void; delay?: number; selectable?: boolean; selected?: boolean; onSelect?: (id: string, checked: boolean) => void }) {
   const status = statusColors[item.status] || statusColors.planned;
   const [showError, setShowError] = useState(false);
 
@@ -49,6 +49,16 @@ function QueueRow({ item, onUpdate, onDelete, onGenerate, delay }: { item: Queue
       style={delay ? { animationDelay: `${delay}ms` } : undefined}
     >
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4">
+        {/* Checkbox for bulk select */}
+        {selectable && (
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={(e) => onSelect?.(item.id, e.target.checked)}
+            className="w-4 h-4 rounded border-border bg-input text-accent focus:ring-accent"
+          />
+        )}
+
         {/* Client & Target */}
         <div className="flex-1 min-w-0">
           <p className="font-medium text-text-primary truncate">{item.clients?.name || 'Unknown Client'}</p>
@@ -150,6 +160,8 @@ export default function QueuePage() {
   const [filter, setFilter] = useState<typeof statusTabs[number]>('all');
   const [clientFilter, setClientFilter] = useState<string>('');
   const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [bulkGenerating, setBulkGenerating] = useState(false);
 
   const loadQueue = useCallback(async () => {
     const supabase = createSupabaseBrowserClient();
@@ -234,6 +246,58 @@ export default function QueuePage() {
     }
   }
 
+  async function bulkGenerate() {
+    const ids = Array.from(selectedItems);
+    if (ids.length === 0) return;
+    
+    setBulkGenerating(true);
+    let successCount = 0;
+    let failCount = 0;
+    
+    for (const id of ids) {
+      try {
+        setItems(items.map(i => i.id === id ? { ...i, status: 'generating' } : i));
+        
+        const response = await fetch('/api/generate/queue-item', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ queue_item_id: id }),
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch (e) {
+        failCount++;
+      }
+    }
+    
+    setBulkGenerating(false);
+    setSelectedItems(new Set());
+    loadQueue();
+    
+    if (successCount > 0) {
+      toast(`Generated ${successCount} draft${successCount > 1 ? 's' : ''}!`, 'success');
+    }
+    if (failCount > 0) {
+      toast(`${failCount} failed`, 'error');
+    }
+  }
+
+  function toggleSelectAll(checked: boolean) {
+    const plannedItems = items.filter(i => i.status === 'planned').map(i => i.id);
+    if (checked) {
+      setSelectedItems(new Set([...selectedItems, ...plannedItems]));
+    } else {
+      const newSelected = new Set(selectedItems);
+      plannedItems.forEach(id => newSelected.delete(id));
+      setSelectedItems(newSelected);
+    }
+  }
+
   const counts = {
     all: items.length,
     planned: items.filter(i => i.status === 'planned').length,
@@ -276,6 +340,46 @@ export default function QueuePage() {
           </button>
         )}
       </div>
+
+      {/* Bulk Actions Bar */}
+      {counts.planned > 0 && (
+        <div className="mb-4 p-3 bg-elevated rounded-lg border border-border flex flex-wrap items-center gap-4">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={items.filter(i => i.status === 'planned').every(i => selectedItems.has(i.id))}
+              onChange={(e) => toggleSelectAll(e.target.checked)}
+              className="w-4 h-4 rounded border-border bg-input text-accent focus:ring-accent"
+            />
+            <span className="text-sm text-text-secondary">Select all planned ({counts.planned})</span>
+          </label>
+          
+          {selectedItems.size > 0 && (
+            <button
+              onClick={bulkGenerate}
+              disabled={bulkGenerating}
+              className="btn-primary text-sm py-1.5"
+            >
+              {bulkGenerating ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin mr-2 inline" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Generate Selected ({selectedItems.size})
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Status Tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
@@ -326,6 +430,14 @@ export default function QueuePage() {
               onDelete={deleteItem}
               onGenerate={generateContent}
               delay={(index + 1) * 30}
+              selectable={item.status === 'planned'}
+              selected={selectedItems.has(item.id)}
+              onSelect={(id, checked) => {
+                const newSelected = new Set(selectedItems);
+                if (checked) newSelected.add(id);
+                else newSelected.delete(id);
+                setSelectedItems(newSelected);
+              }}
             />
           ))}
         </div>

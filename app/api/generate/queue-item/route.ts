@@ -8,12 +8,17 @@ const supabase = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    const { queue_item_id } = await req.json();
+    const { queue_item_id, regenerate } = await req.json();
 
-    console.log('Queue-item generate request:', { queue_item_id });
+    console.log('Queue-item generate request:', { queue_item_id, regenerate });
     
     if (!queue_item_id) {
       return NextResponse.json({ error: 'Missing queue_item_id' }, { status: 400 });
+    }
+
+    // If regenerating, update status but don't require new queue item
+    if (regenerate) {
+      await supabase.from('page_queue').update({ status: 'generating' }).eq('id', queue_item_id);
     }
 
     const { data: queueItem, error: queueError } = await supabase

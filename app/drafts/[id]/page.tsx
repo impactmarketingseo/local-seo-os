@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { toast } from '@/components/Toast';
 
 interface Draft {
   id: string;
@@ -38,6 +39,7 @@ export default function DraftDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'seo' | 'keywords' | 'schema' | 'sections' | 'content'>('seo');
   const [showDelete, setShowDelete] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
   useEffect(() => {
     async function loadDraft() {
@@ -65,6 +67,36 @@ export default function DraftDetailPage() {
     const supabase = createSupabaseBrowserClient();
     await supabase.from('drafts').delete().eq('id', draftId);
     router.push('/drafts');
+  }
+
+  async function handleRegenerate() {
+    if (!draft?.queue_id) {
+      toast('No queue item found for this draft', 'error');
+      return;
+    }
+    
+    setRegenerating(true);
+    
+    try {
+      const response = await fetch('/api/generate/queue-item', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ queue_item_id: draft.queue_id, regenerate: true }),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        toast('Content regenerated!', 'success');
+        router.refresh();
+      } else {
+        toast(result.error || 'Regeneration failed', 'error');
+      }
+    } catch (e) {
+      toast('Error: ' + e, 'error');
+    }
+    
+    setRegenerating(false);
   }
 
   if (loading) {
@@ -109,9 +141,35 @@ export default function DraftDetailPage() {
             <p className="text-sm text-text-tertiary">{draft.clients?.name}</p>
           </div>
         </div>
-        <span className={`px-3 py-1.5 rounded-md text-sm font-medium ${status.bg} ${status.text}`}>
-          {draft.status}
-        </span>
+        <div className="flex items-center gap-3">
+          {draft.queue_id && (
+            <button
+              onClick={handleRegenerate}
+              disabled={regenerating}
+              className="btn-secondary text-sm"
+            >
+              {regenerating ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin mr-2 inline" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Regenerating...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Regenerate
+                </>
+              )}
+            </button>
+          )}
+          <span className={`px-3 py-1.5 rounded-md text-sm font-medium ${status.bg} ${status.text}`}>
+            {draft.status}
+          </span>
+        </div>
       </div>
 
       {/* Context Bar */}
