@@ -162,6 +162,7 @@ export default function QueuePage() {
   const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [bulkGenerating, setBulkGenerating] = useState(false);
+  const [model, setModel] = useState<'groq' | 'gemini'>('groq');
 
   const loadQueue = useCallback(async () => {
     const supabase = createSupabaseBrowserClient();
@@ -222,7 +223,7 @@ export default function QueuePage() {
       const response = await fetch('/api/generate/queue-item', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ queue_item_id: id }),
+        body: JSON.stringify({ queue_item_id: id, model }),
       });
       
       if (!response.ok) {
@@ -261,7 +262,7 @@ export default function QueuePage() {
         const response = await fetch('/api/generate/queue-item', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ queue_item_id: id }),
+          body: JSON.stringify({ queue_item_id: id, model }),
         });
         
         const result = await response.json();
@@ -353,6 +354,15 @@ export default function QueuePage() {
             />
             <span className="text-sm text-text-secondary">Select all planned ({counts.planned})</span>
           </label>
+          
+          <select
+            value={model}
+            onChange={(e) => setModel(e.target.value as 'groq' | 'gemini')}
+            className="input-field text-sm"
+          >
+            <option value="groq">Groq (Fast)</option>
+            <option value="gemini">Gemini (Backup)</option>
+          </select>
           
           {selectedItems.size > 0 && (
             <button

@@ -35,9 +35,9 @@ export async function POST(req: NextRequest) {
     const packet: GenerationPacket = await req.json();
     
     queue_item_id = packet.queue_item_id;
-    const { client_id, service_id, city_id, primary_keyword, synonym, niche, brand_voice, cta_preference, banned_phrases, client_name, city, state, phone, email, address, website_url, years_in_business } = packet;
+    const { client_id, service_id, city_id, primary_keyword, synonym, niche, brand_voice, cta_preference, banned_phrases, client_name, city, state, phone, email, address, website_url, years_in_business, model } = packet;
 
-    console.log('Generate request:', { queue_item_id, service_id, city_id, primary_keyword, niche, years_in_business });
+    console.log('Generate request:', { queue_item_id, service_id, city_id, primary_keyword, niche, years_in_business, model });
     
     // Validate IDs are not empty strings
     if (!queue_item_id) {
@@ -71,14 +71,16 @@ export async function POST(req: NextRequest) {
       years_in_business: years_in_business || '',
     });
 
-    // Use Groq API (OpenAI-compatible)
+    // Use selected model first, fallback to other if needed
     const groqKey = process.env.GROQ_API_KEY;
     const geminiKey = process.env.GEMINI_API_KEY;
+    const preferredModel = model || 'groq';
     
     let groqSuccess = false;
     let groqError = '';
     
-    if (groqKey) {
+    // Try preferred model first
+    if (preferredModel === 'groq' && groqKey) {
       try {
         const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
@@ -112,11 +114,8 @@ export async function POST(req: NextRequest) {
         groqError = String(e);
         console.error('Groq exception:', e);
       }
-    }
-    
-    // Fallback to Google Gemini
-    if (geminiKey && !groqSuccess) {
-      console.log('Falling back to Google Gemini...');
+    } else if (preferredModel === 'gemini' && geminiKey) {
+      console.log('Using Gemini as preferred model...');
       try {
         const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
           method: 'POST',
@@ -141,15 +140,75 @@ export async function POST(req: NextRequest) {
         } else {
           const error = await geminiResponse.text();
           console.error('Gemini error:', error);
-          await supabase.from('page_queue').update({ status: 'failed' }).eq('id', queue_item_id);
-          return NextResponse.json({ error: 'Both Groq and Gemini failed', details: { groq: groqError, gemini: error } }, { status: 500 });
         }
       } catch (e) {
         console.error('Gemini exception:', e);
       }
     }
     
-    // No keys configured or both failed
+    // Fallback to other model if preferred failed
+    if (!groqSuccess && preferredModel === 'gemini' && groqKey) {
+      console.log('Gemini failed, falling back to Groq...');
+      try {
+        const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${groqKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages: [{ role: 'user', content: prompt }],
+            max_tokens: 8000,
+            temperature: 0.7,
+          }),
+        });
+
+        if (groqResponse.ok) {
+          const data = await groqResponse.json();
+          const content = data.choices?.[0]?.message?.content;
+          
+          if (content) {
+            console.log('Groq fallback successful');
+            return processGeneratedContent(content, data, queue_item_id, client_id, supabase);
+          }
+        }
+      } catch (e) {
+        console.error('Groq fallback exception:', e);
+      }
+    } else if (!groqSuccess && preferredModel === 'groq' && geminiKey) {
+      console.log('Groq failed, falling back to Gemini...');
+      try {
+        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 8000,
+            },
+          }),
+        });
+
+        if (geminiResponse.ok) {
+          const data = await geminiResponse.json();
+          const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          
+          if (content) {
+            console.log('Gemini fallback successful');
+            return processGeneratedContent(content, data, queue_item_id, client_id, supabase);
+          }
+        } else {
+          const error = await geminiResponse.text();
+          console.error('Gemini fallback error:', error);
+        }
+      } catch (e) {
+        console.error('Gemini fallback exception:', e);
+      }
+    }
+    
+    // No keys configured
     if (!groqKey && !geminiKey) {
       console.error('No API keys configured');
       await supabase.from('page_queue').update({ status: 'failed' }).eq('id', queue_item_id);
@@ -157,7 +216,7 @@ export async function POST(req: NextRequest) {
     }
     
     await supabase.from('page_queue').update({ status: 'failed' }).eq('id', queue_item_id);
-    return NextResponse.json({ error: 'Generation failed', details: groqError }, { status: 500 });
+    return NextResponse.json({ error: 'Generation failed with both models', details: groqError }, { status: 500 });
   } catch (error) {
     console.error('Generation error:', error);
     await supabase.from('page_queue').update({ status: 'failed' }).eq('id', queue_item_id);

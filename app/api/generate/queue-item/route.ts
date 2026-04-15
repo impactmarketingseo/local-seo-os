@@ -8,9 +8,9 @@ const supabase = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    const { queue_item_id, regenerate } = await req.json();
+    const { queue_item_id, regenerate, model } = await req.json();
 
-    console.log('Queue-item generate request:', { queue_item_id, regenerate });
+    console.log('Queue-item generate request:', { queue_item_id, regenerate, model });
     
     if (!queue_item_id) {
       return NextResponse.json({ error: 'Missing queue_item_id' }, { status: 400 });
@@ -111,6 +111,7 @@ export async function POST(req: NextRequest) {
         email: client?.email || 'NO_EMAIL_SET',
         address: client?.address || 'NO_ADDRESS_SET',
         website_url: client?.website_url || 'NO_WEBSITE_SET',
+        model: model || 'groq',
       }),
     });
 
