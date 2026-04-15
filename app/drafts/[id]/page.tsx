@@ -64,87 +64,132 @@ export default function DraftDetailPage() {
     router.push('/drafts');
   }
 
-  if (loading) return <div className="p-4 text-muted-foreground">Loading...</div>;
-  if (!draft) return <div className="p-4">Draft not found</div>;
+  if (loading) {
+    return (
+      <div className="p-6 lg:p-8">
+        <div className="skeleton h-8 w-48 mb-6" />
+        <div className="skeleton h-64 rounded-lg" />
+      </div>
+    );
+  }
+  
+  if (!draft) {
+    return (
+      <div className="p-6 lg:p-8">
+        <div className="card-standard text-center">
+          <p className="text-text-primary">Draft not found</p>
+        </div>
+      </div>
+    );
+  }
+
+  const statusColors: Record<string, { bg: string; text: string }> = {
+    draft: { bg: 'bg-warning/10', text: 'text-warning' },
+    review: { bg: 'bg-info/10', text: 'text-info' },
+    approved: { bg: 'bg-success/10', text: 'text-success' },
+    rejected: { bg: 'bg-error/10', text: 'text-error' },
+  };
+  const status = statusColors[draft.status] || statusColors.draft;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="p-6 lg:p-8">
       {/* Header */}
-      <div className="bg-white border-b px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="text-blue-600">←</button>
-            <div>
-              <h1 className="font-bold text-lg leading-tight">{draft.title}</h1>
-              <p className="text-sm text-gray-500">{draft.clients?.name}</p>
-            </div>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()} className="p-2 rounded-md hover:bg-elevated text-text-secondary">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div>
+            <h1 className="font-bold text-xl text-text-primary leading-tight">{draft.title}</h1>
+            <p className="text-sm text-text-tertiary">{draft.clients?.name}</p>
           </div>
-          <span className={`px-2 py-1 rounded-full text-xs ${draft.status === 'approved' ? 'bg-green-100 text-green-700' : draft.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
-            {draft.status}
-          </span>
         </div>
+        <span className={`px-3 py-1.5 rounded-md text-sm font-medium ${status.bg} ${status.text}`}>
+          {draft.status}
+        </span>
       </div>
 
       {/* Context Bar */}
-      <div className="bg-blue-50 border-b px-4 py-2">
-        <div className="flex gap-4 text-xs">
-          <div><span className="text-gray-500">Slug:</span> <span className="font-mono">/{draft.slug}</span></div>
-          <div><span className="text-gray-500">Version:</span> v{draft.version_number}</div>
+      <div className="card-standard mb-6">
+        <div className="flex gap-6 text-sm">
+          <div>
+            <span className="text-text-disabled text-xs uppercase tracking-wider">Slug</span>
+            <p className="mono text-text-secondary">/{draft.slug}</p>
+          </div>
+          <div>
+            <span className="text-text-disabled text-xs uppercase tracking-wider">Version</span>
+            <p className="text-text-secondary">v{draft.version_number}</p>
+          </div>
+          <div>
+            <span className="text-text-disabled text-xs uppercase tracking-wider">Status</span>
+            <p className={`${status.text} font-medium`}>{draft.status}</p>
+          </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="bg-white border-b flex overflow-x-auto">
+      <div className="flex gap-1 mb-6 overflow-x-auto border-b border-border">
         {(['seo', 'keywords', 'schema', 'content'] as const).map((tab) => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`px-4 py-3 text-sm font-medium whitespace-nowrap ${activeTab === tab ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>
+            className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+              activeTab === tab 
+                ? 'border-accent text-accent' 
+                : 'border-transparent text-text-tertiary hover:text-text-secondary'
+            }`}>
             {tab === 'seo' ? 'SEO' : tab === 'keywords' ? 'Keywords' : tab === 'schema' ? 'Schema' : 'Content'}
           </button>
         ))}
       </div>
 
-      <div className="p-4 pb-24">
+      <div className="pb-24">
         {/* SEO Tab */}
         {activeTab === 'seo' && (
-          <div className="space-y-3">
-            <div className="bg-white rounded-lg border p-3">
-              <p className="text-xs text-gray-500 uppercase mb-1">Title Tag</p>
-              <p className="font-medium text-sm">{draft.title}</p>
+          <div className="space-y-4">
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Title Tag</p>
+              <p className="font-medium text-text-primary">{draft.title}</p>
             </div>
-            <div className="bg-white rounded-lg border p-3">
-              <p className="text-xs text-gray-500 uppercase mb-1">URL Slug</p>
-              <p className="font-mono text-sm">/{draft.slug}</p>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">URL Slug</p>
+              <p className="mono text-text-secondary">/{draft.slug}</p>
             </div>
-            <div className="bg-white rounded-lg border p-3">
-              <p className="text-xs text-gray-500 uppercase mb-1">Meta Description</p>
-              <p className="text-sm">{draft.meta_description}</p>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Meta Description</p>
+              <p className="text-text-secondary">{draft.meta_description}</p>
             </div>
-            <div className="bg-white rounded-lg border p-3">
-              <p className="text-xs text-gray-500 uppercase mb-1">H1</p>
-              <p className="font-bold">{draft.h1}</p>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">H1</p>
+              <p className="font-bold text-text-primary">{draft.h1}</p>
             </div>
           </div>
         )}
 
         {/* Keywords Tab */}
         {activeTab === 'keywords' && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {draft.additional_keywords?.length > 0 && (
-              <div className="bg-white rounded-lg border p-3">
-                <p className="text-xs text-gray-500 uppercase mb-2">Target Keywords</p>
+              <div className="card-standard">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-3">Target Keywords</p>
                 <div className="flex flex-wrap gap-2">
                   {draft.additional_keywords.map((kw, i) => (
-                    <span key={i} className="bg-blue-50 px-2 py-1 rounded text-xs text-blue-700">{kw}</span>
+                    <span key={i} className="bg-accent/10 text-accent px-3 py-1 rounded-md text-sm">{kw}</span>
                   ))}
                 </div>
               </div>
             )}
             {draft.internal_links?.length > 0 && (
-              <div className="bg-white rounded-lg border p-3">
-                <p className="text-xs text-gray-500 uppercase mb-2">Internal Links</p>
+              <div className="card-standard">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-3">Internal Links</p>
                 {draft.internal_links.map((link, i) => (
-                  <div key={i} className="text-sm text-blue-600">{link.title}</div>
+                  <div key={i} className="text-accent text-sm mb-1">{link.title}</div>
                 ))}
+              </div>
+            )}
+            {(!draft.additional_keywords?.length && !draft.internal_links?.length) && (
+              <div className="card-standard text-center">
+                <p className="text-text-tertiary">No keywords configured</p>
               </div>
             )}
           </div>
@@ -152,15 +197,15 @@ export default function DraftDetailPage() {
 
         {/* Schema Tab */}
         {activeTab === 'schema' && (
-          <div className="bg-green-900 rounded-lg border border-green-500 p-3">
-            <div className="flex justify-between items-center mb-2">
-              <p className="text-sm text-green-400 font-semibold">JSON-LD</p>
+          <div className="card-standard">
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-sm font-semibold text-text-primary">JSON-LD Schema</p>
               <button onClick={() => navigator.clipboard.writeText(JSON.stringify(draft.schema_notes, null, 2))}
-                className="bg-green-600 text-white px-3 py-1 rounded text-xs">
+                className="btn-secondary text-sm">
                 Copy
               </button>
             </div>
-            <pre className="text-xs text-green-400 overflow-x-auto">
+            <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md">
               {JSON.stringify(draft.schema_notes, null, 2)}
             </pre>
           </div>
@@ -168,13 +213,13 @@ export default function DraftDetailPage() {
 
         {/* Content Tab */}
         {activeTab === 'content' && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <button onClick={() => navigator.clipboard.writeText(draft.content_text || '')}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium text-sm">
+              className="btn-primary w-full">
               📋 Copy All Content
             </button>
-            <div className="bg-white rounded-lg border p-3">
-              <pre className="text-xs whitespace-pre-wrap">{draft.content_text}</pre>
+            <div className="card-standard">
+              <pre className="text-sm whitespace-pre-wrap text-text-secondary">{draft.content_text}</pre>
             </div>
           </div>
         )}
@@ -182,12 +227,15 @@ export default function DraftDetailPage() {
 
       {/* Action Buttons */}
       {draft.status !== 'approved' && draft.status !== 'published' && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-3">
-          <div className="flex gap-2">
-            <button onClick={handleApprove} className="flex-1 bg-green-600 text-white py-2 rounded-lg font-medium text-sm">
+        <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4">
+          <div className="flex gap-3 lg:ml-64">
+            <button onClick={handleApprove} className="flex-1 btn-primary">
               ✓ Approve
             </button>
-            <button onClick={() => setShowDelete(true)} className="px-4 py-2 rounded-lg text-sm text-red-600">
+            <button onClick={handleReject} className="btn-secondary text-error">
+              Reject
+            </button>
+            <button onClick={() => setShowDelete(true)} className="btn-ghost text-error">
               🗑
             </button>
           </div>
@@ -196,13 +244,17 @@ export default function DraftDetailPage() {
 
       {/* Delete Modal */}
       {showDelete && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-4 max-w-sm w-full">
-            <h3 className="font-bold mb-2">Delete Draft?</h3>
-            <p className="text-sm text-gray-600 mb-4">You can always generate a new version for this city+service.</p>
-            <div className="flex gap-2">
-              <button onClick={handleDelete} className="flex-1 bg-red-600 text-white py-2 rounded">Delete</button>
-              <button onClick={() => setShowDelete(false)} className="flex-1 bg-gray-100 py-2 rounded">Cancel</button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass rounded-lg p-6 max-w-sm w-full animate-scale-in">
+            <h3 className="font-semibold text-lg text-text-primary mb-2">Delete Draft?</h3>
+            <p className="text-sm text-text-tertiary mb-4">This action cannot be undone. You can always generate a new version.</p>
+            <div className="flex gap-3">
+              <button onClick={handleDelete} className="flex-1 btn-danger">
+                Delete
+              </button>
+              <button onClick={() => setShowDelete(false)} className="flex-1 btn-secondary">
+                Cancel
+              </button>
             </div>
           </div>
         </div>
