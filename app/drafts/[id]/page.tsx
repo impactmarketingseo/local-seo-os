@@ -232,10 +232,10 @@ export default function DraftDetailPage() {
         {activeTab === 'sections' && draft.content_json && (
           <div className="space-y-4">
             {(() => {
-              const sections = draft.content_json?.sections || [];
-              const faqs = draft.content_json?.faqs || [];
-              const hero = draft.content_json?.hero || '';
-              const cta = draft.content_json?.cta_block || draft.content_json?.cta || '';
+              const sections = (draft.content_json?.sections as any[]) || [];
+              const faqs = (draft.content_json?.faqs as any[]) || [];
+              const hero = String(draft.content_json?.hero || '');
+              const cta = String(draft.content_json?.cta_block || draft.content_json?.cta || '');
               
               return (
                 <>
@@ -254,7 +254,7 @@ export default function DraftDetailPage() {
                       <p className="text-text-secondary whitespace-pre-wrap">{String(section.content)}</p>
                     </div>
                   ))}
-                  {faqs.length > 0 && (
+                  {faqs && faqs.length > 0 && (
                     <div className="card-standard">
                       <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">FAQs</p>
                       {faqs.map((faq: any, i: number) => (
