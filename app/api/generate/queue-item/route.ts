@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
         *,
         services(name),
         cities(name, state),
-        clients(id, name, niche, voice_notes, cta_preference, banned_phrases)
+        clients(id, name, niche, voice_notes, cta_preference, banned_phrases, phone, email, address, website_url)
       `)
       .eq('id', queue_item_id)
       .single();
@@ -61,11 +61,18 @@ export async function POST(req: NextRequest) {
         client_name: client?.name,
         city: city?.name,
         state: city?.state,
-        phone: client?.phone,
-        email: client?.email,
-        address: client?.address,
-        website_url: client?.website_url,
+        phone: client?.phone || 'NO_PHONE_SET',
+        email: client?.email || 'NO_EMAIL_SET',
+        address: client?.address || 'NO_ADDRESS_SET',
+        website_url: client?.website_url || 'NO_WEBSITE_SET',
       }),
+    });
+
+    console.log('Sending to generate:', {
+      phone: client?.phone,
+      email: client?.email,
+      address: client?.address,
+      website_url: client?.website_url,
     });
 
     const result = await generateResponse.json();
