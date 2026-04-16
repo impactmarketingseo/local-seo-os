@@ -201,7 +201,8 @@ export default function QueuePage() {
     const { data: clientsData } = await supabase.from('clients').select('id, name').eq('status', 'active').order('name');
     if (clientsData) setClients(clientsData);
 
-    const { data: allServicesData } = await supabase.from('services').select('id, client_id, name').eq('status', 'active').order('name');
+    const { data: allServicesData, error: svcError } = await supabase.from('services').select('id, client_id, name').eq('active', true).order('name');
+    if (svcError) console.error('Services error:', svcError);
     if (allServicesData) {
       setAllServices(allServicesData);
       if (clientFilter) {
