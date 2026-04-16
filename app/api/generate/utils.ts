@@ -18,7 +18,7 @@ export function buildPrompt(params: {
     ? 'Avoid these phrases: ' + params.banned_phrases.join(', ')
     : '';
 
-  let prompt = 'You are an expert SEO content writer for local service businesses. Write a complete 1800-2000 word city+service landing page for "' + params.keyword + '".\n\n';
+  let prompt = 'You are an expert SEO content writer for local service businesses. Write a COMPLETE 1800-2000 word city+service landing page for "' + params.keyword + '".\n\nIMPORTANT: The entire article must be 1800-2000 words minimum. Do not cut corners. Write FULL, comprehensive content.\n\n';
   
   prompt += 'CLIENT: ' + (params.client_name || 'A local ' + params.niche + ' company') + '\n';
   prompt += 'LOCATION: ' + params.city + ', ' + params.state + '\n';
@@ -33,11 +33,12 @@ export function buildPrompt(params: {
   prompt += bannedList + '\n\n';
 
   prompt += 'CRITICAL REQUIREMENTS:\n';
-  prompt += '1. ALWAYS use EXACTLY this phone number in all CTAs: "' + (params.phone || 'NO PHONE') + '" - NEVER use any other phone number\n';
-  prompt += '2. ALWAYS mention the business name "' + params.client_name + '" naturally throughout the content\n';
-  prompt += '3. Write COMPREHENSIVE content - each section must be 200-400 words minimum to be authoritative and SEO-friendly\n';
-  prompt += '4. Include specific local references: neighborhood names, local landmarks, city-specific conditions, local statistics\n';
-  prompt += '5. Use proper JSON-LD schema with @context "https://schema.org" and correct @type values\n';
+  prompt += '1. MUST BE 1800-2000 WORDS minimum - write FULL content, not summaries\n';
+  prompt += '2. ALWAYS use EXACTLY this phone number in all CTAs: "' + (params.phone || 'NO PHONE') + '" - NEVER use any other phone number\n';
+  prompt += '3. ALWAYS mention the business name "' + params.client_name + '" naturally throughout the content\n';
+  prompt += '4. Write COMPREHENSIVE content - each section must be 200-400 words minimum to reach 1800-2000 total\n';
+  prompt += '5. Include specific local references: neighborhood names, local landmarks, city-specific conditions\n';
+  prompt += '6. Use proper JSON-LD schema with @context "https://schema.org" and correct @type values\n';
   prompt += '6. Use lists (bullet points or numbered) for common issues, benefits, and services to improve visual appeal\n';
   prompt += '7. IMPORTANT: All content must be in the JSON output - not in prose. The JSON must contain ALL sections.\n';
   prompt += '8. Write as an industry expert - include specific details, examples, and proof points to establish authority\n\n';
