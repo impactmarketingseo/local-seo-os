@@ -62,22 +62,30 @@ export default function ClientDetailPage() {
   const [activeTab, setActiveTab] = useState<'services' | 'cities' | 'keywords'>('services');
   const [cloning, setCloning] = useState(false);
   const [otherClients, setOtherClients] = useState<{id: string, name: string}[]>([]);
+  const [stats, setStats] = useState({ drafts: 0, queue: 0, published: 0 });
 
   useEffect(() => {
     async function loadClient() {
       const supabase = createSupabaseBrowserClient();
       
-      const [clientRes, servicesRes, citiesRes, clientsRes] = await Promise.all([
+      const [clientRes, servicesRes, citiesRes, clientsRes, draftsRes, queueRes] = await Promise.all([
         supabase.from('clients').select('*').eq('id', clientId).single(),
         supabase.from('services').select('*').eq('client_id', clientId).order('priority', { ascending: false }),
         supabase.from('cities').select('*').eq('client_id', clientId).order('priority', { ascending: false }),
         supabase.from('clients').select('id, name').eq('status', 'active').neq('id', clientId).order('name'),
+        supabase.from('drafts').select('id', { count: 'exact', head: true }).eq('client_id', clientId),
+        supabase.from('page_queue').select('id', { count: 'exact', head: true }).eq('client_id', clientId),
       ]);
 
       if (clientRes.data) setClient(clientRes.data);
       if (servicesRes.data) setServices(servicesRes.data);
       if (citiesRes.data) setCities(citiesRes.data);
       if (clientsRes.data) setOtherClients(clientsRes.data);
+      setStats({
+        drafts: draftsRes.count || 0,
+        queue: queueRes.count || 0,
+        published: 0,
+      });
 
       if (servicesRes.data?.[0]?.id) {
         const keywordsRes = await supabase.from('keyword_targets').select('*').eq('service_id', servicesRes.data[0].id);
@@ -197,7 +205,11 @@ export default function ClientDetailPage() {
           <h1 className="mt-2 page-title">{client.name}</h1>
           <p className="text-text-tertiary">{client.niche}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-4">
+          <div className="flex gap-3 text-sm">
+            <span className="px-3 py-1.5 rounded-md bg-warning/10 text-warning">{stats.drafts} drafts</span>
+            <span className="px-3 py-1.5 rounded-md bg-info/10 text-info">{stats.queue} queued</span>
+          </div>
           <select
             onChange={(e) => cloneFromClient(e.target.value)}
             disabled={cloning}

@@ -254,6 +254,13 @@ export default function QueuePage() {
     loadQueue();
   }
 
+  async function deleteMultiple(ids: string[]) {
+    const supabase = createSupabaseBrowserClient();
+    await supabase.from('page_queue').delete().in('id', ids);
+    setSelectedItems(new Set());
+    loadQueue();
+  }
+
   async function generateContent(id: string) {
     try {
       setItems(items.map(i => i.id === id ? { ...i, status: 'generating' } : i));
@@ -433,28 +440,43 @@ export default function QueuePage() {
           </select>
           
           {selectedItems.size > 0 && (
-            <button
-              onClick={bulkGenerate}
-              disabled={bulkGenerating}
-              className="btn-primary text-sm py-1.5"
-            >
-              {bulkGenerating ? (
-                <>
-                  <svg className="w-4 h-4 animate-spin mr-2 inline" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  Generate Selected ({selectedItems.size})
-                </>
-              )}
-            </button>
+            <>
+              <button
+                onClick={bulkGenerate}
+                disabled={bulkGenerating}
+                className="btn-primary text-sm py-1.5"
+              >
+                {bulkGenerating ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin mr-2 inline" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Generate ({selectedItems.size})
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm(`Delete ${selectedItems.size} selected items?`)) {
+                    deleteMultiple(Array.from(selectedItems));
+                  }
+                }}
+                className="btn-ghost text-sm py-1.5 text-error"
+              >
+                <svg className="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete ({selectedItems.size})
+              </button>
+            </>
           )}
         </div>
       )}
