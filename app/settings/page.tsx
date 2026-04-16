@@ -241,6 +241,7 @@ function adjustColor(hex: string, amount: number): string {
 }
 
 function ApiKeysTab() {
+  // API keys are stored locally in browser for convenience
   const [keys, setKeys] = useState<ApiKey[]>([
     { id: '1', key_name: 'groq', provider: 'Groq', description: 'Free AI API - get key at console.groq.com' },
     { id: '2', key_name: 'gemini', provider: 'Google Gemini', description: 'Free AI backup - get key at aistudio.google.com' },
