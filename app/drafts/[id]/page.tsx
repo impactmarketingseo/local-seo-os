@@ -93,8 +93,18 @@ export default function DraftDetailPage() {
       const result = await response.json();
       
       if (result.success) {
+        // Delete the old draft since regeneration created a new one
+        const supabase = createSupabaseBrowserClient();
+        await supabase.from('drafts').delete().eq('id', draftId);
+        
         toast('Content regenerated!', 'success');
-        router.refresh();
+        
+        // Navigate to the new draft
+        if (result.draft_id) {
+          router.push('/drafts/' + result.draft_id);
+        } else {
+          router.refresh();
+        }
       } else {
         toast(result.error || 'Regeneration failed', 'error');
       }
