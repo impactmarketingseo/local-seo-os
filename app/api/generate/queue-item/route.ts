@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ 
         error: 'Generate API failed', 
         status: generateResponse.status,
-        details: errorText.substring(0, 500)
+        details: errorText.substring(0, 1000)
       }, { status: 500 });
     }
 
