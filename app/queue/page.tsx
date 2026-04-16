@@ -159,7 +159,9 @@ export default function QueuePage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<typeof statusTabs[number]>('all');
   const [clientFilter, setClientFilter] = useState<string>('');
+  const [serviceFilter, setServiceFilter] = useState<string>('');
   const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
+  const [services, setServices] = useState<{ id: string; name: string }[]>([]);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [bulkGenerating, setBulkGenerating] = useState(false);
   const [model, setModel] = useState<'groq' | 'gemini'>('groq');
@@ -188,13 +190,20 @@ export default function QueuePage() {
       query = query.eq('client_id', clientFilter);
     }
 
+    if (serviceFilter) {
+      query = query.eq('service_id', serviceFilter);
+    }
+
     const { data } = await query;
     if (data) setItems(data as any);
 
     const { data: clientsData } = await supabase.from('clients').select('id, name').eq('status', 'active').order('name');
     if (clientsData) setClients(clientsData);
+
+    const { data: servicesData } = await supabase.from('services').select('id, name').eq('status', 'active').order('name');
+    if (servicesData) setServices(servicesData);
     setLoading(false);
-  }, [filter, clientFilter]);
+  }, [filter, clientFilter, serviceFilter]);
 
   useEffect(() => {
     loadQueue();
@@ -322,22 +331,40 @@ export default function QueuePage() {
         </Link>
       </div>
 
-      {/* Client Filter */}
-      <div className="mb-4 flex items-center gap-4">
-        <label className="text-sm text-text-tertiary">Filter by client:</label>
-        <select
-          value={clientFilter}
-          onChange={e => setClientFilter(e.target.value)}
-          className="input-field w-auto"
-        >
-          <option value="">All Clients</option>
-          {clients.length > 0 ? clients.map(c => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          )) : <option disabled>No clients found</option>}
-        </select>
-        {clientFilter && (
-          <button onClick={() => setClientFilter('')} className="text-sm text-text-tertiary hover:text-accent">
-            Clear filter
+      {/* Filters */}
+      <div className="mb-4 flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-text-tertiary">Client:</label>
+          <select
+            value={clientFilter}
+            onChange={e => setClientFilter(e.target.value)}
+            className="input-field w-auto"
+          >
+            <option value="">All</option>
+            {clients.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-text-tertiary">Service:</label>
+          <select
+            value={serviceFilter}
+            onChange={e => setServiceFilter(e.target.value)}
+            className="input-field w-auto"
+          >
+            <option value="">All</option>
+            {services.map(s => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </div>
+        {(clientFilter || serviceFilter) && (
+          <button 
+            onClick={() => { setClientFilter(''); setServiceFilter(''); }} 
+            className="text-sm text-text-tertiary hover:text-accent"
+          >
+            Clear filters
           </button>
         )}
       </div>

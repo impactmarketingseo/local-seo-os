@@ -187,14 +187,15 @@ export async function POST(req: NextRequest) {
     // No keys configured
     if (!groqKey && !geminiKey) {
       console.error('No API keys configured');
-      await supabase.from('page_queue').update({ status: 'failed' }).eq('id', queue_item_id);
+      await supabase.from('page_queue').update({ status: 'failed', error_message: 'API keys not configured' }).eq('id', queue_item_id);
       return NextResponse.json({ error: 'No AI API keys configured. Add GROQ_API_KEY or GEMINI_API_KEY' }, { status: 500 });
     }
     
-    await supabase.from('page_queue').update({ status: 'failed' }).eq('id', queue_item_id);
+    await supabase.from('page_queue').update({ status: 'failed', error_message: 'Both AI models failed' }).eq('id', queue_item_id);
     return NextResponse.json({ error: 'Generation failed with both models' }, { status: 500 });
   } catch (error) {
     console.error('Generation error:', error);
+    await supabase.from('page_queue').update({ status: 'failed', error_message: String(error) }).eq('id', queue_item_id);
     return NextResponse.json({ error: 'Generation failed: ' + String(error) }, { status: 500 });
   }
 }
