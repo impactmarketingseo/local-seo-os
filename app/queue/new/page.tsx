@@ -69,6 +69,16 @@ export default function NewQueueItemPage() {
 
     const supabase = createSupabaseBrowserClient();
     
+    // Check for duplicate
+    if (form.service_id && form.city_id) {
+      const { data: existing } = await supabase.from('page_queue').select('id').eq('client_id', form.client_id).eq('service_id', form.service_id).eq('city_id', form.city_id).in('status', ['planned', 'generating', 'needs_review']).single();
+      if (existing) {
+        toast('Duplicate! This service + city already exists in queue', 'error');
+        setLoading(false);
+        return;
+      }
+    }
+    
     const insertData = {
       client_id: form.client_id,
       service_id: form.service_id || null,

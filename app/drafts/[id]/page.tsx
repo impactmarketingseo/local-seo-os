@@ -41,12 +41,17 @@ export default function DraftDetailPage() {
   const [activeTab, setActiveTab] = useState<'seo' | 'keywords' | 'schema' | 'sections' | 'content'>('seo');
   const [showDelete, setShowDelete] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [wordCount, setWordCount] = useState(0);
 
   useEffect(() => {
     async function loadDraft() {
       const supabase = createSupabaseBrowserClient();
       const { data } = await supabase.from('drafts').select('*, clients(name)').eq('id', draftId).single();
-      if (data) setDraft(data);
+      if (data) {
+        setDraft(data);
+        const text = data.content_text || data.content_json?.content_text || '';
+        setWordCount(text.split(/\s+/).filter(Boolean).length);
+      }
       setLoading(false);
     }
     loadDraft();
@@ -213,6 +218,10 @@ export default function DraftDetailPage() {
           <div>
             <span className="text-text-disabled text-xs uppercase tracking-wider">Version</span>
             <p className="text-text-secondary">v{draft.version_number}</p>
+          </div>
+          <div>
+            <span className="text-text-disabled text-xs uppercase tracking-wider">Words</span>
+            <p className="text-text-secondary">{wordCount}</p>
           </div>
           <div>
             <span className="text-text-disabled text-xs uppercase tracking-wider">Status</span>

@@ -167,6 +167,7 @@ export default function DraftsPage() {
                 <div className="flex gap-4 text-xs text-text-disabled mono">
                   <span>/{draft.slug}</span>
                   <span>v{draft.version_number}</span>
+                  <span>{wordCount(draft)} words</span>
                 </div>
               </Link>
             );
@@ -175,4 +176,9 @@ export default function DraftsPage() {
       )}
     </div>
   );
+}
+
+function wordCount(draft: any) {
+  const text = draft.content_text || draft.content_json?.content_text || '';
+  return text.split(/\s+/).filter(Boolean).length;
 }
