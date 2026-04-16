@@ -365,7 +365,19 @@ export default function QueuePage() {
           <label className="text-sm text-text-tertiary">Client:</label>
           <select
             value={clientFilter}
-            onChange={e => setClientFilter(e.target.value)}
+            onChange={e => {
+              setClientFilter(e.target.value);
+              if (e.target.value) {
+                const clientSvcs = allServices.filter((s: any) => s.client_id === e.target.value);
+                setServices(clientSvcs);
+                const currentSvc = serviceFilter;
+                if (currentSvc && !clientSvcs.find((s: any) => s.id === currentSvc)) {
+                  setServiceFilter('');
+                }
+              } else {
+                setServices(allServices);
+              }
+            }}
             className="input-field w-auto"
           >
             <option value="">All</option>
