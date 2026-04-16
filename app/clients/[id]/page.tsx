@@ -60,20 +60,24 @@ export default function ClientDetailPage() {
   const [keywords, setKeywords] = useState<KeywordTarget[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'services' | 'cities' | 'keywords'>('services');
+  const [cloning, setCloning] = useState(false);
+  const [otherClients, setOtherClients] = useState<{id: string, name: string}[]>([]);
 
   useEffect(() => {
     async function loadClient() {
       const supabase = createSupabaseBrowserClient();
       
-      const [clientRes, servicesRes, citiesRes] = await Promise.all([
+      const [clientRes, servicesRes, citiesRes, clientsRes] = await Promise.all([
         supabase.from('clients').select('*').eq('id', clientId).single(),
         supabase.from('services').select('*').eq('client_id', clientId).order('priority', { ascending: false }),
         supabase.from('cities').select('*').eq('client_id', clientId).order('priority', { ascending: false }),
+        supabase.from('clients').select('id, name').eq('status', 'active').neq('id', clientId).order('name'),
       ]);
 
       if (clientRes.data) setClient(clientRes.data);
       if (servicesRes.data) setServices(servicesRes.data);
       if (citiesRes.data) setCities(citiesRes.data);
+      if (clientsRes.data) setOtherClients(clientsRes.data);
 
       if (servicesRes.data?.[0]?.id) {
         const keywordsRes = await supabase.from('keyword_targets').select('*').eq('service_id', servicesRes.data[0].id);
@@ -139,6 +143,44 @@ export default function ClientDetailPage() {
     setCities(cities.filter(c => c.id !== id));
   }
 
+  async function cloneFromClient(sourceClientId: string) {
+    if (!sourceClientId || sourceClientId === clientId) return;
+    setCloning(true);
+    const supabase = createSupabaseBrowserClient();
+    
+    const { data: sourceServices } = await supabase.from('services').select('*').eq('client_id', sourceClientId);
+    const { data: sourceCities } = await supabase.from('cities').select('*').eq('client_id', sourceClientId);
+    
+    if (sourceServices?.length) {
+      const newServices = sourceServices.map(s => ({
+        client_id: clientId,
+        name: s.name,
+        slug: s.slug,
+        active: s.active,
+        priority: s.priority,
+      }));
+      await supabase.from('services').insert(newServices);
+      setServices([...services, ...newServices.map(s => ({ ...s, id: crypto.randomUUID() }))]);
+      toast('Cloned services!', 'success');
+    }
+    
+    if (sourceCities?.length) {
+      const newCities = sourceCities.map(c => ({
+        client_id: clientId,
+        name: c.name,
+        state: client?.state || c.state,
+        slug: c.slug,
+        active: c.active,
+        priority: c.priority,
+      }));
+      await supabase.from('cities').insert(newCities);
+      setCities([...cities, ...newCities.map(c => ({ ...c, id: crypto.randomUUID() }))]);
+      toast('Cloned cities!', 'success');
+    }
+    
+    setCloning(false);
+  }
+
   if (loading) {
     return <div className="p-6 text-text-tertiary">Loading...</div>;
   }
@@ -156,6 +198,17 @@ export default function ClientDetailPage() {
           <p className="text-text-tertiary">{client.niche}</p>
         </div>
         <div className="flex gap-2">
+          <select
+            onChange={(e) => cloneFromClient(e.target.value)}
+            disabled={cloning}
+            className="btn-ghost text-sm"
+            value=""
+          >
+            <option value="">Clone from...</option>
+            {otherClients.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
           <Link
             href={`/clients/${clientId}/edit`}
             className="btn-secondary"

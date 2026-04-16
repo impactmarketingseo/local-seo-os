@@ -28,18 +28,41 @@ export default function DraftsPage() {
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
+  const [search, setSearch] = useState('');
+  const [clientFilter, setClientFilter] = useState('');
+  const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     async function loadDrafts() {
       const supabase = createSupabaseBrowserClient();
       let query = supabase.from('drafts').select('*, clients(name)').order('created_at', { ascending: false });
       if (filter !== 'all') query = query.eq('status', filter);
+      if (clientFilter) query = query.eq('client_id', clientFilter);
       const { data } = await query;
-      if (data) setDrafts(data as any);
+      if (data) {
+        let filtered = data as any;
+        if (search) {
+          const s = search.toLowerCase();
+          filtered = data.filter((d: any) => 
+            d.title?.toLowerCase().includes(s) || 
+            d.clients?.name?.toLowerCase().includes(s)
+          );
+        }
+        setDrafts(filtered);
+      }
       setLoading(false);
     }
     loadDrafts();
-  }, [filter]);
+  }, [filter, clientFilter]);
+
+  useEffect(() => {
+    async function loadClients() {
+      const supabase = createSupabaseBrowserClient();
+      const { data } = await supabase.from('clients').select('id, name').eq('status', 'active').order('name');
+      if (data) setClients(data);
+    }
+    loadClients();
+  }, []);
 
   if (loading) {
     return (
@@ -60,7 +83,24 @@ export default function DraftsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+      <div className="flex flex-wrap gap-2 mb-6 items-center">
+        <input
+          type="text"
+          placeholder="Search drafts..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="input-field flex-1 min-w-48"
+        />
+        <select
+          value={clientFilter}
+          onChange={(e) => setClientFilter(e.target.value)}
+          className="input-field w-auto"
+        >
+          <option value="">All clients</option>
+          {clients.map(c => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
         {['all', 'draft', 'review', 'approved', 'rejected'].map((status) => (
           <button key={status} onClick={() => setFilter(status)}
             className={`px-4 py-2 rounded-md text-sm font-medium capitalize whitespace-nowrap transition-colors ${
