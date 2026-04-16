@@ -227,6 +227,19 @@ export default function QueuePage() {
     return () => clearInterval(interval);
   }, [loadQueue]);
 
+  // Update services when clientFilter changes
+  useEffect(() => {
+    if (clientFilter) {
+      setServices(allServices.filter((s: any) => s.client_id === clientFilter));
+      if (serviceFilter) {
+        const hasService = allServices.some((s: any) => s.id === serviceFilter && s.client_id === clientFilter);
+        if (!hasService) setServiceFilter('');
+      }
+    } else {
+      setServices(allServices);
+    }
+  }, [clientFilter]);
+
   async function updateStatus(id: string, status: string) {
     const supabase = createSupabaseBrowserClient();
     await supabase.from('page_queue').update({ status }).eq('id', id);
