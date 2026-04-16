@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             model: 'llama-3.3-70b-versatile',
             messages: [{ role: 'user', content: prompt }],
-            max_tokens: 12000,
+            max_tokens: 8000,
             temperature: 0.7,
           }),
         });
@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             model: 'llama-3.3-70b-versatile',
             messages: [{ role: 'user', content: prompt }],
-            max_tokens: 12000,
+            max_tokens: 8000,
             temperature: 0.7,
           }),
         });
