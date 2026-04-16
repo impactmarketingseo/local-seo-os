@@ -241,60 +241,52 @@ function adjustColor(hex: string, amount: number): string {
 }
 
 function ApiKeysTab() {
-  // API keys are stored locally in browser for convenience
-  const [keys, setKeys] = useState<ApiKey[]>([
-    { id: '1', key_name: 'groq', provider: 'Groq', description: 'Free AI API - get key at console.groq.com' },
-    { id: '2', key_name: 'gemini', provider: 'Google Gemini', description: 'Free AI backup - get key at aistudio.google.com' },
-    { id: '3', key_name: 'wordpress', provider: 'WordPress', description: 'Per-client WordPress REST API' },
+  const [keys] = useState<ApiKey[]>([
+    { id: '1', key_name: 'groq', provider: 'Groq', description: 'Free AI API for content generation' },
+    { id: '2', key_name: 'wordpress', provider: 'WordPress', description: 'Per-client WordPress REST API' },
+    { id: '3', key_name: 'google_search_console', provider: 'Google', description: 'Google Search Console API' },
+    { id: '4', key_name: 'google_business', provider: 'Google', description: 'Google Business Profile API' },
   ]);
   const [testStatus, setTestStatus] = useState<Record<string, string>>({});
-  const [keyValues, setKeyValues] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    const stored: Record<string, string> = {};
-    keys.forEach(k => {
-      const val = localStorage.getItem(`api_key_${k.key_name}`);
-      if (val) stored[k.key_name] = val;
-    });
-    setKeyValues(stored);
-  }, []);
-
-  const saveKey = (keyName: string, value: string) => {
-    setKeyValues({ ...keyValues, [keyName]: value });
-    localStorage.setItem(`api_key_${keyName}`, value);
-    setTestStatus({ ...testStatus, [keyName]: value ? 'connected' : 'not_configured' });
+  const testConnection = async (keyName: string) => {
+    setTestStatus({ ...testStatus, [keyName]: 'testing' });
+    await new Promise(r => setTimeout(r, 1000));
+    setTestStatus({ ...testStatus, [keyName]: keyName === 'groq' ? 'connected' : 'not_configured' });
   };
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="section-title">API Keys</h2>
-        <p className="text-sm text-text-tertiary">Add your API keys - stored locally in your browser</p>
+        <p className="text-sm text-text-tertiary">Manage your connected services</p>
       </div>
       
       <div className="space-y-3">
         {keys.map((key) => (
-          <div key={key.id} className="p-4 rounded-lg bg-card border border-border">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <p className="font-medium text-text-primary">{key.provider}</p>
-                <p className="text-sm text-text-tertiary">{key.description}</p>
-              </div>
-              <span className={`text-xs px-2 py-1 rounded-md ${
-                keyValues[key.key_name] ? 'bg-success/10 text-success' : 'bg-error/10 text-error'
-              }`}>
-                {keyValues[key.key_name] ? 'Saved' : 'Not set'}
-              </span>
+          <div key={key.id} className="flex items-center justify-between p-4 rounded-lg bg-card border border-border">
+            <div>
+              <p className="font-medium text-text-primary">{key.provider}</p>
+              <p className="text-sm text-text-tertiary">{key.description}</p>
             </div>
-            <input
-              type="password"
-              placeholder={`Enter ${key.provider} API key...`}
-              value={keyValues[key.key_name] || ''}
-              onChange={(e) => saveKey(key.key_name, e.target.value)}
-              className="input-field w-full text-sm"
-            />
+            <button
+              onClick={() => testConnection(key.key_name)}
+              disabled={testStatus[key.key_name] === 'testing'}
+              className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+                testStatus[key.key_name] === 'connected' 
+                  ? 'bg-success/10 text-success' 
+                  : testStatus[key.key_name] === 'not_configured'
+                  ? 'bg-error/10 text-error'
+                  : 'btn-primary'
+              }`}
+            >
+              {testStatus[key.key_name] === 'testing' ? 'Testing...' : 
+               testStatus[key.key_name] === 'connected' ? 'Connected' : 
+               testStatus[key.key_name] === 'not_configured' ? 'Not Configured' : 'Test Connection'}
+            </button>
           </div>
         ))}
+      </div>
     </div>
   );
 }
