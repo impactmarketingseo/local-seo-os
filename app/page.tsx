@@ -6,9 +6,11 @@ import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
 interface DashboardStats {
   clients_count: number;
-  drafts_review: number;
-  published_recent: number;
   queue_count: number;
+  drafts_ready: number;
+  drafts_review: number;
+  generated_this_week: number;
+  approved_this_week: number;
 }
 
 interface AttentionItem {
@@ -195,18 +197,27 @@ export default function DashboardPage() {
     async function loadDashboard() {
       const supabase = createSupabaseBrowserClient();
       
-      const [clientsRes, queueRes, draftsRes, recentRes] = await Promise.all([
+      // Get start of this week
+      const now = new Date();
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      
+      const [clientsRes, queueRes, draftsRes, recentRes, weeklyRes] = await Promise.all([
         supabase.from('clients').select('id', { count: 'exact', head: true }).eq('status', 'active'),
         supabase.from('page_queue').select('id', { count: 'exact', head: true }),
         supabase.from('drafts').select('id, title, status, created_at, clients(name)').in('status', ['draft', 'review']).order('created_at', { ascending: false }).limit(5),
         supabase.from('drafts').select('id, title, status, created_at, clients(name)').order('created_at', { ascending: false }).limit(10),
+        supabase.from('drafts').select('id', { count: 'exact', head: true }).gte('created_at', startOfWeek.toISOString()),
       ]);
 
       setStats({
         clients_count: clientsRes.count || 0,
         queue_count: queueRes.count || 0,
-        drafts_review: draftsRes.data?.length || 0,
-        published_recent: 0,
+        drafts_ready: draftsRes.data?.length || 0,
+        drafts_review: draftsRes.data?.filter((d: any) => d.status === 'review').length || 0,
+        generated_this_week: weeklyRes.count || 0,
+        approved_this_week: 0,
       });
 
       const attention: AttentionItem[] = [];
@@ -265,10 +276,10 @@ export default function DashboardPage() {
             </>
           ) : (
             <>
-              <StatCard label="Active Clients" value={stats?.clients_count ?? 0} trend="+2 this month" trendUp highlight />
-              <StatCard label="Pages in Production" value={stats?.queue_count ?? 0} />
-              <StatCard label="Pending Reviews" value={stats?.drafts_review ?? 0} />
-              <StatCard label="Published This Month" value={stats?.published_recent ?? 0} />
+              <StatCard label="Active Clients" value={stats?.clients_count ?? 0} highlight />
+              <StatCard label="Queue Items" value={stats?.queue_count ?? 0} />
+              <StatCard label="This Week" value={stats?.generated_this_week ?? 0} trend="generated" trendUp />
+              <StatCard label="Pending Review" value={stats?.drafts_ready ?? 0} />
             </>
           )}
         </div>
