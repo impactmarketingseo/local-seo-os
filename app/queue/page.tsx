@@ -159,6 +159,7 @@ export default function QueuePage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<typeof statusTabs[number]>('all');
   const [clientFilter, setClientFilter] = useState<string>('');
+  const [allServices, setAllServices] = useState<{ id: string; client_id: string; name: string }[]>([]);
   const [serviceFilter, setServiceFilter] = useState<string>('');
   const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
   const [services, setServices] = useState<{ id: string; name: string }[]>([]);
@@ -200,8 +201,22 @@ export default function QueuePage() {
     const { data: clientsData } = await supabase.from('clients').select('id, name').eq('status', 'active').order('name');
     if (clientsData) setClients(clientsData);
 
-    const { data: servicesData } = await supabase.from('services').select('id, name').eq('status', 'active').order('name');
-    if (servicesData) setServices(servicesData);
+    const { data: allServicesData } = await supabase.from('services').select('id, client_id, name').eq('status', 'active').order('name');
+    if (allServicesData) {
+      setAllServices(allServicesData);
+      if (clientFilter) {
+        setServices(allServicesData.filter((s: any) => s.client_id === clientFilter));
+      } else {
+        setServices(allServicesData);
+      }
+    }
+    
+    // Reset service filter if current service doesn't belong to selected client
+    if (serviceFilter && clientFilter) {
+      const hasService = allServicesData?.some((s: any) => s.id === serviceFilter && s.client_id === clientFilter);
+      if (!hasService) setServiceFilter('');
+    }
+    
     setLoading(false);
   }, [filter, clientFilter, serviceFilter]);
 
