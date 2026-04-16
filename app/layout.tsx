@@ -8,6 +8,7 @@ import { ToastContainer } from '@/components/Toast';
 export const metadata: Metadata = {
   title: 'SEO OS - Impact Marketing',
   description: 'Internal Local SEO Content Operating System',
+  robots: 'noindex, nofollow',
   icons: {
     icon: '/favicon.svg',
     apple: '/favicon.svg',
