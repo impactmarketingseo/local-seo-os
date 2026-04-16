@@ -167,9 +167,39 @@ export default function DraftDetailPage() {
               )}
             </button>
           )}
-          <span className={`px-3 py-1.5 rounded-md text-sm font-medium ${status.bg} ${status.text}`}>
+          <button
+              onClick={() => {
+                const json = JSON.stringify(draft.content_json || draft, null, 2);
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${draft.slug || 'draft'}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="btn-ghost text-sm"
+              title="Export as JSON"
+            >
+              <svg className="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Export
+            </button>
+            <span className={`px-3 py-1.5 rounded-md text-sm font-medium ${status.bg} ${status.text}`}>
             {draft.status}
           </span>
+          <button
+            onClick={async () => {
+              const nextStatus = draft.status === 'draft' ? 'review' : draft.status === 'review' ? 'approved' : 'draft';
+              const supabase = createSupabaseBrowserClient();
+              await supabase.from('drafts').update({ status: nextStatus }).eq('id', draftId);
+              setDraft({ ...draft, status: nextStatus });
+            }}
+            className="btn-secondary text-sm"
+          >
+            {draft.status === 'draft' ? 'Submit for Review' : draft.status === 'review' ? 'Approve' : 'Revert'}
+          </button>
         </div>
       </div>
 

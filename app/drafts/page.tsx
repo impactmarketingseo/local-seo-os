@@ -64,6 +64,12 @@ export default function DraftsPage() {
     loadClients();
   }, []);
 
+  async function updateStatus(id: string, status: string) {
+    const supabase = createSupabaseBrowserClient();
+    await supabase.from('drafts').update({ status }).eq('id', id);
+    setDrafts(drafts.map(d => d.id === id ? { ...d, status } : d));
+  }
+
   if (loading) {
     return (
       <div className="p-6 lg:p-8">
@@ -141,9 +147,19 @@ export default function DraftsPage() {
                     <h3 className="font-semibold text-text-primary truncate">{draft.meta_title || draft.title || 'Untitled'}</h3>
                     <p className="text-sm text-text-tertiary">{draft.clients?.name}</p>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-md text-xs font-medium shrink-0 ${status.bg} ${status.text}`}>
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const nextStatus = draft.status === 'draft' ? 'review' : draft.status === 'review' ? 'approved' : 'draft';
+                      updateStatus(draft.id, nextStatus);
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.classList.add('ring-2', 'ring-accent')}
+                    onMouseLeave={(e) => e.currentTarget.classList.remove('ring-2', 'ring-accent')}
+                    className={`px-2.5 py-1 rounded-md text-xs font-medium shrink-0 ${status.bg} ${status.text} cursor-pointer transition-all`}
+                    title="Click to change status"
+                  >
                     {draft.status}
-                  </span>
+                  </button>
                 </div>
                 {draft.slug && (
                   <p className="text-xs text-text-disabled mb-2">/{draft.slug}</p>
