@@ -269,7 +269,7 @@ function ApiKeysTab() {
     <div className="space-y-6">
       <div>
         <h2 className="section-title">API Keys</h2>
-        <p className="text-sm text-text-tertiary">Add your API keys (saved locally in browser)</p>
+        <p className="text-sm text-text-tertiary">Add your API keys - stored locally in your browser</p>
       </div>
       
       <div className="space-y-3">
