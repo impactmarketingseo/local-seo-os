@@ -342,11 +342,11 @@ export default function QueuePage() {
     }
   }
 
-  const counts = {
+const counts: Record<string, number> = {
     all: items.length,
     planned: items.filter(i => i.status === 'planned').length,
-    generating: items.filter(i => ['generating', 'approved_for_gen'].includes(i.status)).length,
-    completed: items.filter(i => ['approved', 'exported', 'sent_to_wp', 'published'].includes(i.status)).length,
+    generating: items.filter(i => i.status === 'generating' || i.status === 'approved_for_gen').length,
+    draft_ready: items.filter(i => i.status === 'draft_ready').length,
     failed: items.filter(i => i.status === 'failed').length,
   };
 
