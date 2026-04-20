@@ -50,10 +50,11 @@ export default function DraftsPage() {
         let filtered = data as any;
         if (search) {
           const s = search.toLowerCase();
-          filtered = data.filter((d: any) => 
-            d.content_json?.meta?.title?.toLowerCase().includes(s) || 
-            d.clients?.name?.toLowerCase().includes(s)
-          );
+          filtered = data.filter((d: any) => {
+            const title = d.content_json?.meta?.title || d.meta_title || '';
+            const client = d.clients?.name || '';
+            return title.toLowerCase().includes(s) || client.toLowerCase().includes(s);
+          });
         }
         setDrafts(filtered);
       }
