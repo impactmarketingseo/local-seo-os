@@ -41,19 +41,19 @@ export default function DraftsPage() {
       const supabase = createSupabaseBrowserClient();
       let query = supabase
         .from('drafts')
-        .select('*, clients(name), services(name, slug), cities(name, state, slug)')
+        .select('*')
         .order('created_at', { ascending: false });
       if (filter !== 'all') query = query.eq('status', filter);
       if (clientFilter) query = query.eq('client_id', clientFilter);
       const { data } = await query;
+      console.log('Drafts query result:', data?.length);
       if (data) {
         let filtered = data as any;
         if (search) {
           const s = search.toLowerCase();
           filtered = data.filter((d: any) => {
-            const title = d.content_json?.meta?.title || d.meta_title || '';
-            const client = d.clients?.name || '';
-            return title.toLowerCase().includes(s) || client.toLowerCase().includes(s);
+            const title = d.content_json?.meta?.title || '';
+            return title.toLowerCase().includes(s);
           });
         }
         setDrafts(filtered);
@@ -153,15 +153,10 @@ export default function DraftsPage() {
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1 min-w-0 mr-3">
                     <h3 className="font-semibold text-text-primary truncate">
-                      {draft.services?.name && draft.cities?.name 
-                        ? `${draft.services.name} in ${draft.cities.name}, ${draft.cities.state}`
-                        : draft.content_json?.meta?.title || draft.meta_title || 'Untitled Draft'}
+                      {draft.content_json?.meta?.title || draft.content_json?.meta?.h1 || 'Untitled Draft'}
                     </h3>
                     <p className="text-sm text-text-tertiary">
-                      {draft.clients?.name}
-                      {draft.content_json?.meta?.slug && (
-                        <span className="text-text-disabled"> / {draft.content_json.meta.slug}</span>
-                      )}
+                      Client ID: {draft.client_id?.substring(0,8)}...
                     </p>
                   </div>
                   <button 
