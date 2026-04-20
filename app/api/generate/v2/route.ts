@@ -200,45 +200,40 @@ export async function POST(req: NextRequest) {
     // Create draft record - MUST include content_json (NOT NULL in production)
     let finalDraft = null;
     
-    // Try with minimal required fields + content_json placeholder
+    // Try 1: Try to store actual content first
     const try1 = await supabase.from('drafts').insert({ 
+      client_id: service?.client_id,
       status: 'draft',
-      content_json: { placeholder: true }
+      generation_model: aiModel,
+      content_json: parsed
     }).select().single();
     
     if (try1.data) {
       finalDraft = try1.data;
+      console.log('Try1 OK with content');
     } else {
       console.log('Try1 failed:', try1.error?.message);
-    }
-
-    // Try 2: status + client_id + content_json
-    if (!finalDraft && service?.client_id) {
+      // Try 2: Try with minimal fields + parsed content (no client_id)
       const try2 = await supabase.from('drafts').insert({ 
-        client_id: service.client_id,
         status: 'draft',
-        content_json: { placeholder: true }
+        content_json: parsed
       }).select().single();
       if (try2.data) {
         finalDraft = try2.data;
+        console.log('Try2 OK');
       } else {
         console.log('Try2 failed:', try2.error?.message);
-      }
-    }
-
-    // Try 3: status + client_id + generation_model + content_json with actual content
-    if (!finalDraft && service?.client_id) {
-      const try3 = await supabase.from('drafts').insert({ 
-        client_id: service.client_id,
-        status: 'draft',
-        generation_model: aiModel,
-        content_json: parsed // Store the actual content here
-      }).select().single();
-      if (try3.data) {
-        finalDraft = try3.data;
-        console.log('Try3 OK - draft with content_json');
-      } else {
-        console.log('Try3 failed:', try3.error?.message);
+        // Try 3: Simple placeholder only (last resort)
+        const try3 = await supabase.from('drafts').insert({ 
+          status: 'draft',
+          content_json: { placeholder: true }
+        }).select().single();
+        if (try3.data) {
+          finalDraft = try3.data;
+          console.log('Try3 OK - placeholder only');
+        } else {
+          console.log('Try3 failed:', try3.error?.message);
+        }
       }
     }
 
