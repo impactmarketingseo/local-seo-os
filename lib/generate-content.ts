@@ -8,11 +8,11 @@ export async function generateContent(service: any, city: any, client: any, allS
   console.log('Page request length:', pageRequest.length);
   console.log('Client:', client?.name, client?.phone, client?.email);
 
-  const groqKey = process.env.GROQ_API_KEY;
-  const geminiKey = process.env.GEMINI_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
-  console.log('GROQ_API_KEY set:', !!groqKey);
-  console.log('GEMINI_API_KEY set:', !!geminiKey);
+  console.log('GROQ_API_KEY set:', !!groqKey, 'length:', groqKey?.length);
+  console.log('GEMINI_API_KEY set:', !!geminiKey, 'length:', geminiKey?.length);
 
   let content = '';
   let aiModel = 'groq';
