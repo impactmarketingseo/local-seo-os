@@ -56,10 +56,7 @@ export default function DraftDetailPage() {
       
       if (draftData) {
         setDraft(draftData);
-        const c = draftData.content_json || {};
-        console.log('Full content:', JSON.stringify(c).substring(0, 500));
-        console.log('Content keys:', Object.keys(c));
-        setContent(c);
+        setContent(draftData.content_json || {});
         
         // Calculate word count from content_json
         let text = '';
@@ -277,10 +274,24 @@ export default function DraftDetailPage() {
         {activeTab === 'seo' && (
           <div className="space-y-4">
             <div className="card-standard">
-              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">All Content</p>
-              <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md max-h-96">
-                {JSON.stringify(content, null, 2)}
-              </pre>
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Title Tag</p>
+              <p className="font-medium text-text-primary">{content?.meta?.title || draft.title}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">URL Slug</p>
+              <p className="mono text-text-secondary">/{content?.meta?.slug || draft.slug}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Meta Description</p>
+              <p className="text-text-secondary">{content?.meta?.description || draft.meta_description}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">H1</p>
+              <p className="font-bold text-text-primary">{content?.meta?.h1 || draft.h1}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Breadcrumb</p>
+              <p className="text-text-secondary">{content?.breadcrumb}</p>
             </div>
           </div>
         )}
@@ -468,62 +479,40 @@ export default function DraftDetailPage() {
           </div>
         )}
 
-{/* Schema Tab - Display raw JSON */}
+        {/* Schema Tab */}
         {activeTab === 'schema' && (
-          <div className="card-standard">
-            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Schema Markup</p>
-            <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md">
-              {JSON.stringify(content?.schema_markup || {}, null, 2)}
-            </pre>
-          </div>
-        )}
-                  {faqPageSchema && (
-                    <div className="card-standard">
-                      <div className="flex justify-between items-center mb-4">
-                        <p className="text-sm font-semibold text-text-primary">FAQ Schema</p>
-                        <button type="button" onClick={() => navigator.clipboard.writeText(faqPageSchema)}
-                          className="btn-secondary text-sm">
-                          Copy
-                        </button>
-                      </div>
-                      <pre className="text-xs bg-black/5 p-3 rounded overflow-x-auto text-text-secondary">
-                        {faqPageSchema.substring(0, 500)}...
-                      </pre>
-                    </div>
-                  )}
-                  {serviceSchema && (
+          <div className="space-y-6">
+            {(() => {
+              const serviceSchema = (draft.service_schema || draft.schema_notes || draft.content_json?.service_schema) as Record<string, unknown> || {};
+              const localBusinessSchema = (draft.local_business_schema || draft.content_json?.local_business_schema) as Record<string, unknown> || {};
+              
+              const hasService = Object.keys(serviceSchema).length > 0;
+              const hasLocal = Object.keys(localBusinessSchema).length > 0;
+              
+              if (!hasService && !hasLocal) {
+                return (
+                  <div className="card-standard text-center">
+                    <p className="text-text-tertiary">No schema generated</p>
+                  </div>
+                );
+              }
+              
+              return (
+                <>
+                  {hasService && (
                     <div className="card-standard">
                       <div className="flex justify-between items-center mb-4">
                         <p className="text-sm font-semibold text-text-primary">Service Schema</p>
-                        <button type="button" onClick={() => navigator.clipboard.writeText(serviceSchema)}
+                        <button type="button" onClick={() => navigator.clipboard.writeText(JSON.stringify(serviceSchema, null, 2))}
                           className="btn-secondary text-sm">
                           Copy
                         </button>
                       </div>
-                      <pre className="text-xs bg-black/5 p-3 rounded overflow-x-auto text-text-secondary">
-                        {serviceSchema.substring(0, 500)}...
+                      <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md">
+                        {JSON.stringify(serviceSchema, null, 2)}
                       </pre>
                     </div>
                   )}
-                  {breadcrumbSchema && (
-                    <div className="card-standard">
-                      <div className="flex justify-between items-center mb-4">
-                        <p className="text-sm font-semibold text-text-primary">Breadcrumb Schema</p>
-                        <button type="button" onClick={() => navigator.clipboard.writeText(breadcrumbSchema)}
-                          className="btn-secondary text-sm">
-                          Copy
-                        </button>
-                      </div>
-                      <pre className="text-xs bg-black/5 p-3 rounded overflow-x-auto text-text-secondary">
-                        {breadcrumbSchema}
-                      </pre>
-                    </div>
-                  )}
-                </>
-              );
-            })()}
-          </div>
-        )}
                   {hasLocal && (
                     <div className="card-standard">
                       <div className="flex justify-between items-center mb-4">
