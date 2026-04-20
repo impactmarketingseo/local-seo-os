@@ -85,17 +85,18 @@ export async function POST(req: NextRequest) {
     console.log('Page request:', pageRequest.substring(0, 200));
 
     // Try Groq first
-    const groqKey = process.env.GROQ_API_KEY;
-    const geminiKey = process.env.GEMINI_API_KEY;
-    const useModel = model || 'groq';
+    const groqKey = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
+    const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
-    console.log('Using model:', useModel, 'Groq key:', !!groqKey, 'Gemini key:', !!geminiKey);
+    console.log('Groq key:', !!groqKey, 'Gemini key:', !!geminiKey);
 
     let content = '';
     let aiModel = 'groq';
     let tokenCount = 0;
 
-    if (useModel === 'groq' && groqKey) {
+    // Try Groq
+    if (groqKey) {
+      console.log('Calling Groq...');
       try {
         const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
@@ -106,68 +107,79 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             model: 'llama-3.1-8b-instant',
             messages: [
-              { role: 'system', content: systemPrompt.substring(0, 2000) },
-              { role: 'user', content: pageRequest.substring(0, 2000) }
+              { role: 'system', content: systemPrompt.substring(0, 1500) },
+              { role: 'user', content: pageRequest.substring(0, 1000) }
             ],
-            max_tokens: 4000,
+            max_tokens: 3000,
             temperature: 0.7,
           }),
         });
+
+        console.log('Groq status:', groqResponse.status);
 
         if (groqResponse.ok) {
           const data = await groqResponse.json();
           content = data.choices?.[0]?.message?.content || '';
           tokenCount = data.usage?.total_tokens || 0;
-          console.log('Groq OK, content:', content.length);
+          console.log('Groq content length:', content.length);
         } else {
           const err = await groqResponse.text();
-          console.error('Groq error:', groqResponse.status, err.substring(0, 200));
+          console.log('Groq error:', groqResponse.status, err.substring(0, 150));
+          // Try Gemini if Groq fails
+          if (!content && geminiKey) {
+            console.log('Trying Gemini...');
+            const prompt = `${systemPrompt.substring(0, 1500)}\n\n${pageRequest.substring(0, 1000)}`;
+            const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.7, maxOutputTokens: 3000 },
+              }),
+            });
+            if (geminiResponse.ok) {
+              const data = await geminiResponse.json();
+              content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+              aiModel = 'gemini';
+              console.log('Gemini content:', content.length);
+            }
+          }
         }
       } catch (e) {
-        console.error('Groq exception:', e);
+        console.log('Groq exception:', e);
       }
-    }
-
-    // Fallback to Gemini
-    if (!content && geminiKey) {
-      try {
-        const prompt = `${systemPrompt.substring(0, 2000)}\n\n${pageRequest.substring(0, 2000)}`;
-        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 4000,
-            },
-          }),
-        });
-
-        if (geminiResponse.ok) {
-          const data = await geminiResponse.json();
-          content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          aiModel = 'gemini';
-          console.log('Gemini OK, content:', content.length);
-        } else {
-          const err = await geminiResponse.text();
-          console.error('Gemini error:', geminiResponse.status, err.substring(0, 200));
-        }
-      } catch (e) {
-        console.error('Gemini exception:', e);
-      }
-    }
-
-    if (!geminiKey) {
-      console.log('No Gemini key');
     }
 
     if (!content) {
-      console.error('AI generation failed - no content returned');
-      console.error('Groq key exists:', !!groqKey);
-      console.error('Gemini key exists:', !!geminiKey);
-      await supabase.from('page_queue').update({ status: 'planned' }).eq('id', queue_item_id);
-      return NextResponse.json({ error: 'AI generation failed', details: 'No content from AI API' }, { status: 500 });
+      console.log('AI generation failed');
+      // Try Gemini as fallback if not tried yet
+      if (geminiKey && !content) {
+        console.log('Trying Gemini...');
+        try {
+          const prompt = `${systemPrompt.substring(0, 1500)}\n\n${pageRequest.substring(0, 1000)}`;
+          const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.7, maxOutputTokens: 3000 },
+            }),
+          });
+          if (geminiResponse.ok) {
+            const data = await geminiResponse.json();
+            content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            aiModel = 'gemini';
+            console.log('Gemini content:', content.length);
+          }
+        } catch (e) {
+          console.log('Gemini exception:', e);
+        }
+      }
+      
+      if (!content) {
+        console.log('Really failed - no content from either API');
+        return NextResponse.json({ error: 'AI generation failed', details: 'No content from AI API' }, { status: 500 });
+      }
     }
 
     // Parse the JSON response
