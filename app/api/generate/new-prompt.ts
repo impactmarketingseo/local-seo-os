@@ -204,7 +204,6 @@ WRITING RULES:
 - Process: 5 exact steps. Why-choose-us: 5 exact items. Problems: 6 cards.`;
 
 }
-}
 
 export function parseAIResponse(response: string): any {
   // Remove markdown code blocks if present
