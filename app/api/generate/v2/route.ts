@@ -104,12 +104,12 @@ export async function POST(req: NextRequest) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
+            model: 'llama-3.1-8b-instant',
             messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: pageRequest }
+              { role: 'system', content: systemPrompt.substring(0, 2000) },
+              { role: 'user', content: pageRequest.substring(0, 2000) }
             ],
-            max_tokens: 10000,
+            max_tokens: 4000,
             temperature: 0.7,
           }),
         });
@@ -118,10 +118,10 @@ export async function POST(req: NextRequest) {
           const data = await groqResponse.json();
           content = data.choices?.[0]?.message?.content || '';
           tokenCount = data.usage?.total_tokens || 0;
-          console.log('Groq generation successful, content length:', content.length);
+          console.log('Groq OK, content:', content.length);
         } else {
           const err = await groqResponse.text();
-          console.error('Groq error:', groqResponse.status, err);
+          console.error('Groq error:', groqResponse.status, err.substring(0, 200));
         }
       } catch (e) {
         console.error('Groq exception:', e);
@@ -131,14 +131,15 @@ export async function POST(req: NextRequest) {
     // Fallback to Gemini
     if (!content && geminiKey) {
       try {
-        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+        const prompt = `${systemPrompt.substring(0, 2000)}\n\n${pageRequest.substring(0, 2000)}`;
+        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `${systemPrompt}\n\n${pageRequest}` }] }],
+            contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
               temperature: 0.7,
-              maxOutputTokens: 10000,
+              maxOutputTokens: 4000,
             },
           }),
         });
@@ -147,10 +148,18 @@ export async function POST(req: NextRequest) {
           const data = await geminiResponse.json();
           content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
           aiModel = 'gemini';
+          console.log('Gemini OK, content:', content.length);
+        } else {
+          const err = await geminiResponse.text();
+          console.error('Gemini error:', geminiResponse.status, err.substring(0, 200));
         }
       } catch (e) {
         console.error('Gemini exception:', e);
       }
+    }
+
+    if (!geminiKey) {
+      console.log('No Gemini key');
     }
 
     if (!content) {
