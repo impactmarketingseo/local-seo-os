@@ -242,7 +242,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create draft' }, { status: 500 });
     }
 
-    console.log('Draft created:', finalDraft.id);
+    console.log('Draft created with content_json keys:', Object.keys(parsed || {}));
+    console.log('Draft ID:', finalDraft.id);
 
     // Insert draft content
     const { error: contentError } = await supabase
