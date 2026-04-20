@@ -37,7 +37,7 @@ const statusColors: Record<string, { bg: string; text: string; label: string }> 
   failed: { bg: 'bg-error/10', text: 'text-error', label: 'Failed' },
 };
 
-const statusTabs = ['all', 'planned', 'generating', 'completed', 'failed'] as const;
+const statusTabs = ['all', 'planned', 'generating', 'draft_ready', 'failed'] as const;
 
 function QueueRow({ item, onUpdate, onDelete, onGenerate, delay, selectable, selected, onSelect }: { item: QueueItem; onUpdate: (id: string, status: string) => void; onDelete: (id: string) => void; onGenerate: (id: string) => void; delay?: number; selectable?: boolean; selected?: boolean; onSelect?: (id: string, checked: boolean) => void }) {
   const status = statusColors[item.status] || statusColors.planned;
