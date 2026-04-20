@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { buildSystemPrompt, buildPageRequest, parseAIResponse, validateOutput, ANTI_PATTERNS } from './new-prompt';
+import { buildSystemPrompt, buildPageRequest, parseAIResponse, validateOutput, ANTI_PATTERNS } from '../new-prompt';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
