@@ -56,7 +56,9 @@ export default function DraftDetailPage() {
       
       if (draftData) {
         setDraft(draftData);
-        setContent(draftData.content_json || {});
+        const c = draftData.content_json || {};
+        console.log('Content keys:', Object.keys(c));
+        setContent(c);
         
         // Calculate word count from content_json
         let text = '';
@@ -479,17 +481,19 @@ export default function DraftDetailPage() {
           </div>
         )}
 
-        {/* Schema Tab */}
+{/* Schema Tab */}
         {activeTab === 'schema' && (
           <div className="space-y-6">
             {(() => {
-              const serviceSchema = (draft.service_schema || draft.schema_notes || draft.content_json?.service_schema) as Record<string, unknown> || {};
-              const localBusinessSchema = (draft.local_business_schema || draft.content_json?.local_business_schema) as Record<string, unknown> || {};
+              const schema = content?.schema_markup || {};
+              const localBusinessSchema = schema?.local_business || '';
+              const faqPageSchema = schema?.faq_page || '';
+              const serviceSchema = schema?.service || '';
+              const breadcrumbSchema = schema?.breadcrumb_list || '';
               
-              const hasService = Object.keys(serviceSchema).length > 0;
-              const hasLocal = Object.keys(localBusinessSchema).length > 0;
+              const hasAny = localBusinessSchema || faqPageSchema || serviceSchema || breadcrumbSchema;
               
-              if (!hasService && !hasLocal) {
+              if (!hasAny) {
                 return (
                   <div className="card-standard text-center">
                     <p className="text-text-tertiary">No schema generated</p>
@@ -499,20 +503,67 @@ export default function DraftDetailPage() {
               
               return (
                 <>
-                  {hasService && (
+                  {localBusinessSchema && (
                     <div className="card-standard">
                       <div className="flex justify-between items-center mb-4">
-                        <p className="text-sm font-semibold text-text-primary">Service Schema</p>
-                        <button type="button" onClick={() => navigator.clipboard.writeText(JSON.stringify(serviceSchema, null, 2))}
+                        <p className="text-sm font-semibold text-text-primary">LocalBusiness Schema</p>
+                        <button type="button" onClick={() => navigator.clipboard.writeText(localBusinessSchema)}
                           className="btn-secondary text-sm">
                           Copy
                         </button>
                       </div>
-                      <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md">
-                        {JSON.stringify(serviceSchema, null, 2)}
+                      <pre className="text-xs bg-black/5 p-3 rounded overflow-x-auto text-text-secondary">
+                        {localBusinessSchema.substring(0, 500)}...
                       </pre>
                     </div>
                   )}
+                  {faqPageSchema && (
+                    <div className="card-standard">
+                      <div className="flex justify-between items-center mb-4">
+                        <p className="text-sm font-semibold text-text-primary">FAQ Schema</p>
+                        <button type="button" onClick={() => navigator.clipboard.writeText(faqPageSchema)}
+                          className="btn-secondary text-sm">
+                          Copy
+                        </button>
+                      </div>
+                      <pre className="text-xs bg-black/5 p-3 rounded overflow-x-auto text-text-secondary">
+                        {faqPageSchema.substring(0, 500)}...
+                      </pre>
+                    </div>
+                  )}
+                  {serviceSchema && (
+                    <div className="card-standard">
+                      <div className="flex justify-between items-center mb-4">
+                        <p className="text-sm font-semibold text-text-primary">Service Schema</p>
+                        <button type="button" onClick={() => navigator.clipboard.writeText(serviceSchema)}
+                          className="btn-secondary text-sm">
+                          Copy
+                        </button>
+                      </div>
+                      <pre className="text-xs bg-black/5 p-3 rounded overflow-x-auto text-text-secondary">
+                        {serviceSchema.substring(0, 500)}...
+                      </pre>
+                    </div>
+                  )}
+                  {breadcrumbSchema && (
+                    <div className="card-standard">
+                      <div className="flex justify-between items-center mb-4">
+                        <p className="text-sm font-semibold text-text-primary">Breadcrumb Schema</p>
+                        <button type="button" onClick={() => navigator.clipboard.writeText(breadcrumbSchema)}
+                          className="btn-secondary text-sm">
+                          Copy
+                        </button>
+                      </div>
+                      <pre className="text-xs bg-black/5 p-3 rounded overflow-x-auto text-text-secondary">
+                        {breadcrumbSchema}
+                      </pre>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+        )}
                   {hasLocal && (
                     <div className="card-standard">
                       <div className="flex justify-between items-center mb-4">
