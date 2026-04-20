@@ -87,13 +87,14 @@ export async function POST(req: NextRequest) {
     // Generate content directly
     const { parsed, aiModel, tokenCount } = await generateContent(service, city, client, allServices || [], serviceCities || []);
 
-    // Create draft with only mandatory fields
+    // Create draft with minimal fields
     const { data: draft, error: draftError } = await supabase
       .from('drafts')
       .insert({
         queue_id: queue_item_id,
         client_id: queueItem.client_id,
         status: 'draft',
+        content_json: { generated: true },
         generation_model: aiModel,
         token_count: tokenCount,
       })
