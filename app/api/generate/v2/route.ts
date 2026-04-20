@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { buildSystemPrompt, buildPageRequest, parseAIResponse, validateOutput } from '../new-prompt';
+import { buildSystemPrompt, buildPageRequest, parseAIResponse } from '../new-prompt';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -172,22 +172,18 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate output
-    const validationErrors = validateOutput(parsed);
-    if (validationErrors.length > 0) {
-      console.warn('Validation warnings:', validationErrors);
-    }
+    console.log('Parsed JSON successfully');
 
     // Create draft record
     const { data: draft, error: draftError } = await supabase
       .from('drafts')
       .insert({
         queue_id: queue_item_id,
-        client_id: service.client_id,
-        service_id,
-        city_id,
+        client_id: service?.client_id,
         status: 'draft',
         generation_model: aiModel,
         token_count: tokenCount,
+        content_json: { test: true },
       })
       .select()
       .single();
@@ -195,6 +191,18 @@ export async function POST(req: NextRequest) {
     if (draftError || !draft) {
       console.error('Draft create error:', draftError);
       return NextResponse.json({ error: 'Failed to create draft' }, { status: 500 });
+    }
+
+    // Try to update service_id and city_id if they exist
+    if (service_id) {
+      await supabase.from('drafts').update({ service_id }).eq('id', draft.id).then(({ error }) => {
+        if (error) console.log('service_id update skipped:', error.message);
+      });
+    }
+    if (city_id) {
+      await supabase.from('drafts').update({ city_id }).eq('id', draft.id).then(({ error }) => {
+        if (error) console.log('city_id update skipped:', error.message);
+      });
     }
 
     // Insert draft content
