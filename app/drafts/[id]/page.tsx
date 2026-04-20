@@ -47,33 +47,24 @@ export default function DraftDetailPage() {
 useEffect(() => {
     async function loadDraft() {
       const supabase = createSupabaseBrowserClient();
-      // Query drafts
+      // Query drafts - content is in content_json
       const { data: draftData } = await supabase
         .from('drafts')
         .select('*')
         .eq('id', draftId)
         .single();
       
-      // Query draft_content for the actual content
-      const { data: contentData } = await supabase
-        .from('draft_content')
-        .select('*')
-        .eq('draft_id', draftId)
-        .single();
-      
       if (draftData) {
         setDraft(draftData);
-        setContent(contentData || {});
+        // Prefer content_json, fallback to draft_content
+        setContent(draftData.content_json || {});
         
         // Calculate word count
         let text = '';
-        if (contentData) {
-          text = JSON.stringify(contentData);
-        } else if (draftData.content_text) {
-          text = draftData.content_text;
+        if (draftData.content_json) {
+          text = JSON.stringify(draftData.content_json);
         }
         setWordCount(text.split(/\s+/).filter(Boolean).length);
-        console.log('Loaded content data:', contentData ? Object.keys(contentData) : 'empty');
       }
       setLoading(false);
     }
