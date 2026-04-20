@@ -197,53 +197,44 @@ export async function POST(req: NextRequest) {
     // Validate output
     console.log('Parsed JSON successfully');
 
-    // Create draft record - MUST include content_json (NOT NULL in production)
+    // Create draft record
     let finalDraft = null;
     
-    // Try 1: Try to store actual content first
-    const try1 = await supabase.from('drafts').insert({ 
-      client_id: service?.client_id,
+    const insertData: any = { 
       status: 'draft',
       generation_model: aiModel,
-      content_json: parsed
-    }).select().single();
+    };
+    if (service?.client_id) insertData.client_id = service.client_id;
     
-    if (try1.data) {
-      finalDraft = try1.data;
-      console.log('Try1 OK with content');
+    // Add all content to the INSERT (will go into content_json, then we'll load from draft_content)
+    const draftInsert = await supabase.from('drafts').insert(insertData).select().single();
+    
+    if (draftInsert.data) {
+      finalDraft = draftInsert.data;
+      console.log('Draft created:', finalDraft.id);
     } else {
-      console.log('Try1 failed:', try1.error?.message);
-      // Try 2: Try with minimal fields + parsed content (no client_id)
-      const try2 = await supabase.from('drafts').insert({ 
-        status: 'draft',
-        content_json: parsed
-      }).select().single();
-      if (try2.data) {
-        finalDraft = try2.data;
-        console.log('Try2 OK');
-      } else {
-        console.log('Try2 failed:', try2.error?.message);
-        // Try 3: Simple placeholder only (last resort)
-        const try3 = await supabase.from('drafts').insert({ 
-          status: 'draft',
-          content_json: { placeholder: true }
-        }).select().single();
-        if (try3.data) {
-          finalDraft = try3.data;
-          console.log('Try3 OK - placeholder only');
-        } else {
-          console.log('Try3 failed:', try3.error?.message);
-        }
-      }
-    }
-
-    if (!finalDraft) {
-      console.log('All draft insert attempts failed');
+      console.log('Draft insert failed:', draftInsert.error?.message);
       return NextResponse.json({ error: 'Failed to create draft' }, { status: 500 });
     }
 
-    console.log('Draft created with content_json keys:', Object.keys(parsed || {}));
-    console.log('Draft ID:', finalDraft.id);
+    // Insert content into draft_content table
+    const { error: contentError } = await supabase.from('draft_content').insert({
+      draft_id: finalDraft.id,
+      meta: parsed.meta || {},
+      breadcrumb: parsed.breadcrumb || '',
+      hero: parsed.hero || {},
+      trust_strip: parsed.trust_strip || [],
+      problems: parsed.problems || {},
+      why_choose_us: parsed.why_choose_us || {},
+      process: parsed.process || {},
+      faq: parsed.faq || {},
+      local_context: parsed.local_context || {},
+      internal_links: parsed.internal_links || {},
+      final_cta: parsed.final_cta || {},
+      schema_markup: parsed.schema_markup || {},
+    });
+
+    console.log('Content insert result:', contentError ? 'ERROR: ' + contentError.message : 'OK');
 
     // Insert draft content
     const { error: contentError } = await supabase
