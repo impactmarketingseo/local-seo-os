@@ -277,24 +277,10 @@ export default function DraftDetailPage() {
         {activeTab === 'seo' && (
           <div className="space-y-4">
             <div className="card-standard">
-              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Title Tag</p>
-              <p className="font-medium text-text-primary">{content?.meta?.title || draft.title}</p>
-            </div>
-            <div className="card-standard">
-              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">URL Slug</p>
-              <p className="mono text-text-secondary">/{content?.meta?.slug || draft.slug}</p>
-            </div>
-            <div className="card-standard">
-              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Meta Description</p>
-              <p className="text-text-secondary">{content?.meta?.description || draft.meta_description}</p>
-            </div>
-            <div className="card-standard">
-              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">H1</p>
-              <p className="font-bold text-text-primary">{content?.meta?.h1 || draft.h1}</p>
-            </div>
-            <div className="card-standard">
-              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Breadcrumb</p>
-              <p className="text-text-secondary">{content?.breadcrumb}</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">All Content</p>
+              <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md max-h-96">
+                {JSON.stringify(content, null, 2)}
+              </pre>
             </div>
           </div>
         )}
