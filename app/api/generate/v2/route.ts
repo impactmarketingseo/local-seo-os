@@ -234,27 +234,6 @@ export async function POST(req: NextRequest) {
       schema_markup: parsed.schema_markup || {},
     });
 
-    console.log('Content insert result:', contentError ? 'ERROR: ' + contentError.message : 'OK');
-
-    // Insert draft content
-    const { error: contentError } = await supabase
-      .from('draft_content')
-      .insert({
-        draft_id: finalDraft.id,
-        meta: parsed.meta || {},
-        breadcrumb: parsed.breadcrumb || '',
-        hero: parsed.hero || {},
-        trust_strip: parsed.trust_strip || [],
-        problems: parsed.problems || {},
-        why_choose_us: parsed.why_choose_us || {},
-        process: parsed.process || {},
-        faq: parsed.faq || {},
-        local_context: parsed.local_context || {},
-        internal_links: parsed.internal_links || {},
-        final_cta: parsed.final_cta || {},
-        schema_markup: parsed.schema_markup || {},
-      });
-
     console.log('Content insert result:', contentError ? 'ERROR: ' + contentError.message : 'OK - draft_id:', finalDraft.id);
 
     // Update queue status
