@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
     // Generate content directly
     const { parsed, aiModel, tokenCount } = await generateContent(service, city, client, allServices || [], serviceCities || []);
 
-    // Create draft - only use fields we know exist
+    // Create draft with only mandatory fields
     const { data: draft, error: draftError } = await supabase
       .from('drafts')
       .insert({
@@ -102,16 +102,10 @@ export async function POST(req: NextRequest) {
 
     if (draftError || !draft) {
       console.error('Draft create error:', draftError);
-      return NextResponse.json({ error: 'Failed to create draft', details: draftError }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to create draft', details: draftError?.message }, { status: 500 });
     }
 
-    // Update service_id and city_id separately if they exist
-    if (queueItem.service_id) {
-      await supabase.from('drafts').update({ service_id: queueItem.service_id }).eq('id', draft.id);
-    }
-    if (queueItem.city_id) {
-      await supabase.from('drafts').update({ city_id: queueItem.city_id }).eq('id', draft.id);
-    }
+    console.log('Draft created:', draft.id);
 
     // Insert content
     await supabase.from('draft_content').insert({
