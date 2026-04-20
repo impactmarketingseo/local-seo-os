@@ -1,4 +1,4 @@
-import type { Client, City, Service } from './types';
+import type { Client, City, Service } from '@/types';
 
 export const WRITING_RULES = `
 RULE 1 — WRITE LIKE A HUMAN
