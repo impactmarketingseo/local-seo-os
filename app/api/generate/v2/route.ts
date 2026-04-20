@@ -247,7 +247,9 @@ export async function POST(req: NextRequest) {
     // Update queue status
     await supabase.from('page_queue').update({
       status: 'draft_ready',
-    }).eq('id', queue_item_id).catch(e => console.log('Queue update error:', e));
+    }).eq('id', queue_item_id).then(({ error }) => {
+      if (error) console.log('Queue update error:', error.message);
+    });
 
     // Log generation
     await supabase.from('generation_logs').insert({
@@ -255,7 +257,9 @@ export async function POST(req: NextRequest) {
       draft_id: finalDraft.id,
       status: 'success',
       token_count: tokenCount,
-    }).catch(e => console.log('Log insert error:', e));
+    }).then(({ error }) => {
+      if (error) console.log('Log insert error:', error.message);
+    });
 
     return NextResponse.json({ success: true, draft_id: finalDraft.id });
 
