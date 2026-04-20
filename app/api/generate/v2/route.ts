@@ -76,8 +76,8 @@ export async function POST(req: NextRequest) {
     const pageRequest = buildPageRequest(
       service,
       city,
-      allServices || [],
-      serviceCities || []
+      allServices as any || [],
+      serviceCities as any || []
     );
 
     console.log('Building prompts complete');
