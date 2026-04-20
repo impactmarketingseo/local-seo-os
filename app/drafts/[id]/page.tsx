@@ -482,42 +482,15 @@ export default function DraftDetailPage() {
           </div>
         )}
 
-{/* Schema Tab */}
+{/* Schema Tab - Display raw JSON */}
         {activeTab === 'schema' && (
-          <div className="space-y-6">
-            {(() => {
-              const schema = content?.schema_markup || {};
-              const localBusinessSchema = schema?.local_business || '';
-              const faqPageSchema = schema?.faq_page || '';
-              const serviceSchema = schema?.service || '';
-              const breadcrumbSchema = schema?.breadcrumb_list || '';
-              
-              const hasAny = localBusinessSchema || faqPageSchema || serviceSchema || breadcrumbSchema;
-              
-              if (!hasAny) {
-                return (
-                  <div className="card-standard text-center">
-                    <p className="text-text-tertiary">No schema generated</p>
-                  </div>
-                );
-              }
-              
-              return (
-                <>
-                  {localBusinessSchema && (
-                    <div className="card-standard">
-                      <div className="flex justify-between items-center mb-4">
-                        <p className="text-sm font-semibold text-text-primary">LocalBusiness Schema</p>
-                        <button type="button" onClick={() => navigator.clipboard.writeText(localBusinessSchema)}
-                          className="btn-secondary text-sm">
-                          Copy
-                        </button>
-                      </div>
-                      <pre className="text-xs bg-black/5 p-3 rounded overflow-x-auto text-text-secondary">
-                        {localBusinessSchema.substring(0, 500)}...
-                      </pre>
-                    </div>
-                  )}
+          <div className="card-standard">
+            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Schema Markup</p>
+            <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md">
+              {JSON.stringify(content?.schema_markup || {}, null, 2)}
+            </pre>
+          </div>
+        )}
                   {faqPageSchema && (
                     <div className="card-standard">
                       <div className="flex justify-between items-center mb-4">
