@@ -181,10 +181,8 @@ export default function QueuePage() {
       query = query.eq('status', 'planned');
     } else if (filter === 'generating') {
       query = query.in('status', ['generating', 'approved_for_gen']);
-    } else if (filter === 'completed') {
-      query = query.in('status', ['approved', 'exported', 'sent_to_wp', 'published']);
     } else if (filter === 'failed') {
-      query = query.eq('status', 'failed');
+      query = query.eq('status', filter);
     }
 
     if (clientFilter) {
