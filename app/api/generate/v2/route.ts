@@ -215,7 +215,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!finalDraft) {
-      console.error('Draft create error:', draftError || rest?.error);
+      console.error('Draft create error:', draftError);
       return NextResponse.json({ error: 'Failed to create draft' }, { status: 500 });
     }
 
