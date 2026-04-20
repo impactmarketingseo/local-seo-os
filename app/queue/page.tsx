@@ -93,12 +93,12 @@ function QueueRow({ item, onUpdate, onDelete, onGenerate, delay, selectable, sel
 
         {/* Actions - stack below on mobile */}
         <div className="flex gap-2 order-1 sm:order-none sm:ml-auto">
-          {item.status === 'planned' && (
+          {(item.status === 'planned' || item.status === 'failed') && (
             <button
               onClick={() => onGenerate(item.id)}
               className="btn-primary text-xs py-1.5 px-3"
             >
-              Generate
+              {item.status === 'failed' ? 'Retry' : 'Generate'}
             </button>
           )}
           {item.status === 'needs_review' && (
