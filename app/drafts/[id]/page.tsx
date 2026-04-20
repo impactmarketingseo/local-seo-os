@@ -57,6 +57,7 @@ export default function DraftDetailPage() {
       if (draftData) {
         setDraft(draftData);
         const c = draftData.content_json || {};
+        console.log('Full content:', JSON.stringify(c).substring(0, 500));
         console.log('Content keys:', Object.keys(c));
         setContent(c);
         
