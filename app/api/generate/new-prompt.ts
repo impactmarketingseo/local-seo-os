@@ -202,7 +202,6 @@ WRITING RULES:
 - Each page must read differently from other city pages
 - FAQ: real homeowner questions, city name in 2+ questions, include cost/emergency questions
 - Process: 5 exact steps. Why-choose-us: 5 exact items. Problems: 6 cards.`;
-
 }
 
 export function parseAIResponse(response: string): any {
