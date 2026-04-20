@@ -281,23 +281,39 @@ useEffect(() => {
           </div>
         )}
 
-{/* Schema Tab - Stringify object */}
-        {activeTab === 'schema' && (
+{/* All Other Tabs - JSON Debug */}
+        {['hero', 'problems', 'why', 'process', 'faq', 'local', 'links', 'schema'].includes(activeTab) && (
           <div className="card-standard">
-            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Schema (stringified)</p>
+            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">{activeTab} section</p>
             <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md max-h-[500px]">
-              {typeof content?.schema_markup === 'object' ? JSON.stringify(content.schema_markup, null, 2) : String(content?.schema_markup || 'none')}
+              {JSON.stringify(content?.[activeTab === 'why' ? 'why_choose_us' : activeTab] || {}, null, 2)}
             </pre>
           </div>
         )}
 
-{/* All remaining tabs - simple JSON string */}
-        {['problems', 'why', 'process', 'faq', 'local', 'links'].includes(activeTab) && (
-          <div className="card-standard">
-            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">{activeTab}</p>
-            <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md max-h-[500px]">
-              {JSON.stringify(content?.[activeTab === 'why' ? 'why_choose_us' : activeTab] || {}, null, 2)}
-            </pre>
+        {/* Problems Tab */}
+        {activeTab === 'problems' && content?.problems && (
+          <div className="space-y-4">
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Section Heading</p>
+              <p className="font-medium text-text-primary">{content.problems.section_heading}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Section Subtext</p>
+              <p className="text-text-secondary">{content.problems.section_subtext}</p>
+            </div>
+            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mt-4">Problem Cards</p>
+            {content.problems.cards?.map((card: any, i: number) => (
+              <div key={i} className="card-standard">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">{card.icon}</span>
+                  <div>
+                    <p className="font-medium text-text-primary">{card.title}</p>
+                    <p className="text-sm text-text-secondary mt-1">{card.description}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
