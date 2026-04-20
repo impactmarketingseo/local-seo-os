@@ -154,10 +154,14 @@ export default function DraftsPage() {
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1 min-w-0 mr-3">
                     <h3 className="font-semibold text-text-primary truncate">
-                      {draft.content_json?.meta?.title || draft.content_json?.meta?.h1 || 'Untitled Draft'}
+                      {(draft as any).content_json?.meta?.title || 
+                       (draft as any).content_json?.meta?.h1 || 
+                       (draft as any).meta_title || 
+                       (draft as any).title ||
+                       'Untitled Draft'}
                     </h3>
                     <p className="text-sm text-text-tertiary">
-                      Client ID: {draft.client_id?.substring(0,8)}...
+                      {(draft as any).content_json?.meta?.slug || (draft as any).slug || 'No slug'}
                     </p>
                   </div>
                   <button 
@@ -192,6 +196,7 @@ export default function DraftsPage() {
 }
 
 function wordCount(draft: any) {
-  const text = draft.content_text || draft.content_json?.content_text || '';
+  const text = draft.content_text || 
+               (typeof draft.content_json === 'string' ? draft.content_json : JSON.stringify(draft.content_json || {}));
   return text.split(/\s+/).filter(Boolean).length;
 }
