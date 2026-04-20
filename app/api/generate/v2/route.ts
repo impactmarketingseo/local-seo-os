@@ -206,6 +206,8 @@ export async function POST(req: NextRequest) {
     };
     if (service?.client_id) insertData.client_id = service.client_id;
     
+    console.log('Inserting draft with:', insertData);
+    
     // Add all content to the INSERT (will go into content_json, then we'll load from draft_content)
     const draftInsert = await supabase.from('drafts').insert(insertData).select().single();
     
@@ -213,11 +215,12 @@ export async function POST(req: NextRequest) {
       finalDraft = draftInsert.data;
       console.log('Draft created:', finalDraft.id);
     } else {
-      console.log('Draft insert failed:', draftInsert.error?.message);
-      return NextResponse.json({ error: 'Failed to create draft' }, { status: 500 });
+      console.log('Draft insert failed:', draftInsert.error);
+      return NextResponse.json({ error: 'Failed to create draft', details: draftInsert.error?.message }, { status: 500 });
     }
 
     // Insert content into draft_content table
+    console.log('Inserting content for draft:', finalDraft.id);
     const { error: contentError } = await supabase.from('draft_content').insert({
       draft_id: finalDraft.id,
       meta: parsed.meta || {},
@@ -234,7 +237,11 @@ export async function POST(req: NextRequest) {
       schema_markup: parsed.schema_markup || {},
     });
 
-    console.log('Content insert result:', contentError ? 'ERROR: ' + contentError.message : 'OK - draft_id:', finalDraft.id);
+    console.log('Content insert result:', contentError ? 'ERROR: ' + contentError.message : 'OK');
+
+    if (contentError) {
+      console.log('Content error details:', contentError);
+    }
 
     // Update queue status
     await supabase.from('page_queue').update({
