@@ -455,7 +455,7 @@ export default function DraftDetailPage() {
               ))}
             </div>
             <div className="card-standard">
-              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">{draft?.services?.name || 'Service'} in Other Cities</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">{(draft as any)?.services?.name || 'Service'} in Other Cities</p>
               {content.internal_links.same_service_other_cities?.map((link: any, i: number) => (
                 <a key={i} href={link.url} className="block text-accent hover:underline py-1">{link.text}</a>
               ))}
