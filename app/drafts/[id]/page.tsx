@@ -48,22 +48,24 @@ useEffect(() => {
     async function loadDraft() {
       const supabase = createSupabaseBrowserClient();
       // Query drafts - content is in content_json
-      const { data: draftData } = await supabase
+      const { data: draftData, error } = await supabase
         .from('drafts')
         .select('*')
         .eq('id', draftId)
         .single();
       
+      console.log('Draft load error:', error);
+      console.log('Draft data keys:', draftData ? Object.keys(draftData) : 'none');
+      
       if (draftData) {
         setDraft(draftData);
-        // Prefer content_json, fallback to draft_content
-        setContent(draftData.content_json || {});
+        // Prefer content_json, fallback to {}
+        const c = draftData.content_json || {};
+        console.log('Content:', typeof c, c ? 'has data' : 'empty');
+        setContent(c);
         
         // Calculate word count
-        let text = '';
-        if (draftData.content_json) {
-          text = JSON.stringify(draftData.content_json);
-        }
+        let text = typeof c === 'object' ? JSON.stringify(c) : String(c || '');
         setWordCount(text.split(/\s+/).filter(Boolean).length);
       }
       setLoading(false);
