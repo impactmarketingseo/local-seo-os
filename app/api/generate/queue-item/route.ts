@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { generateContent } from '../../../lib/generate-content';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -69,62 +70,65 @@ export async function POST(req: NextRequest) {
 
     console.log('Queue item:', { service_id: queueItem.service_id, city_id: queueItem.city_id, service, city, client });
 
-    const generateUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    // Get other services for this client
+    const { data: allServices } = await supabase
+      .from('services')
+      .select('id, name, slug')
+      .eq('client_id', service.client_id)
+      .eq('active', true);
 
-    console.log('Generate URL:', generateUrl);
+    // Get cities for this client
+    const { data: serviceCities } = await supabase
+      .from('cities')
+      .select('id, name, slug')
+      .eq('client_id', service.client_id)
+      .eq('active', true);
 
-    const generateResponse = await fetch(`${generateUrl}/api/generate/v2`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'x-internal-request': 'true'
-      },
-      body: JSON.stringify({
-        queue_item_id,
+    // Generate content directly
+    const { parsed, aiModel, tokenCount } = await generateContent(service, city, client, allServices || [], serviceCities || []);
+
+    // Create draft
+    const { data: draft, error: draftError } = await supabase
+      .from('drafts')
+      .insert({
+        queue_id: queue_item_id,
+        client_id: service.client_id,
         service_id: queueItem.service_id,
         city_id: queueItem.city_id,
-        model: model || 'groq',
-      }),
+        status: 'draft',
+        generation_model: aiModel,
+        token_count: tokenCount,
+      })
+      .select()
+      .single();
+
+    if (draftError || !draft) {
+      console.error('Draft create error:', draftError);
+      return NextResponse.json({ error: 'Failed to create draft' }, { status: 500 });
+    }
+
+    // Insert content
+    await supabase.from('draft_content').insert({
+      draft_id: draft.id,
+      meta: parsed.meta,
+      breadcrumb: parsed.breadcrumb,
+      hero: parsed.hero,
+      trust_strip: parsed.trust_strip,
+      problems: parsed.problems,
+      why_choose_us: parsed.why_choose_us,
+      process: parsed.process,
+      faq: parsed.faq,
+      local_context: parsed.local_context,
+      internal_links: parsed.internal_links,
+      final_cta: parsed.final_cta,
+      schema_markup: parsed.schema_markup,
     });
 
-    console.log('Sending to generate:', {
-      phone: client?.phone,
-      email: client?.email,
-      address: client?.address,
-      website_url: client?.website_url,
-      years_in_business: client?.years_in_business,
-    });
-
-    if (!generateResponse.ok) {
-      const errorText = await generateResponse.text();
-      console.error('Generate API error:', generateResponse.status, errorText);
-      return NextResponse.json({ 
-        error: 'Generate API failed', 
-        status: generateResponse.status,
-        details: errorText.substring(0, 1000)
-      }, { status: 500 });
-    }
-
-    const resultText = await generateResponse.text();
-    let result;
-    try {
-      result = JSON.parse(resultText);
-    } catch (e) {
-      console.error('Non-JSON response from generate API:', resultText.substring(0, 500));
-      return NextResponse.json({ 
-        error: 'Generation failed', 
-        details: 'Invalid response from server. Are you logged in?',
-        debug: resultText.substring(0, 200)
-      }, { status: 500 });
-    }
-
-    if (!result.success) {
-      return NextResponse.json({ error: 'Generation failed', details: result.error }, { status: 500 });
-    }
+    await supabase.from('page_queue').update({ status: 'draft_ready' }).eq('id', queue_item_id);
 
     return NextResponse.json({
       success: true,
-      draft_id: result.draft_id,
+      draft_id: draft.id,
     });
   } catch (error) {
     console.error('Queue item generation error:', error);
