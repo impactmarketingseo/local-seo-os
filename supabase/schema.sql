@@ -22,6 +22,7 @@ CREATE TABLE users (
 CREATE TABLE clients (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
+    short_name TEXT,
     niche TEXT NOT NULL,
     website_url TEXT,
     phone TEXT,
@@ -30,6 +31,18 @@ CREATE TABLE clients (
     city TEXT,
     state TEXT,
     years_in_business TEXT,
+    jobs_completed TEXT,
+    rating TEXT,
+    review_count TEXT,
+    owner_name TEXT,
+    brands_serviced TEXT[],
+    financing TEXT,
+    emergency_hours TEXT,
+    contact_url TEXT,
+    services_url TEXT,
+    credentials TEXT[],
+    differentiators TEXT[],
+    service_area_cities JSONB,
     voice_notes TEXT,
     cta_preference TEXT,
     banned_phrases TEXT[],
@@ -63,6 +76,12 @@ CREATE TABLE cities (
     slug TEXT NOT NULL,
     active BOOLEAN DEFAULT true,
     priority INTEGER DEFAULT 0,
+    population INTEGER,
+    county TEXT,
+    landmarks JSONB,
+    neighborhoods JSONB,
+    climate_detail TEXT,
+    housing_detail TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -110,26 +129,35 @@ CREATE TABLE drafts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     queue_id UUID REFERENCES page_queue(id) ON DELETE SET NULL,
     client_id UUID REFERENCES clients(id) ON DELETE SET NULL,
-    title TEXT,
-    slug TEXT,
-    meta_title TEXT,
-    meta_description TEXT,
-    h1 TEXT,
-    intro TEXT,
-    sections JSONB,
-    faqs JSONB,
-    cta_block TEXT,
-    internal_links JSONB,
-    schema_notes JSONB,
-    service_schema JSONB,
-    local_business_schema JSONB,
-    content_json JSONB NOT NULL,
-    content_text TEXT,
+    service_id UUID REFERENCES services(id) ON DELETE SET NULL,
+    city_id UUID REFERENCES cities(id) ON DELETE SET NULL,
     status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'review', 'approved', 'rejected', 'published')),
     version_number INTEGER DEFAULT 1,
     generation_model TEXT DEFAULT 'claude-sonnet-4-20250514',
     token_count INTEGER,
     cost_cents INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================
+-- DRAFT CONTENT - New JSON structure per Section 4
+-- ============================================
+CREATE TABLE draft_content (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    draft_id UUID REFERENCES drafts(id) ON DELETE CASCADE UNIQUE,
+    meta JSONB,
+    breadcrumb TEXT,
+    hero JSONB,
+    trust_strip JSONB,
+    problems JSONB,
+    why_choose_us JSONB,
+    process JSONB,
+    faq JSONB,
+    local_context JSONB,
+    internal_links JSONB,
+    final_cta JSONB,
+    schema_markup JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -228,7 +256,10 @@ CREATE INDEX idx_page_queue_status ON page_queue(status);
 CREATE INDEX idx_page_queue_scheduled ON page_queue(scheduled_for);
 CREATE INDEX idx_drafts_queue ON drafts(queue_id);
 CREATE INDEX idx_drafts_client ON drafts(client_id);
+CREATE INDEX idx_drafts_service ON drafts(service_id);
+CREATE INDEX idx_drafts_city ON drafts(city_id);
 CREATE INDEX idx_drafts_status ON drafts(status);
+CREATE INDEX idx_draft_content_draft ON draft_content(draft_id);
 CREATE INDEX idx_draft_versions_draft ON draft_versions(draft_id);
 CREATE INDEX idx_publishing_logs_draft ON publishing_logs(draft_id);
 CREATE INDEX idx_publishing_logs_client ON publishing_logs(client_id);
@@ -267,6 +298,10 @@ CREATE POLICY "Authenticated users can manage queue" ON page_queue FOR ALL USING
 -- Drafts
 ALTER TABLE drafts ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Authenticated users can manage drafts" ON drafts FOR ALL USING (auth.role() = 'authenticated');
+
+-- Draft Content
+ALTER TABLE draft_content ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Authenticated users can manage draft content" ON draft_content FOR ALL USING (auth.role() = 'authenticated');
 
 -- Publishing Logs
 ALTER TABLE publishing_logs ENABLE ROW LEVEL SECURITY;

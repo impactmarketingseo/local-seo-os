@@ -9,6 +9,7 @@ export default function NewClientPage() {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: '',
+    short_name: '',
     niche: '',
     website_url: '',
     phone: '',
@@ -18,6 +19,18 @@ export default function NewClientPage() {
     state: '',
     voice_notes: '',
     years_in_business: '',
+    jobs_completed: '',
+    rating: '',
+    review_count: '',
+    owner_name: '',
+    brands_serviced: '',
+    financing: '',
+    emergency_hours: '',
+    contact_url: '',
+    services_url: '',
+    credentials: '',
+    differentiators: '',
+    service_area_cities: '',
     cta_preference: '',
     banned_phrases: '',
     services_raw: '',
@@ -34,10 +47,26 @@ export default function NewClientPage() {
       .split(',')
       .map(p => p.trim())
       .filter(Boolean);
+    
+    const creds = form.credentials
+      .split(',')
+      .map(p => p.trim())
+      .filter(Boolean);
+    
+    const diffs = form.differentiators
+      .split(',')
+      .map(p => p.trim())
+      .filter(Boolean);
+    
+    const areaCities = form.service_area_cities
+      .split(',')
+      .map(p => p.trim())
+      .filter(Boolean);
 
     // Create client first
     const { data: client, error } = await supabase.from('clients').insert({
       name: form.name,
+      short_name: form.short_name || null,
       niche: form.niche,
       website_url: form.website_url || null,
       phone: form.phone || null,
@@ -46,6 +75,18 @@ export default function NewClientPage() {
       city: form.city || null,
       state: form.state || null,
       years_in_business: form.years_in_business || null,
+      jobs_completed: form.jobs_completed || null,
+      rating: form.rating || null,
+      review_count: form.review_count || null,
+      owner_name: form.owner_name || null,
+      brands_serviced: form.brands_serviced ? form.brands_serviced.split(',').map(p => p.trim()).filter(Boolean) : null,
+      financing: form.financing || null,
+      emergency_hours: form.emergency_hours || null,
+      contact_url: form.contact_url || null,
+      services_url: form.services_url || null,
+      credentials: creds.length > 0 ? creds : null,
+      differentiators: diffs.length > 0 ? diffs : null,
+      service_area_cities: areaCities.length > 0 ? areaCities : null,
       voice_notes: form.voice_notes || null,
       cta_preference: form.cta_preference || null,
       banned_phrases: banned.length > 0 ? banned : null,

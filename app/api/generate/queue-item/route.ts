@@ -25,9 +25,9 @@ export async function POST(req: NextRequest) {
       .from('page_queue')
       .select(`
         *,
-        services(name),
-        cities(name, state),
-        clients(id, name, niche, voice_notes, cta_preference, banned_phrases, phone, email, address, website_url, years_in_business)
+        services(name, slug),
+        cities(name, state, slug, population, county, landmarks, neighborhoods, climate_detail, housing_detail),
+        clients(id, name, short_name, niche, phone, email, address, website_url, years_in_business, jobs_completed, rating, review_count, owner_name, brands_serviced, financing, emergency_hours, contact_url, services_url, credentials, differentiators, service_area_cities, voice_notes, cta_preference, banned_phrases)
       `)
       .eq('id', queue_item_id)
       .single();
@@ -60,23 +60,9 @@ export async function POST(req: NextRequest) {
       city_id: queueItem.city_id,
       services: queueItem.services,
       cities: queueItem.cities
-    });
-
-    const { data: keywordTarget } = await supabase
-      .from('keyword_targets')
-      .select('*')
-      .eq('service_id', queueItem.service_id)
-      .eq('city_id', queueItem.city_id)
-      .maybeSingle();
-
-    // If service_id or city_id is null, log it
-    if (!queueItem.service_id || !queueItem.city_id) {
-      console.warn('Missing service_id or city_id:', { 
-        service_id: queueItem.service_id, 
-        city_id: queueItem.city_id 
-      });
-    }
-
+});
+    
+    // Log the queue item
     const client = queueItem.clients as any;
     const service = queueItem.services as any;
     const city = queueItem.cities as any;
@@ -87,7 +73,7 @@ export async function POST(req: NextRequest) {
 
     console.log('Generate URL:', generateUrl);
 
-    const generateResponse = await fetch(`${generateUrl}/api/generate`, {
+    const generateResponse = await fetch(`${generateUrl}/api/generate/v2`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -95,22 +81,8 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         queue_item_id,
-        client_id: queueItem.client_id,
         service_id: queueItem.service_id,
         city_id: queueItem.city_id,
-        primary_keyword: keywordTarget?.primary_keyword || `${service?.name} in ${city?.name}, ${city?.state}`,
-        synonym: keywordTarget?.synonym,
-        niche: client?.niche,
-        brand_voice: client?.voice_notes,
-        cta_preference: client?.cta_preference,
-        banned_phrases: client?.banned_phrases,
-        client_name: client?.name,
-        city: city?.name,
-        state: city?.state,
-        phone: client?.phone || 'NO_PHONE_SET',
-        email: client?.email || 'NO_EMAIL_SET',
-        address: client?.address || 'NO_ADDRESS_SET',
-        website_url: client?.website_url || 'NO_WEBSITE_SET',
         model: model || 'groq',
       }),
     });

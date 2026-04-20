@@ -38,18 +38,39 @@ export default function DraftDetailPage() {
   
   const [draft, setDraft] = useState<Draft | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'seo' | 'keywords' | 'schema' | 'sections' | 'content'>('seo');
+  const [activeTab, setActiveTab] = useState<'seo' | 'hero' | 'problems' | 'why' | 'process' | 'faq' | 'local' | 'links' | 'schema'>('seo');
   const [showDelete, setShowDelete] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [wordCount, setWordCount] = useState(0);
+  const [content, setContent] = useState<any>(null);
 
   useEffect(() => {
     async function loadDraft() {
       const supabase = createSupabaseBrowserClient();
-      const { data } = await supabase.from('drafts').select('*, clients(name)').eq('id', draftId).single();
-      if (data) {
-        setDraft(data);
-        const text = data.content_text || data.content_json?.content_text || '';
+      // Query both drafts and draft_content
+      const { data: draftData } = await supabase
+        .from('drafts')
+        .select('*, clients(name), services(name, slug), cities(name, slug, state)')
+        .eq('id', draftId)
+        .single();
+      
+      const { data: contentData } = await supabase
+        .from('draft_content')
+        .select('*')
+        .eq('draft_id', draftId)
+        .single();
+      
+      if (draftData) {
+        setDraft(draftData);
+        setContent(contentData);
+        
+        // Calculate word count from all text fields
+        let text = '';
+        if (contentData) {
+          text = JSON.stringify(contentData);
+        } else if (draftData.content_text || draftData.content_json?.content_text) {
+          text = draftData.content_text || draftData.content_json?.content_text;
+        }
         setWordCount(text.split(/\s+/).filter(Boolean).length);
       }
       setLoading(false);
@@ -242,14 +263,14 @@ export default function DraftDetailPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 overflow-x-auto border-b border-border">
-        {(['seo', 'keywords', 'schema', 'sections', 'content'] as const).map((tab) => (
+        {(['seo', 'hero', 'problems', 'why', 'process', 'faq', 'local', 'links', 'schema'] as const).map((tab) => (
           <button type="button" key={tab} onClick={() => setActiveTab(tab)}
             className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
               activeTab === tab 
                 ? 'border-accent text-accent' 
                 : 'border-transparent text-text-tertiary hover:text-text-secondary'
             }`}>
-            {tab === 'seo' ? 'SEO' : tab === 'keywords' ? 'Keywords' : tab === 'schema' ? 'Schema' : tab === 'sections' ? 'Sections' : 'Content'}
+            {tab === 'seo' ? 'SEO' : tab === 'hero' ? 'Hero' : tab === 'problems' ? 'Problems' : tab === 'why' ? 'Why Us' : tab === 'process' ? 'Process' : tab === 'faq' ? 'FAQ' : tab === 'local' ? 'Local' : tab === 'links' ? 'Links' : 'Schema'}
           </button>
         ))}
       </div>
@@ -260,19 +281,206 @@ export default function DraftDetailPage() {
           <div className="space-y-4">
             <div className="card-standard">
               <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Title Tag</p>
-              <p className="font-medium text-text-primary">{draft.title}</p>
+              <p className="font-medium text-text-primary">{content?.meta?.title || draft.title}</p>
             </div>
             <div className="card-standard">
               <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">URL Slug</p>
-              <p className="mono text-text-secondary">/{draft.slug}</p>
+              <p className="mono text-text-secondary">/{content?.meta?.slug || draft.slug}</p>
             </div>
             <div className="card-standard">
               <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Meta Description</p>
-              <p className="text-text-secondary">{draft.meta_description}</p>
+              <p className="text-text-secondary">{content?.meta?.description || draft.meta_description}</p>
             </div>
             <div className="card-standard">
               <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">H1</p>
-              <p className="font-bold text-text-primary">{draft.h1}</p>
+              <p className="font-bold text-text-primary">{content?.meta?.h1 || draft.h1}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Breadcrumb</p>
+              <p className="text-text-secondary">{content?.breadcrumb}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Hero Tab */}
+        {activeTab === 'hero' && content?.hero && (
+          <div className="space-y-4">
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Review Line</p>
+              <p className="text-text-primary">{content.hero.review_line}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Intro Paragraph</p>
+              <p className="text-text-secondary whitespace-pre-wrap">{content.hero.intro_paragraph}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">CTA Primary</p>
+              <p className="text-text-primary">{content.hero.cta_primary_text}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">CTA Secondary</p>
+              <p className="text-text-primary">{content.hero.cta_secondary_text}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Trust Badges</p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {content.hero.trust_badges?.map((badge: string, i: number) => (
+                  <span key={i} className="badge">{badge}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Problems Tab */}
+        {activeTab === 'problems' && content?.problems && (
+          <div className="space-y-4">
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Section Heading</p>
+              <p className="font-medium text-text-primary">{content.problems.section_heading}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Section Subtext</p>
+              <p className="text-text-secondary">{content.problems.section_subtext}</p>
+            </div>
+            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mt-4">Problem Cards</p>
+            {content.problems.cards?.map((card: any, i: number) => (
+              <div key={i} className="card-standard">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">{card.icon}</span>
+                  <div>
+                    <p className="font-medium text-text-primary">{card.title}</p>
+                    <p className="text-sm text-text-secondary mt-1">{card.description}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Why Choose Us Tab */}
+        {activeTab === 'why' && content?.why_choose_us && (
+          <div className="space-y-4">
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Section Heading</p>
+              <p className="font-medium text-text-primary">{content.why_choose_us.section_heading}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Section Subtext</p>
+              <p className="text-text-secondary">{content.why_choose_us.section_subtext}</p>
+            </div>
+            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mt-4">Items</p>
+            {content.why_choose_us.items?.map((item: any, i: number) => (
+              <div key={i} className="card-standard">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">{item.icon}</span>
+                  <div>
+                    <p className="font-medium text-text-primary">{item.title}</p>
+                    <p className="text-sm text-text-secondary mt-1">{item.description}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Process Tab */}
+        {activeTab === 'process' && content?.process && (
+          <div className="space-y-4">
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Section Heading</p>
+              <p className="font-medium text-text-primary">{content.process.section_heading}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Section Subtext</p>
+              <p className="text-text-secondary">{content.process.section_subtext}</p>
+            </div>
+            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mt-4">Steps</p>
+            {content.process.steps?.map((step: any, i: number) => (
+              <div key={i} className="card-standard">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">{step.icon}</span>
+                  <div>
+                    <p className="font-medium text-text-primary">{step.title}</p>
+                    <p className="text-sm text-text-secondary mt-1">{step.description}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* FAQ Tab */}
+        {activeTab === 'faq' && content?.faq && (
+          <div className="space-y-4">
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Section Heading</p>
+              <p className="font-medium text-text-primary">{content.faq.section_heading}</p>
+            </div>
+            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mt-4">Questions</p>
+            {content.faq.items?.map((item: any, i: number) => (
+              <div key={i} className="card-standard">
+                <p className="font-medium text-text-primary mb-2">Q: {item.question}</p>
+                <p className="text-sm text-text-secondary">A: {item.answer}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Local Context Tab */}
+        {activeTab === 'local' && content?.local_context && (
+          <div className="space-y-4">
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Section Heading</p>
+              <p className="font-medium text-text-primary">{content.local_context.section_heading}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Paragraph 1</p>
+              <p className="text-text-secondary whitespace-pre-wrap">{content.local_context.paragraph_1}</p>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Paragraph 2</p>
+              <p className="text-text-secondary whitespace-pre-wrap">{content.local_context.paragraph_2}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Internal Links Tab */}
+        {activeTab === 'links' && content?.internal_links && (
+          <div className="space-y-4">
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Other Services in {draft?.cities?.name || 'City'}</p>
+              {content.internal_links.other_services_in_city?.map((link: any, i: number) => (
+                <a key={i} href={link.url} className="block text-accent hover:underline py-1">{link.text}</a>
+              ))}
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">{draft?.services?.name || 'Service'} in Other Cities</p>
+              {content.internal_links.same_service_other_cities?.map((link: any, i: number) => (
+                <a key={i} href={link.url} className="block text-accent hover:underline py-1">{link.text}</a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Schema Tab */}
+        {activeTab === 'schema' && content?.schema_markup && (
+          <div className="space-y-4">
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Local Business Schema</p>
+              <pre className="text-xs text-text-secondary whitespace-pre-wrap overflow-x-auto">{content.schema_markup.local_business}</pre>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">FAQ Page Schema</p>
+              <pre className="text-xs text-text-secondary whitespace-pre-wrap overflow-x-auto">{content.schema_markup.faq_page}</pre>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Service Schema</p>
+              <pre className="text-xs text-text-secondary whitespace-pre-wrap overflow-x-auto">{content.schema_markup.service}</pre>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Breadcrumb Schema</p>
+              <pre className="text-xs text-text-secondary whitespace-pre-wrap overflow-x-auto">{content.schema_markup.breadcrumb_list}</pre>
             </div>
           </div>
         )}

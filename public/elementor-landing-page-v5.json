@@ -1,0 +1,479 @@
+{
+  "title": "Phoenix Plumbing Landing Page",
+  "type": "page",
+  "version": "0.4",
+  "page_settings": [],
+  "content": [
+    {
+      "id": "a1b2c3",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "background_background": "classic",
+        "background_color": "#0F172A",
+        "padding": {"unit": "px", "top": "100", "right": "40", "bottom": "80", "left": "40"}
+      },
+      "elements": [
+        {
+          "id": "a1b2c4",
+          "elType": "column",
+          "isInner": false,
+          "settings": {"_column_size": 100},
+          "elements": [
+            {
+              "id": "a1b2c5",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Expert Plumbing Services in Phoenix",
+                "title_color": "#FFFFFF",
+                "typography_typography": "custom",
+                "typography_font_family": "Space Grotesk",
+                "typography_font_size": {"unit": "px", "size": 56},
+                "typography_font_weight": "700"
+              }
+            },
+            {
+              "id": "a1b2c6",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>Fast, reliable plumbing repairs and installations for Phoenix homeowners.</p>",
+                "text_color": "rgba(255,255,255,0.8)",
+                "typography_font_size": {"unit": "px", "size": 20}
+              }
+            },
+            {
+              "id": "a1b2c7",
+              "elType": "widget",
+              "widgetType": "button",
+              "settings": {
+                "text": "Call 555-123-4567",
+                "button_background_color": "#F97316",
+                "button_text_color": "#FFFFFF",
+                "border_radius": {"unit": "px", "size": 8},
+                "typography_font_weight": "600"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a1b2d1",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "background_background": "classic",
+        "background_color": "#FFFFFF",
+        "padding": {"unit": "px", "top": "40", "right": "40", "bottom": "40", "left": "40"}
+      },
+      "elements": [
+        {
+          "id": "a1b2d2",
+          "elType": "column",
+          "isInner": false,
+          "settings": {"_column_size": 100},
+          "elements": [
+            {
+              "id": "a1b2d3",
+              "elType": "widget",
+              "widgetType": "icon-box",
+              "settings": {
+                "icon": "fas fa-check-circle",
+                "title_text": "15+ Years Experience",
+                "description_text": "Industry veterans",
+                "icon_size": "48"
+              }
+            },
+            {
+              "id": "a1b2d4",
+              "elType": "widget",
+              "widgetType": "icon-box",
+              "settings": {
+                "icon": "fas fa-award",
+                "title_text": "Licensed & Insured",
+                "description_text": "Full protection",
+                "icon_size": "48"
+              }
+            },
+            {
+              "id": "a1b2d5",
+              "elType": "widget",
+              "widgetType": "icon-box",
+              "settings": {
+                "icon": "fas fa-clock",
+                "title_text": "24/7 Emergency",
+                "description_text": "Always available",
+                "icon_size": "48"
+              }
+            },
+            {
+              "id": "a1b2d6",
+              "elType": "widget",
+              "widgetType": "icon-box",
+              "settings": {
+                "icon": "fas fa-star",
+                "title_text": "500+ Reviews",
+                "description_text": "5-star rating",
+                "icon_size": "48"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a1b2e1",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "background_background": "classic",
+        "background_color": "#F8FAFC",
+        "padding": {"unit": "px", "top": "80", "right": "40", "bottom": "80", "left": "40"}
+      },
+      "elements": [
+        {
+          "id": "a1b2e2",
+          "elType": "column",
+          "isInner": false,
+          "settings": {"_column_size": 100, "margin": {"unit": "px", "top": "0", "right": "auto", "bottom": "0", "left": "auto"}, "max_width": "800px"},
+          "elements": [
+            {
+              "id": "a1b2e3",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Your Trusted Phoenix Plumbing Experts",
+                "title_color": "#0F172A",
+                "typography_typography": "custom",
+                "typography_font_family": "Space Grotesk",
+                "typography_font_size": {"unit": "px", "size": 40},
+                "typography_font_weight": "700"
+              }
+            },
+            {
+              "id": "a1b2e4",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>When plumbing issues arise in your Phoenix home, you need a team you can trust. At Desert Flow Plumbing, we've been serving the Valley for over 15 years.</p>",
+                "text_color": "#64748B",
+                "typography_font_size": {"unit": "px", "size": 18}
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a1b2f1",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "background_background": "classic",
+        "background_color": "#0F172A",
+        "padding": {"unit": "px", "top": "80", "right": "40", "bottom": "80", "left": "40"}
+      },
+      "elements": [
+        {
+          "id": "a1b2f2",
+          "elType": "column",
+          "isInner": false,
+          "settings": {"_column_size": 100, "margin": {"unit": "px", "top": "0", "right": "auto", "bottom": "0", "left": "auto"}, "max_width": "800px"},
+          "elements": [
+            {
+              "id": "a1b2f3",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Signs You Need Plumbing Service",
+                "title_color": "#FFFFFF",
+                "typography_typography": "custom",
+                "typography_font_family": "Space Grotesk",
+                "typography_font_size": {"unit": "px", "size": 40},
+                "typography_font_weight": "700"
+              }
+            },
+            {
+              "id": "a1b2f4",
+              "elType": "widget",
+              "widgetType": "icon-list",
+              "settings": {
+                "icon_list": [
+                  {"text": "Low water pressure", "icon": "fas fa-check"},
+                  {"text": "Slow drains or frequent clogs", "icon": "fas fa-check"},
+                  {"text": "Unusual noises from pipes", "icon": "fas fa-check"},
+                  {"text": "Water stains on walls", "icon": "fas fa-check"},
+                  {"text": "Higher than normal water bills", "icon": "fas fa-check"},
+                  {"text": "Running toilet or dripping faucets", "icon": "fas fa-check"}
+                ],
+                "icon_color": "#10B981",
+                "text_color": "#94A3B8"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a1b2g1",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "background_background": "classic",
+        "background_color": "#F8FAFC",
+        "padding": {"unit": "px", "top": "80", "right": "40", "bottom": "80", "left": "40"}
+      },
+      "elements": [
+        {
+          "id": "a1b2g2",
+          "elType": "column",
+          "isInner": false,
+          "settings": {"_column_size": 100},
+          "elements": [
+            {
+              "id": "a1b2g3",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Our Plumbing Services in Phoenix",
+                "title_color": "#0F172A",
+                "typography_typography": "custom",
+                "typography_font_family": "Space Grotesk",
+                "typography_font_size": {"unit": "px", "size": 40},
+                "typography_font_weight": "700"
+              }
+            },
+            {
+              "id": "a1b2g4",
+              "elType": "widget",
+              "widgetType": "icon-box",
+              "settings": {
+                "icon": "fas fa-wrench",
+                "title_text": "Emergency Repairs",
+                "description_text": "Fast response for burst pipes and major leaks.",
+                "icon_size": "56"
+              }
+            },
+            {
+              "id": "a1b2g5",
+              "elType": "widget",
+              "widgetType": "icon-box",
+              "settings": {
+                "icon": "fas fa-pipe",
+                "title_text": "Drain Cleaning",
+                "description_text": "Professional hydro-jetting and sewer services.",
+                "icon_size": "56"
+              }
+            },
+            {
+              "id": "a1b2g6",
+              "elType": "widget",
+              "widgetType": "icon-box",
+              "settings": {
+                "icon": "fas fa-water",
+                "title_text": "Water Heaters",
+                "description_text": "Installation and repair for all types.",
+                "icon_size": "56"
+              }
+            },
+            {
+              "id": "a1b2g7",
+              "elType": "widget",
+              "widgetType": "icon-box",
+              "settings": {
+                "icon": "fas fa-tint",
+                "title_text": "Leak Detection",
+                "description_text": "Advanced technology to locate hidden leaks.",
+                "icon_size": "56"
+              }
+            },
+            {
+              "id": "a1b2g8",
+              "elType": "widget",
+              "widgetType": "icon-box",
+              "settings": {
+                "icon": "fas fa-filter",
+                "title_text": "Water Filtration",
+                "description_text": "Whole-home water softeners and filters.",
+                "icon_size": "56"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a1b2h1",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "background_background": "classic",
+        "background_color": "#0F172A",
+        "padding": {"unit": "px", "top": "60", "right": "40", "bottom": "60", "left": "40"}
+      },
+      "elements": [
+        {
+          "id": "a1b2h2",
+          "elType": "column",
+          "isInner": false,
+          "settings": {"_column_size": 100},
+          "elements": [
+            {
+              "id": "a1b2h3",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "4.9",
+                "title_color": "#FFFFFF",
+                "typography_font_size": {"unit": "px", "size": 72},
+                "typography_font_weight": "700"
+              }
+            },
+            {
+              "id": "a1b2h4",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p style=\"text-align: center; color: #FBBF24;\">★★★★★</p>"
+              }
+            },
+            {
+              "id": "a1b2h5",
+              "elType": "widget",
+              "widgetType": "counter",
+              "settings": {
+                "starting_number": 0,
+                "ending_number": 500,
+                "suffix": "+",
+                "title": "Google Reviews",
+                "number_color": "#FFFFFF",
+                "title_color": "rgba(255,255,255,0.7)"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a1b2i1",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "background_background": "gradient",
+        "background_gradient": "linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)",
+        "padding": {"unit": "px", "top": "64", "right": "40", "bottom": "64", "left": "40"}
+      },
+      "elements": [
+        {
+          "id": "a1b2i2",
+          "elType": "column",
+          "isInner": false,
+          "settings": {"_column_size": 100, "text_align": "center"},
+          "elements": [
+            {
+              "id": "a1b2i3",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Ready to Get Started?",
+                "title_color": "#FFFFFF",
+                "typography_typography": "custom",
+                "typography_font_family": "Space Grotesk",
+                "typography_font_size": {"unit": "px", "size": 36},
+                "typography_font_weight": "700"
+              }
+            },
+            {
+              "id": "a1b2i4",
+              "elType": "widget",
+              "widgetType": "button",
+              "settings": {
+                "text": "Call 555-123-4567",
+                "button_background_color": "#FFFFFF",
+                "button_text_color": "#2563EB",
+                "border_radius": {"unit": "px", "size": 8}
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a1b2j1",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "background_background": "classic",
+        "background_color": "#F8FAFC",
+        "padding": {"unit": "px", "top": "80", "right": "40", "bottom": "80", "left": "40"}
+      },
+      "elements": [
+        {
+          "id": "a1b2j2",
+          "elType": "column",
+          "isInner": false,
+          "settings": {"_column_size": 100, "margin": {"unit": "px", "top": "0", "right": "auto", "bottom": "0", "left": "auto"}, "max_width": "800px"},
+          "elements": [
+            {
+              "id": "a1b2j3",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Frequently Asked Questions",
+                "title_color": "#0F172A",
+                "typography_typography": "custom",
+                "typography_font_family": "Space Grotesk",
+                "typography_font_size": {"unit": "px", "size": 40},
+                "typography_font_weight": "700"
+              }
+            },
+            {
+              "id": "a1b2j4",
+              "elType": "widget",
+              "widgetType": "accordion",
+              "settings": {
+                "tabs": [
+                  {"tab_title": "How quickly can you respond?", "tab_content": "We offer 24/7 emergency services and can typically arrive within 1-2 hours."},
+                  {"tab_title": "Do you offer warranties?", "tab_content": "Yes! We stand behind our work with a 100% satisfaction guarantee."},
+                  {"tab_title": "What areas do you serve?", "tab_content": "We serve Phoenix and all surrounding Valley communities."}
+                ],
+                "title_color": "#0F172A",
+                "tab_active_color": "#2563EB"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a1b2k1",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "background_background": "classic",
+        "background_color": "#0F172A",
+        "padding": {"unit": "px", "top": "32", "right": "40", "bottom": "32", "left": "40"}
+      },
+      "elements": [
+        {
+          "id": "a1b2k2",
+          "elType": "column",
+          "isInner": false,
+          "settings": {"_column_size": 100, "text_align": "center"},
+          "elements": [
+            {
+              "id": "a1b2k3",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p style=\"text-align: center; color: rgba(255,255,255,0.6);\">© Desert Flow Plumbing | Phoenix, AZ</p>"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

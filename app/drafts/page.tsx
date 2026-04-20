@@ -14,7 +14,12 @@ interface Draft {
   version_number: number;
   created_at: string;
   client_id: string;
+  client_id: string;
+  service_id?: string;
+  city_id?: string;
   clients: { name: string } | null;
+  services?: { name: string; slug: string } | null;
+  cities?: { name: string; state: string; slug: string } | null;
 }
 
 const statusColors: Record<string, { bg: string; text: string }> = {
@@ -35,7 +40,10 @@ export default function DraftsPage() {
   useEffect(() => {
     async function loadDrafts() {
       const supabase = createSupabaseBrowserClient();
-      let query = supabase.from('drafts').select('*, clients(name)').order('created_at', { ascending: false });
+      let query = supabase
+        .from('drafts')
+        .select('*, clients(name), services(name, slug), cities(name, state, slug)')
+        .order('created_at', { ascending: false });
       if (filter !== 'all') query = query.eq('status', filter);
       if (clientFilter) query = query.eq('client_id', clientFilter);
       const { data } = await query;
@@ -44,8 +52,10 @@ export default function DraftsPage() {
         if (search) {
           const s = search.toLowerCase();
           filtered = data.filter((d: any) => 
-            d.title?.toLowerCase().includes(s) || 
-            d.clients?.name?.toLowerCase().includes(s)
+            d.meta_title?.toLowerCase().includes(s) || 
+            d.clients?.name?.toLowerCase().includes(s) ||
+            d.services?.name?.toLowerCase().includes(s) ||
+            d.cities?.name?.toLowerCase().includes(s)
           );
         }
         setDrafts(filtered);
@@ -144,8 +154,17 @@ export default function DraftsPage() {
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1 min-w-0 mr-3">
-                    <h3 className="font-semibold text-text-primary truncate">{draft.meta_title || draft.title || 'Untitled'}</h3>
-                    <p className="text-sm text-text-tertiary">{draft.clients?.name}</p>
+                    <h3 className="font-semibold text-text-primary truncate">
+                      {draft.services?.name && draft.cities?.name 
+                        ? `${draft.services.name} in ${draft.cities.name}, ${draft.cities.state}`
+                        : draft.meta_title || draft.title || 'Untitled'}
+                    </h3>
+                    <p className="text-sm text-text-tertiary">
+                      {draft.clients?.name}
+                      {draft.services?.slug && draft.cities?.slug && (
+                        <span className="text-text-disabled"> / {draft.services.slug}-{draft.cities.slug}</span>
+                      )}
+                    </p>
                   </div>
                   <button 
                     onClick={(e) => {

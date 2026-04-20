@@ -34,6 +34,7 @@ export default function EditClientPage() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: '',
+    short_name: '',
     niche: '',
     website_url: '',
     phone: '',
@@ -43,6 +44,18 @@ export default function EditClientPage() {
     state: '',
     voice_notes: '',
     years_in_business: '',
+    jobs_completed: '',
+    rating: '',
+    review_count: '',
+    owner_name: '',
+    brands_serviced: '',
+    financing: '',
+    emergency_hours: '',
+    contact_url: '',
+    services_url: '',
+    credentials: '',
+    differentiators: '',
+    service_area_cities: '',
     cta_preference: '',
     banned_phrases: '',
     services_raw: '',
@@ -72,8 +85,9 @@ export default function EditClientPage() {
         const existingCities = citiesRes.data?.map((c: any) => c.name).join(', ') || '';
         
         setForm({
-          name: clientRes.data.name,
-          niche: clientRes.data.niche,
+          name: clientRes.data.name || '',
+          short_name: clientRes.data.short_name || '',
+          niche: clientRes.data.niche || '',
           website_url: clientRes.data.website_url || '',
           phone: clientRes.data.phone || '',
           email: clientRes.data.email || '',
@@ -81,6 +95,18 @@ export default function EditClientPage() {
           city: clientRes.data.city || '',
           state: clientRes.data.state || '',
           years_in_business: clientRes.data.years_in_business || '',
+          jobs_completed: clientRes.data.jobs_completed || '',
+          rating: clientRes.data.rating || '',
+          review_count: clientRes.data.review_count || '',
+          owner_name: clientRes.data.owner_name || '',
+          brands_serviced: clientRes.data.brands_serviced?.join(', ') || '',
+          financing: clientRes.data.financing || '',
+          emergency_hours: clientRes.data.emergency_hours || '',
+          contact_url: clientRes.data.contact_url || '',
+          services_url: clientRes.data.services_url || '',
+          credentials: clientRes.data.credentials?.join(', ') || '',
+          differentiators: clientRes.data.differentiators?.join(', ') || '',
+          service_area_cities: clientRes.data.service_area_cities?.join(', ') || '',
           voice_notes: clientRes.data.voice_notes || '',
           cta_preference: clientRes.data.cta_preference || '',
           banned_phrases: clientRes.data.banned_phrases?.join(', ') || '',
@@ -113,10 +139,26 @@ export default function EditClientPage() {
       .split(',')
       .map(p => p.trim())
       .filter(Boolean);
+    
+    const creds = form.credentials
+      .split(',')
+      .map(p => p.trim())
+      .filter(Boolean);
+    
+    const diffs = form.differentiators
+      .split(',')
+      .map(p => p.trim())
+      .filter(Boolean);
+    
+    const areaCities = form.service_area_cities
+      .split(',')
+      .map(p => p.trim())
+      .filter(Boolean);
 
     // Update client
     await supabase.from('clients').update({
       name: form.name,
+      short_name: form.short_name || null,
       niche: form.niche,
       website_url: form.website_url || null,
       phone: form.phone || null,
@@ -125,6 +167,18 @@ export default function EditClientPage() {
       city: form.city || null,
       state: form.state || null,
       years_in_business: form.years_in_business || null,
+      jobs_completed: form.jobs_completed || null,
+      rating: form.rating || null,
+      review_count: form.review_count || null,
+      owner_name: form.owner_name || null,
+      brands_serviced: form.brands_serviced ? form.brands_serviced.split(',').map(p => p.trim()).filter(Boolean) : null,
+      financing: form.financing || null,
+      emergency_hours: form.emergency_hours || null,
+      contact_url: form.contact_url || null,
+      services_url: form.services_url || null,
+      credentials: creds.length > 0 ? creds : null,
+      differentiators: diffs.length > 0 ? diffs : null,
+      service_area_cities: areaCities.length > 0 ? areaCities : null,
       voice_notes: form.voice_notes || null,
       cta_preference: form.cta_preference || null,
       banned_phrases: banned.length > 0 ? banned : null,
@@ -225,14 +279,26 @@ export default function EditClientPage() {
       <h1 className="mt-2 mb-6 page-title">Edit Client</h1>
       
       <form onSubmit={handleSave} className="space-y-6">
-        <div>
-          <label className="input-label">Client Name</label>
-          <input
-            type="text"
-            value={form.name}
-            onChange={e => setForm({ ...form, name: e.target.value })}
-            className="input-field"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="input-label">Client Name</label>
+            <input
+              type="text"
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
+              className="input-field"
+            />
+          </div>
+          <div>
+            <label className="input-label">Short Name</label>
+            <input
+              type="text"
+              value={form.short_name}
+              onChange={e => setForm({ ...form, short_name: e.target.value })}
+              className="input-field"
+              placeholder="Christensen Air"
+            />
+          </div>
         </div>
 
         <div>
@@ -319,7 +385,140 @@ export default function EditClientPage() {
             value={form.years_in_business}
             onChange={e => setForm({ ...form, years_in_business: e.target.value })}
             className="input-field"
-            placeholder="50+ years"
+            placeholder="25 years"
+          />
+        </div>
+
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <label className="input-label">Jobs Completed</label>
+            <input
+              type="text"
+              value={form.jobs_completed}
+              onChange={e => setForm({ ...form, jobs_completed: e.target.value })}
+              className="input-field"
+              placeholder="500+"
+            />
+          </div>
+          <div>
+            <label className="input-label">Google Rating</label>
+            <input
+              type="text"
+              value={form.rating}
+              onChange={e => setForm({ ...form, rating: e.target.value })}
+              className="input-field"
+              placeholder="4.9"
+            />
+          </div>
+          <div>
+            <label className="input-label">Review Count</label>
+            <input
+              type="text"
+              value={form.review_count}
+              onChange={e => setForm({ ...form, review_count: e.target.value })}
+              className="input-field"
+              placeholder="47"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="input-label">Owner Name</label>
+          <input
+            type="text"
+            value={form.owner_name}
+            onChange={e => setForm({ ...form, owner_name: e.target.value })}
+            className="input-field"
+            placeholder="John Smith"
+          />
+        </div>
+
+        <div>
+          <label className="input-label">Brands Serviced</label>
+          <input
+            type="text"
+            value={form.brands_serviced}
+            onChange={e => setForm({ ...form, brands_serviced: e.target.value })}
+            className="input-field"
+            placeholder="Lennox, Trane, Carrier, Goodman"
+          />
+        </div>
+
+        <div>
+          <label className="input-label">Financing Options</label>
+          <input
+            type="text"
+            value={form.financing}
+            onChange={e => setForm({ ...form, financing: e.target.value })}
+            className="input-field"
+            placeholder="Wisetack financing available"
+          />
+        </div>
+
+        <div>
+          <label className="input-label">Emergency Hours</label>
+          <input
+            type="text"
+            value={form.emergency_hours}
+            onChange={e => setForm({ ...form, emergency_hours: e.target.value })}
+            className="input-field"
+            placeholder="24/7"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="input-label">Contact Page URL</label>
+            <input
+              type="text"
+              value={form.contact_url}
+              onChange={e => setForm({ ...form, contact_url: e.target.value })}
+              className="input-field"
+              placeholder="/contact/"
+            />
+          </div>
+          <div>
+            <label className="input-label">Services Page URL</label>
+            <input
+              type="text"
+              value={form.services_url}
+              onChange={e => setForm({ ...form, services_url: e.target.value })}
+              className="input-field"
+              placeholder="/hvac-services/"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="input-label">Credentials (comma-separated)</label>
+          <input
+            type="text"
+            value={form.credentials}
+            onChange={e => setForm({ ...form, credentials: e.target.value })}
+            className="input-field"
+            placeholder="Certified Lennox Pro Partner, RMGA Licensed"
+          />
+        </div>
+
+        <div>
+          <label className="input-label">Differentiators (comma-separated)</label>
+          <input
+            type="text"
+            value={form.differentiators}
+            onChange={e => setForm({ ...form, differentiators: e.target.value })}
+            className="input-field"
+            placeholder="No upfront payments, 24/7 emergency"
+          />
+        </div>
+
+        <div>
+          <label className="input-label">Service Area Cities</label>
+          <input
+            type="text"
+            value={form.service_area_cities}
+            onChange={e => setForm({ ...form, service_area_cities: e.target.value })}
+            className="input-field"
+            placeholder="Layton, Syracuse, Kaysville, Ogden"
           />
         </div>
 
