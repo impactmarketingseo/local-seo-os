@@ -14,7 +14,6 @@ interface Draft {
   version_number: number;
   created_at: string;
   client_id: string;
-  client_id: string;
   service_id?: string;
   city_id?: string;
   clients: { name: string } | null;
