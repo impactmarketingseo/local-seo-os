@@ -193,17 +193,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create draft' }, { status: 500 });
     }
 
-    // Try to update service_id and city_id if they exist
-    if (service_id) {
-      await supabase.from('drafts').update({ service_id }).eq('id', draft.id).then(({ error }) => {
-        if (error) console.log('service_id update skipped:', error.message);
-      });
-    }
-    if (city_id) {
-      await supabase.from('drafts').update({ city_id }).eq('id', draft.id).then(({ error }) => {
-        if (error) console.log('city_id update skipped:', error.message);
-      });
-    }
+    console.log('Draft created:', draft.id);
 
     // Insert draft content
     const { error: contentError } = await supabase
