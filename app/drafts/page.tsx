@@ -51,10 +51,8 @@ export default function DraftsPage() {
         if (search) {
           const s = search.toLowerCase();
           filtered = data.filter((d: any) => 
-            d.meta_title?.toLowerCase().includes(s) || 
-            d.clients?.name?.toLowerCase().includes(s) ||
-            d.services?.name?.toLowerCase().includes(s) ||
-            d.cities?.name?.toLowerCase().includes(s)
+            d.content_json?.meta?.title?.toLowerCase().includes(s) || 
+            d.clients?.name?.toLowerCase().includes(s)
           );
         }
         setDrafts(filtered);
@@ -156,12 +154,12 @@ export default function DraftsPage() {
                     <h3 className="font-semibold text-text-primary truncate">
                       {draft.services?.name && draft.cities?.name 
                         ? `${draft.services.name} in ${draft.cities.name}, ${draft.cities.state}`
-                        : draft.meta_title || draft.title || 'Untitled'}
+                        : draft.content_json?.meta?.title || draft.meta_title || 'Untitled Draft'}
                     </h3>
                     <p className="text-sm text-text-tertiary">
                       {draft.clients?.name}
-                      {draft.services?.slug && draft.cities?.slug && (
-                        <span className="text-text-disabled"> / {draft.services.slug}-{draft.cities.slug}</span>
+                      {draft.content_json?.meta?.slug && (
+                        <span className="text-text-disabled"> / {draft.content_json.meta.slug}</span>
                       )}
                     </p>
                   </div>
