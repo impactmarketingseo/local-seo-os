@@ -449,7 +449,7 @@ export default function DraftDetailPage() {
         {activeTab === 'links' && content?.internal_links && (
           <div className="space-y-4">
             <div className="card-standard">
-              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Other Services in {draft?.cities?.name || 'City'}</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Other Services in {(draft as any)?.cities?.name || 'City'}</p>
               {content.internal_links.other_services_in_city?.map((link: any, i: number) => (
                 <a key={i} href={link.url} className="block text-accent hover:underline py-1">{link.text}</a>
               ))}
