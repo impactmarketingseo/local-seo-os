@@ -87,6 +87,8 @@ export async function POST(req: NextRequest) {
     const geminiKey = process.env.GEMINI_API_KEY;
     const useModel = model || 'groq';
 
+    console.log('Using model:', useModel, 'Groq key:', !!groqKey, 'Gemini key:', !!geminiKey);
+
     let content = '';
     let aiModel = 'groq';
     let tokenCount = 0;
@@ -150,8 +152,11 @@ export async function POST(req: NextRequest) {
     }
 
     if (!content) {
+      console.error('AI generation failed - no content returned');
+      console.error('Groq key exists:', !!groqKey);
+      console.error('Gemini key exists:', !!geminiKey);
       await supabase.from('page_queue').update({ status: 'planned' }).eq('id', queue_item_id);
-      return NextResponse.json({ error: 'AI generation failed' }, { status: 500 });
+      return NextResponse.json({ error: 'AI generation failed', details: 'No content from AI API' }, { status: 500 });
     }
 
     // Parse the JSON response
