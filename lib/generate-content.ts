@@ -1,4 +1,4 @@
-import { buildSystemPrompt, buildPageRequest, parseAIResponse } from '../app/api/generate/new-prompt';
+import { buildSystemPrompt, buildPageRequest, parseAIResponse } from '@/app/api/generate/new-prompt';
 
 export async function generateContent(service: any, city: any, client: any, allServices: any[], serviceCities: any[]) {
   const systemPrompt = buildSystemPrompt(client);
