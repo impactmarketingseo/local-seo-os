@@ -194,8 +194,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to parse AI response', details: (e as Error).message }, { status: 500 });
     }
 
-    // Validate output
-    console.log('Parsed JSON successfully');
+    // Log what sections we got
+    console.log('Parsed sections:', Object.keys(parsed || {}));
+    console.log('Has problems:', !!parsed?.problems);
+    console.log('Has why_choose_us:', !!parsed?.why_choose_us);
+    console.log('Has process:', !!parsed?.process);
+    console.log('Has faq:', !!parsed?.faq);
 
     // Create draft record
     let finalDraft = null;

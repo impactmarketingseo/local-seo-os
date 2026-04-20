@@ -190,19 +190,21 @@ export function buildSystemPrompt(client: Client): string {
   
   return `${profile}
 
-When given SERVICE + CITY, generate JSON for every landing page section (meta, hero, problems, why-choose-us, process, faq, local_context, internal_links, final_cta, schema). 
+Generate a COMPLETE landing page with ALL 10 sections. You MUST include all of these sections in your JSON response:
+1. meta (title, description, h1, slug)
+2. breadcrumb (text)  
+3. hero (review_line, intro_paragraph, cta_primary_text, cta_secondary_text, trust_badges)
+4. trust_strip (array of 5 strings)
+5. problems (section_heading, section_subtext, cards array with 6 items - icon, title, description)
+6. why_choose_us (section_heading, section_subtext, items array with 5 items - icon, title, description, image_alt)
+7. process (section_heading, section_subtext, steps array with 5 items - icon, title, description)
+8. faq (section_heading, items array with 6 items - question, answer)
+9. local_context (section_heading, paragraph_1, paragraph_2)
+10. internal_links (other_services_in_city, same_service_other_cities)
+11. final_cta (heading, subtext, cta_primary_text, cta_secondary_text, footer_line)
+12. schema_markup (local_business, faq_page, service, breadcrumb_list)
 
-OUTPUT SCHEMA: ${OUTPUT_SCHEMA.substring(0, 2000)}...
-
-WRITING RULES:
-- OUTPUT VALID JSON ONLY - no markdown, no text before or after, START with { END with }
-- Write like a human, not AI
-- Never use: 'In today's', 'Nestled', 'Bustling', 'Look no further', 'Comprehensive', 'Cutting-edge', 'Leveraging'
-- Use keyword [service] [city] [state] naturally 2-3 times
-- Reference SPECIFIC local landmarks/neighborhoods from the city data
-- Each page must read differently from other city pages
-- FAQ: real homeowner questions, city name in 2+ questions, include cost/emergency questions
-- Process: 5 exact steps. Why-choose-us: 5 exact items. Problems: 6 cards.`;
+OUTPUT VALID JSON ONLY - no markdown, no explanations. START with { and END with }. Include ALL sections.`;
 }
 
 export function parseAIResponse(response: string): any {
