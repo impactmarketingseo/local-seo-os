@@ -248,28 +248,26 @@ export async function POST(req: NextRequest) {
 
     console.log('Draft created:', finalDraft.id);
 
-    // Insert draft content
+    // Insert draft content (ignore errors)
     const { error: contentError } = await supabase
       .from('draft_content')
       .insert({
         draft_id: finalDraft.id,
-        meta: parsed.meta,
-        breadcrumb: parsed.breadcrumb,
-        hero: parsed.hero,
-        trust_strip: parsed.trust_strip,
-        problems: parsed.problems,
-        why_choose_us: parsed.why_choose_us,
-        process: parsed.process,
-        faq: parsed.faq,
-        local_context: parsed.local_context,
-        internal_links: parsed.internal_links,
-        final_cta: parsed.final_cta,
-        schema_markup: parsed.schema_markup,
+        meta: parsed.meta || {},
+        breadcrumb: parsed.breadcrumb || '',
+        hero: parsed.hero || {},
+        trust_strip: parsed.trust_strip || [],
+        problems: parsed.problems || {},
+        why_choose_us: parsed.why_choose_us || {},
+        process: parsed.process || {},
+        faq: parsed.faq || {},
+        local_context: parsed.local_context || {},
+        internal_links: parsed.internal_links || {},
+        final_cta: parsed.final_cta || {},
+        schema_markup: parsed.schema_markup || {},
       });
 
-    if (contentError) {
-      console.error('Content insert error:', contentError);
-    }
+    console.log('Content insert:', contentError ? 'failed: ' + contentError.message : 'success');
 
     // Update queue status
     await supabase.from('page_queue').update({
