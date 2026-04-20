@@ -183,39 +183,48 @@ export async function POST(req: NextRequest) {
     // Validate output
     console.log('Parsed JSON successfully');
 
-    // Create draft record - only use columns that definitely exist in production DB
-    const draftInsert = {
-      queue_id: queue_item_id,
-      client_id: service?.client_id,
-      status: 'draft' as const,
-      generation_model: aiModel,
-      token_count: tokenCount,
-    };
+    // Create draft record - MINIMUM fields only to avoid schema issues
+    let finalDraft = null;
+    let createError = null;
 
-    // Add optional fields that might not exist in DB (will be skipped if they cause error)
-    const { data: draft, error: draftError, ...rest } = await supabase
-      .from('drafts')
-      .insert(draftInsert)
-      .select()
-      .single();
+    // Try 1: only status
+    const try1 = await supabase.from('drafts').insert({ status: 'draft' }).select().single();
+    if (try1.data) {
+      finalDraft = try1.data;
+    } else {
+      console.log('Try1 failed:', try1.error?.message);
+      createError = try1.error;
+    }
 
-    // If fails, try without optional fields
-    let finalDraft = draft;
-    if (draftError) {
-      console.log('First insert attempt error:', draftError.code, draftError.message);
-      // Try simpler insert
-      const simpleInsert = {
-        client_id: service?.client_id,
-        status: 'draft' as const,
-        generation_model: aiModel,
-      };
-      const retry = await supabase.from('drafts').insert(simpleInsert).select().single();
-      finalDraft = retry.data;
-      console.log('Retry result:', retry.error, retry.data?.id);
+    // Try 2: status + client_id (if Try1 failed)
+    if (!finalDraft && service?.client_id) {
+      const try2 = await supabase.from('drafts').insert({ 
+        client_id: service.client_id,
+        status: 'draft' 
+      }).select().single();
+      if (try2.data) {
+        finalDraft = try2.data;
+      } else {
+        console.log('Try2 failed:', try2.error?.message);
+      }
+    }
+
+    // Try 3: status + client_id + generation_model
+    if (!finalDraft && service?.client_id) {
+      const try3 = await supabase.from('drafts').insert({ 
+        client_id: service.client_id,
+        status: 'draft',
+        generation_model: aiModel 
+      }).select().single();
+      if (try3.data) {
+        finalDraft = try3.data;
+      } else {
+        console.log('Try3 failed:', try3.error?.message);
+      }
     }
 
     if (!finalDraft) {
-      console.error('Draft create error:', draftError);
+      console.error('All draft insert attempts failed:', createError);
       return NextResponse.json({ error: 'Failed to create draft' }, { status: 500 });
     }
 
