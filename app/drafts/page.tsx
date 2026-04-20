@@ -16,6 +16,7 @@ interface Draft {
   client_id: string;
   service_id?: string;
   city_id?: string;
+  content_json?: any;
   clients: { name: string } | null;
   services?: { name: string; slug: string } | null;
   cities?: { name: string; state: string; slug: string } | null;
