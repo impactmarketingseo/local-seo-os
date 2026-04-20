@@ -195,6 +195,7 @@ When given SERVICE + CITY, generate JSON for every landing page section (meta, h
 OUTPUT SCHEMA: ${OUTPUT_SCHEMA.substring(0, 2000)}...
 
 WRITING RULES:
+- OUTPUT VALID JSON ONLY - no markdown, no text before or after, START with { END with }
 - Write like a human, not AI
 - Never use: 'In today's', 'Nestled', 'Bustling', 'Look no further', 'Comprehensive', 'Cutting-edge', 'Leveraging'
 - Use keyword [service] [city] [state] naturally 2-3 times
@@ -205,7 +206,6 @@ WRITING RULES:
 }
 
 export function parseAIResponse(response: string): any {
-  // Remove markdown code blocks if present
   let cleanJson = response.trim();
   
   // Remove ```json and ``` fences
@@ -214,7 +214,7 @@ export function parseAIResponse(response: string): any {
     cleanJson = cleanJson.replace(/\n```$/, '');
   }
   
-  // Find JSON object boundaries
+  // Find JSON object boundaries - find FIRST { and LAST }
   const startIdx = cleanJson.indexOf('{');
   const endIdx = cleanJson.lastIndexOf('}');
   
@@ -224,10 +224,17 @@ export function parseAIResponse(response: string): any {
   
   cleanJson = cleanJson.substring(startIdx, endIdx + 1);
   
+  // Try to parse, if fails try to extract just the first valid JSON object
   try {
     return JSON.parse(cleanJson);
   } catch (err) {
-    throw new Error(`Failed to parse JSON: ${(err as Error).message}`);
+    // Try removing any trailing text after last }
+    const tryAgain = cleanJson.replace(/}\s*$/, '').trim() + '}';
+    try {
+      return JSON.parse(tryAgain);
+    } catch {
+      throw new Error('Failed to parse JSON: ' + (err as Error).message);
+    }
   }
 }
 
