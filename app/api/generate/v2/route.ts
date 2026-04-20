@@ -151,13 +151,11 @@ export async function POST(req: NextRequest) {
     }
 
     if (!content) {
-      console.log('AI generation failed');
-      // Try Gemini as fallback if not tried yet
-      if (geminiKey && !content) {
-        console.log('Trying Gemini...');
+      console.log('Groq failed/rate limited, trying Gemini...');
+      if (geminiKey) {
         try {
           const prompt = `${systemPrompt.substring(0, 1500)}\n\n${pageRequest.substring(0, 1000)}`;
-          const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
+          const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -165,11 +163,15 @@ export async function POST(req: NextRequest) {
               generationConfig: { temperature: 0.7, maxOutputTokens: 3000 },
             }),
           });
+          console.log('Gemini status:', geminiResponse.status);
           if (geminiResponse.ok) {
             const data = await geminiResponse.json();
             content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
             aiModel = 'gemini';
             console.log('Gemini content:', content.length);
+          } else {
+            const err = await geminiResponse.text();
+            console.log('Gemini error:', err.substring(0, 150));
           }
         } catch (e) {
           console.log('Gemini exception:', e);
@@ -177,7 +179,7 @@ export async function POST(req: NextRequest) {
       }
       
       if (!content) {
-        console.log('Really failed - no content from either API');
+        console.log('Both APIs failed');
         return NextResponse.json({ error: 'AI generation failed', details: 'No content from AI API' }, { status: 500 });
       }
     }
@@ -195,24 +197,27 @@ export async function POST(req: NextRequest) {
     // Validate output
     console.log('Parsed JSON successfully');
 
-    // Create draft record - MINIMUM fields only to avoid schema issues
+    // Create draft record - MUST include content_json (NOT NULL in production)
     let finalDraft = null;
-    let createError = null;
-
-    // Try 1: only status
-    const try1 = await supabase.from('drafts').insert({ status: 'draft' }).select().single();
+    
+    // Try with minimal required fields + content_json placeholder
+    const try1 = await supabase.from('drafts').insert({ 
+      status: 'draft',
+      content_json: { placeholder: true }
+    }).select().single();
+    
     if (try1.data) {
       finalDraft = try1.data;
     } else {
       console.log('Try1 failed:', try1.error?.message);
-      createError = try1.error;
     }
 
-    // Try 2: status + client_id (if Try1 failed)
+    // Try 2: status + client_id + content_json
     if (!finalDraft && service?.client_id) {
       const try2 = await supabase.from('drafts').insert({ 
         client_id: service.client_id,
-        status: 'draft' 
+        status: 'draft',
+        content_json: { placeholder: true }
       }).select().single();
       if (try2.data) {
         finalDraft = try2.data;
@@ -221,12 +226,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Try 3: status + client_id + generation_model
+    // Try 3: status + client_id + generation_model + content_json
     if (!finalDraft && service?.client_id) {
       const try3 = await supabase.from('drafts').insert({ 
         client_id: service.client_id,
         status: 'draft',
-        generation_model: aiModel 
+        generation_model: aiModel,
+        content_json: { placeholder: true }
       }).select().single();
       if (try3.data) {
         finalDraft = try3.data;
@@ -236,7 +242,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!finalDraft) {
-      console.error('All draft insert attempts failed:', createError);
+      console.log('All draft insert attempts failed');
       return NextResponse.json({ error: 'Failed to create draft' }, { status: 500 });
     }
 
