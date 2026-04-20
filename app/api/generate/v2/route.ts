@@ -81,6 +81,8 @@ export async function POST(req: NextRequest) {
     );
 
     console.log('Building prompts complete');
+    console.log('System prompt length:', systemPrompt.length);
+    console.log('Page request:', pageRequest.substring(0, 200));
 
     // Try Groq first
     const groqKey = process.env.GROQ_API_KEY;
@@ -116,10 +118,10 @@ export async function POST(req: NextRequest) {
           const data = await groqResponse.json();
           content = data.choices?.[0]?.message?.content || '';
           tokenCount = data.usage?.total_tokens || 0;
-          console.log('Groq generation successful');
+          console.log('Groq generation successful, content length:', content.length);
         } else {
           const err = await groqResponse.text();
-          console.error('Groq error:', err);
+          console.error('Groq error:', groqResponse.status, err);
         }
       } catch (e) {
         console.error('Groq exception:', e);
