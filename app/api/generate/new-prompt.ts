@@ -321,8 +321,8 @@ export function parseAIResponse(response: string): any {
   
   try {
     return JSON.parse(cleanJson);
-  } catch (e) {
-    throw new Error(`Failed to parse JSON: ${e.message}`);
+  } catch (err) {
+    throw new Error(`Failed to parse JSON: ${(err as Error).message}`);
   }
 }
 
