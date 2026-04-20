@@ -7,16 +7,11 @@ import { toast } from '@/components/Toast';
 
 interface QueueItem {
   id: string;
+  service_id: string;
+  city_id: string;
   client_id: string;
-  service_id: string | null;
-  city_id: string | null;
   status: string;
-  scheduled_for: string | null;
-  priority: number;
-  generation_mode: string;
-  notes: string | null;
-  synonym: string | null;
-  created_at: string;
+  notes: string;
   clients: { name: string; niche: string } | null;
   services: { name: string } | null;
   cities: { name: string; state: string } | null;
@@ -72,7 +67,6 @@ function QueueRow({ item, onUpdate, onDelete, onGenerate, delay, selectable, sel
             )}
             {item.cities?.name ? ` in ${item.cities.name}, ${item.cities.state}` : item.city_id ? ` (City ID: ${item.city_id})` : ' - No city'}
           </p>
-          {item.notes && <p className="text-xs text-accent mt-1">Keyword: {item.notes}</p>}
         </div>
 
         {/* Status - visible on all screens */}
@@ -170,19 +164,14 @@ export default function QueuePage() {
   const loadQueue = useCallback(async () => {
     const supabase = createSupabaseBrowserClient();
     
-    let query = supabase.from('page_queue').select(`
-      *,
-      clients(name, niche),
-      services(name),
-      cities(name, state)
-    `, { count: 'exact' }).order('created_at', { ascending: false });
+    let query = supabase.from('page_queue').select('*').order('created_at', { ascending: false });
 
     if (filter === 'planned') {
       query = query.eq('status', 'planned');
     } else if (filter === 'generating') {
       query = query.in('status', ['generating', 'approved_for_gen']);
     } else if (filter === 'failed') {
-      query = query.eq('status', filter);
+      query = query.eq('status', 'failed');
     }
 
     if (clientFilter) {
@@ -193,7 +182,8 @@ export default function QueuePage() {
       query = query.eq('service_id', serviceFilter);
     }
 
-    const { data } = await query;
+    const { data, error } = await query;
+    console.log('Queue load error:', error);
     if (data) setItems(data as any);
 
     const { data: clientsData } = await supabase.from('clients').select('id, name').eq('status', 'active').order('name');
