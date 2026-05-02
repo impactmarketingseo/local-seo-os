@@ -271,12 +271,109 @@ useEffect(() => {
       </div>
 
       <div className="pb-24">
-{/* SEO Tab - Debug view */}
+{/* SEO Tab - show content JSON */}
         {activeTab === 'seo' && (
+          <div className="space-y-4">
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">All Content</p>
+              <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md max-h-[600px]">
+                {JSON.stringify(content || {}, null, 2)}
+              </pre>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Meta</p>
+              <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md">
+                {JSON.stringify(content?.meta || draft?.meta_title || {}, null, 2)}
+              </pre>
+            </div>
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Breadcrumb</p>
+              <p className="text-text-secondary">{content?.breadcrumb || 'N/A'}</p>
+            </div>
+            {/* Add Similar Keywords placeholder */}
+            <div className="card-standard">
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Similar Keywords</p>
+              <p className="text-text-tertiary text-sm">Add from AI prompt - not yet generated</p>
+            </div>
+          </div>
+        )}
+
+        {/* Hero Tab */}
+        {activeTab === 'hero' && (
           <div className="card-standard">
-            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Content Debug</p>
-            <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md max-h-[500px]">
-              {JSON.stringify(content || {}, null, 2)}
+            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Hero Section</p>
+            <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md max-h-[600px]">
+              {JSON.stringify(content?.hero || {}, null, 2)}
+            </pre>
+          </div>
+        )}
+
+        {/* Problems Tab */}
+        {activeTab === 'problems' && (
+          <div className="card-standard">
+            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Problems Section</p>
+            <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md max-h-[600px]">
+              {JSON.stringify(content?.problems || {}, null, 2)}
+            </pre>
+          </div>
+        )}
+
+        {/* Why Us Tab */}
+        {activeTab === 'why' && (
+          <div className="card-standard">
+            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Why Choose Us</p>
+            <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md max-h-[600px]">
+              {JSON.stringify(content?.why_choose_us || {}, null, 2)}
+            </pre>
+          </div>
+        )}
+
+        {/* Process Tab */}
+        {activeTab === 'process' && (
+          <div className="card-standard">
+            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Process</p>
+            <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md max-h-[600px]">
+              {JSON.stringify(content?.process || {}, null, 2)}
+            </pre>
+          </div>
+        )}
+
+        {/* FAQ Tab */}
+        {activeTab === 'faq' && (
+          <div className="card-standard">
+            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">FAQ</p>
+            <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md max-h-[600px]">
+              {JSON.stringify(content?.faq || {}, null, 2)}
+            </pre>
+          </div>
+        )}
+
+        {/* Local Tab */}
+        {activeTab === 'local' && (
+          <div className="card-standard">
+            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Local Context</p>
+            <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md max-h-[600px]">
+              {JSON.stringify(content?.local_context || {}, null, 2)}
+            </pre>
+          </div>
+        )}
+
+        {/* Links Tab */}
+        {activeTab === 'links' && (
+          <div className="card-standard">
+            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Internal Links</p>
+            <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md max-h-[600px]">
+              {JSON.stringify(content?.internal_links || {}, null, 2)}
+            </pre>
+          </div>
+        )}
+
+        {/* Schema Tab */}
+        {activeTab === 'schema' && (
+          <div className="card-standard">
+            <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Schema Markup</p>
+            <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md max-h-[600px]">
+              {JSON.stringify(content?.schema_markup || {}, null, 2)}
             </pre>
           </div>
         )}
