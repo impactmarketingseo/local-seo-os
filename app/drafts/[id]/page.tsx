@@ -169,8 +169,8 @@ useEffect(() => {
             </svg>
           </button>
           <div>
-            <h1 className="font-bold text-xl text-text-primary leading-tight">{draft.title}</h1>
-            <p className="text-sm text-text-tertiary">{draft.clients?.name}</p>
+            <h1 className="font-bold text-xl text-text-primary leading-tight">{String(draft.title || 'Untitled')}</h1>
+            <p className="text-sm text-text-tertiary">{String(draft.clients?.name || 'Unknown Client')}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -234,7 +234,7 @@ useEffect(() => {
           </div>
           <div>
             <span className="text-text-disabled text-xs uppercase tracking-wider">Status</span>
-            <p className={`${status.text} font-medium`}>{draft.status}</p>
+            <p className={`${status.text} font-medium`}>{String(draft.status)}</p>
           </div>
         </div>
       </div>
@@ -488,16 +488,10 @@ useEffect(() => {
         {activeTab === 'links' && content?.internal_links && (
           <div className="space-y-4">
             <div className="card-standard">
-              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Other Services in {(draft as any)?.cities?.name || 'City'}</p>
-              {content.internal_links.other_services_in_city?.map((link: any, i: number) => (
-                <a key={i} href={link.url} className="block text-accent hover:underline py-1">{link.text}</a>
-              ))}
-            </div>
-            <div className="card-standard">
-              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">{(draft as any)?.services?.name || 'Service'} in Other Cities</p>
-              {content.internal_links.same_service_other_cities?.map((link: any, i: number) => (
-                <a key={i} href={link.url} className="block text-accent hover:underline py-1">{link.text}</a>
-              ))}
+              <p className="text-xs font-medium uppercase tracking-wider text-text-disabled mb-2">Links (JSON)</p>
+              <pre className="text-xs mono text-text-secondary overflow-x-auto bg-sidebar p-4 rounded-md max-h-[600px]">
+                {(() => { try { return JSON.stringify(content.internal_links || {}, null, 2); } catch(e) { return String(content.internal_links); } })()}
+              </pre>
             </div>
           </div>
         )}
