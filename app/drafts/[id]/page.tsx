@@ -156,7 +156,8 @@ useEffect(() => {
     approved: { bg: 'bg-success/10', text: 'text-success' },
     rejected: { bg: 'bg-error/10', text: 'text-error' },
   };
-  const status = statusColors[draft.status] || statusColors.draft;
+  const statusKey = String(draft?.status || 'draft');
+  const status = statusColors[statusKey] || statusColors.draft;
 
   return (
     <div className="p-6 lg:p-8">
