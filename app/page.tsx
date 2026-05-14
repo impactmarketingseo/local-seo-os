@@ -206,23 +206,26 @@ export default function DashboardPage() {
       // Get all recent drafts and filter client-side
       const { data: allDrafts, error: draftsError } = await supabase
         .from('drafts')
-        .select('*, clients(name), service_id, city_id')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(20);
       
-      // Now fetch services and cities separately
+      console.log('Drafts query error:', draftsError);
+      console.log('All drafts query result count:', allDrafts?.length || 0);
+      
+      // Fetch related data separately
+      const { data: allClients } = await supabase.from('clients').select('id, name');
       const { data: allServices } = await supabase.from('services').select('id, name');
       const { data: allCities } = await supabase.from('cities').select('id, name, state');
       
-      // Map services and cities to drafts
+      // Map relations to drafts client-side
       const draftsWithRelations = allDrafts?.map((d: any) => ({
         ...d,
+        clients: allClients?.find((c: any) => c.id === d.client_id) || null,
         services: allServices?.find((s: any) => s.id === d.service_id) || null,
         cities: allCities?.find((c: any) => c.id === d.city_id) || null,
       })) || [];
       
-      console.log('Drafts query error:', draftsError);
-      console.log('All drafts query result count:', draftsWithRelations.length || 0);
       console.log('All drafts statuses:', draftsWithRelations.map((d: any) => d.status) || []);
       
       // Filter to only show drafts that need attention (not approved/rejected/published)
@@ -235,7 +238,7 @@ export default function DashboardPage() {
         supabase.from('clients').select('id', { count: 'exact', head: true }).eq('status', 'active'),
         supabase.from('page_queue').select('id', { count: 'exact', head: true }),
         supabase.from('drafts').select('id', { count: 'exact', head: true }).gte('created_at', startOfWeek.toISOString()),
-        supabase.from('drafts').select('id, title, status, created_at, clients(name)').order('created_at', { ascending: false }).limit(10),
+        supabase.from('drafts').select('id, title, status, created_at').order('created_at', { ascending: false }).limit(10),
       ]);
 
       setStats({
