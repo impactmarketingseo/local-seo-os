@@ -6,74 +6,229 @@ import { useState, useEffect, type ReactNode } from 'react';
 import { useAppSettings } from '@/lib/settings-context';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
-const navItems = [
+interface NavItem {
+  name: string;
+  href: string;
+  icon: string;
+  badge?: 'queue' | 'drafts' | 'failed';
+}
+
+const navItems: NavItem[] = [
   { name: 'Dashboard', href: '/', icon: 'home' },
   { name: 'Clients', href: '/clients', icon: 'building' },
-  { name: 'Queue', href: '/queue', icon: 'layers' },
-  { name: 'Drafts', href: '/drafts', icon: 'file-edit' },
+  { name: 'Queue', href: '/queue', icon: 'layers', badge: 'queue' },
+  { name: 'Drafts', href: '/drafts', icon: 'file-edit', badge: 'drafts' },
 ];
 
 const systemItems = [
   { name: 'Settings', href: '/settings', icon: 'settings' },
 ];
 
-function UsageMeter({ collapsed }: { collapsed: boolean }) {
-  const [weekCount, setWeekCount] = useState(0);
-  const [monthCount, setMonthCount] = useState(0);
-  
+function StatusBadges({ collapsed }: { collapsed: boolean }) {
+  const [counts, setCounts] = useState({ pending: 0, review: 0, failed: 0, recentClients: [] as { id: string; name: string }[] });
+
   useEffect(() => {
-    async function loadUsage() {
+    async function loadCounts() {
       const supabase = createSupabaseBrowserClient();
-      const now = new Date();
       
-      // Start of this week (Sunday)
-      const startOfWeek = new Date(now);
-      startOfWeek.setDate(now.getDate() - now.getDay());
-      startOfWeek.setHours(0, 0, 0, 0);
-      
-      // Start of this month
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      
-      const { count: weekDrafts } = await supabase
-        .from('drafts')
-        .select('id', { count: 'exact', head: true })
-        .gte('created_at', startOfWeek.toISOString());
-      
-      const { count: monthDrafts } = await supabase
-        .from('drafts')
-        .select('id', { count: 'exact', head: true })
-        .gte('created_at', startOfMonth.toISOString());
-      
-      setWeekCount(weekDrafts || 0);
-      setMonthCount(monthDrafts || 0);
+      const [queueRes, draftsRes, clientsRes] = await Promise.all([
+        supabase.from('page_queue').select('id', { count: 'exact', head: true }).in('status', ['pending', 'planned', 'failed']),
+        supabase.from('drafts').select('id', { count: 'exact', head: true }).in('status', ['generated', 'review']),
+        supabase.from('clients').select('id, name').order('updated_at', { ascending: false }).limit(5),
+      ]);
+
+      setCounts({
+        pending: (queueRes.count || 0),
+        review: (draftsRes.count || 0),
+        failed: 0,
+        recentClients: clientsRes.data || [],
+      });
     }
-    loadUsage();
-    // Refresh every 5 minutes
-    const interval = setInterval(loadUsage, 300000);
+    loadCounts();
+    const interval = setInterval(loadCounts, 60000);
     return () => clearInterval(interval);
   }, []);
-  
+
   if (collapsed) {
+    const total = counts.pending + counts.review;
+    if (total === 0) return null;
     return (
-      <div className="px-3 py-2 text-center" title={`${weekCount} pages this week`}>
-        <span className="text-lg font-bold text-accent">{weekCount}</span>
-        <p className="text-[10px] text-text-disabled">this week</p>
+      <div className="px-3 py-2 text-center">
+        <span className="text-lg font-bold text-warning">{total}</span>
+        <p className="text-[10px] text-text-disabled">need action</p>
       </div>
     );
   }
-  
+
   return (
-    <div className="px-3 py-3 bg-elevated/50 rounded-lg mx-3 mb-2">
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-xs text-text-tertiary">This Week</span>
-        <span className="text-sm font-bold text-text-primary">{weekCount} pages</span>
+    <div className="px-3 py-3 bg-elevated/50 rounded-lg mx-3 mb-2 space-y-2">
+      <div className="space-y-1.5">
+        {counts.pending > 0 && (
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-text-tertiary">Pending in queue</span>
+            <span className="font-medium text-warning">{counts.pending}</span>
+          </div>
+        )}
+        {counts.review > 0 && (
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-text-tertiary">Awaiting review</span>
+            <span className="font-medium text-accent">{counts.review}</span>
+          </div>
+        )}
+        {counts.pending === 0 && counts.review === 0 && (
+          <p className="text-xs text-success text-center">All caught up</p>
+        )}
       </div>
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-text-tertiary">This Month</span>
-        <span className="text-xs text-text-secondary">{monthCount} pages</span>
-      </div>
-      <p className="text-[10px] text-text-disabled mt-2">Groq & Gemini: unlimited daily</p>
+      {counts.recentClients.length > 0 && (
+        <>
+          <div className="border-t border-border/50 pt-2">
+            <p className="text-[10px] text-text-disabled mb-1.5">Recent</p>
+            <div className="space-y-1">
+              {counts.recentClients.slice(0, 3).map((client) => (
+                <Link 
+                  key={client.id} 
+                  href={`/clients/${client.id}`}
+                  className="flex items-center gap-2 text-xs text-text-secondary hover:text-accent transition-colors truncate"
+                >
+                  <div className="w-5 h-5 rounded bg-input flex items-center justify-center shrink-0">
+                    <span className="text-[10px] text-text-tertiary font-medium">{client.name.charAt(0)}</span>
+                  </div>
+                  <span className="truncate">{client.name}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
+  );
+}
+
+function ModelHealth({ collapsed }: { collapsed: boolean }) {
+  const [groqStatus, setGroqStatus] = useState<'up' | 'down' | 'unknown'>('unknown');
+
+  useEffect(() => {
+    async function checkGroq() {
+      try {
+        const res = await fetch('https://api.groq.com/openapi/v1/models', {
+          method: 'HEAD',
+          headers: { Authorization: `Bearer ${process.env.NEXT_PUBLIC_GROQ_API_KEY || ''}` },
+        });
+        setGroqStatus(res.ok ? 'up' : 'down');
+      } catch {
+        setGroqStatus('down');
+      }
+    }
+    checkGroq();
+  }, []);
+
+  if (collapsed) {
+    return (
+      <div className="px-3 py-1 text-center" title="AI Models">
+        <div className={`w-2 h-2 rounded-full mx-auto ${groqStatus === 'up' ? 'bg-success' : groqStatus === 'down' ? 'bg-error' : 'bg-warning'}`} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-3 py-2 mx-3">
+      <p className="text-[10px] text-text-disabled mb-1.5">AI Models</p>
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          <div className={`w-1.5 h-1.5 rounded-full ${groqStatus === 'up' ? 'bg-success' : groqStatus === 'down' ? 'bg-error' : 'bg-warning'}`} />
+          <span className="text-[10px] text-text-tertiary">Groq</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-1.5 h-1.5 rounded-full bg-success" />
+          <span className="text-[10px] text-text-tertiary">Gemini</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QuickGenerate({ collapsed }: { collapsed: boolean }) {
+  const [hasItems, setHasItems] = useState(false);
+
+  useEffect(() => {
+    async function checkQueue() {
+      const supabase = createSupabaseBrowserClient();
+      const { count } = await supabase
+        .from('page_queue')
+        .select('id', { count: 'exact', head: true })
+        .in('status', ['pending', 'planned']);
+      setHasItems((count || 0) > 0);
+    }
+    checkQueue();
+  }, []);
+
+  if (!hasItems) return null;
+
+  return (
+    <div className="px-3 pb-2">
+      <Link 
+        href="/queue"
+        className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-accent hover:bg-accent-hover text-xs font-medium text-white transition-colors ${collapsed ? 'w-full' : ''}`}
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        {!collapsed && <span>Generate Next</span>}
+      </Link>
+    </div>
+  );
+}
+
+function NavWithBadge({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
+  const [badgeCount, setBadgeCount] = useState(0);
+  const pathname = usePathname();
+  const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+
+  useEffect(() => {
+    async function loadBadge() {
+      const supabase = createSupabaseBrowserClient();
+      let query = supabase.from('page_queue').select('id', { count: 'exact', head: true });
+      
+      if (item.badge === 'queue') {
+        query = query.in('status', ['pending', 'planned', 'failed']);
+      } else if (item.badge === 'drafts') {
+        query = supabase.from('drafts').select('id', { count: 'exact', head: true }).in('status', ['generated', 'review']);
+      }
+      
+      const { count } = await query;
+      setBadgeCount(count || 0);
+    }
+    loadBadge();
+    const interval = setInterval(loadBadge, 60000);
+    return () => clearInterval(interval);
+  }, [item.badge]);
+
+  return (
+    <Link 
+      href={item.href}
+      className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all relative ${
+        isActive 
+          ? 'bg-accent/10 text-text-primary' 
+          : 'text-text-tertiary hover:bg-elevated hover:text-text-secondary'
+      }`}>
+      {isActive && (
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-accent rounded-r-full" />
+      )}
+      <Icon name={item.icon} className="w-5 h-5 flex-shrink-0" />
+      {!collapsed && <span className="flex-1">{item.name}</span>}
+      {badgeCount > 0 && !collapsed && (
+        <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
+          item.badge === 'queue' ? 'bg-warning/20 text-warning' : 'bg-accent/20 text-accent'
+        }`}>
+          {badgeCount}
+        </span>
+      )}
+      {badgeCount > 0 && collapsed && (
+        <span className="absolute -top-1 -right-1 w-4 h-4 text-[10px] font-bold rounded-full bg-warning text-white flex items-center justify-center">
+          {badgeCount > 9 ? '9+' : badgeCount}
+        </span>
+      )}
+    </Link>
   );
 }
 
@@ -218,32 +373,24 @@ export function Sidebar() {
           </Link>
         </div>
 
-        {/* Usage Meter */}
-        <UsageMeter collapsed={collapsed} />
+        {/* Status Badges */}
+        <StatusBadges collapsed={collapsed} />
+
+        {/* Quick Generate */}
+        <QuickGenerate collapsed={collapsed} />
 
         {/* Workspace Section */}
-        <div className="px-3 py-2">
+        <div className="px-3 py-2 flex-1">
           {!collapsed && <p className="text-xs text-text-disabled font-semibold px-3 mb-2 tracking-wider">Workspace</p>}
           <nav className="space-y-1">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
-              return (
-                <Link key={item.name} href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all relative ${
-                    isActive 
-                      ? 'bg-accent/10 text-text-primary' 
-                      : 'text-text-tertiary hover:bg-elevated hover:text-text-secondary'
-                  }`}>
-                  {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-accent rounded-r-full" />
-                  )}
-                  <Icon name={item.icon} className="w-5 h-5 flex-shrink-0" />
-                  {!collapsed && <span>{item.name}</span>}
-                </Link>
-              );
-            })}
+            {navItems.map((item) => (
+              <NavWithBadge key={item.name} item={item} collapsed={collapsed} />
+            ))}
           </nav>
         </div>
+
+        {/* Model Health */}
+        <ModelHealth collapsed={collapsed} />
 
         {/* System Section */}
         <div className="mt-auto p-3 border-t border-border">
