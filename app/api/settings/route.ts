@@ -7,6 +7,8 @@ const DEFAULT_SETTINGS = {
   general: { timezone: 'America/New_York' }
 };
 
+type SettingsKey = keyof typeof DEFAULT_SETTINGS;
+
 export async function GET() {
   const cookieStore = await cookies();
   
@@ -22,17 +24,17 @@ export async function GET() {
 
   const { data, error } = await supabase.from('app_settings').select('key, value');
 
-  console.log('[API /settings GET] Data:', data, 'Error:', error);
-
   // Always return all settings, merging defaults with DB values
-  const mergedSettings = { ...DEFAULT_SETTINGS };
+  const mergedSettings: typeof DEFAULT_SETTINGS = { ...DEFAULT_SETTINGS };
   data?.forEach((item) => {
-    if (item.key && item.value) {
-      mergedSettings[item.key] = { ...mergedSettings[item.key], ...item.value };
+    if (item.key && item.value && item.key in DEFAULT_SETTINGS) {
+      (mergedSettings as Record<string, unknown>)[item.key as string] = { 
+        ...(mergedSettings as Record<string, unknown>)[item.key as string] as Record<string, unknown>, 
+        ...item.value 
+      };
     }
   });
 
-  console.log('[API /settings GET] Merged settings:', mergedSettings);
   return NextResponse.json(mergedSettings);
 }
 
@@ -52,34 +54,25 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { key, value } = body;
 
-  console.log('[API /settings POST] Saving:', key, value);
-
   if (!key || !value) {
     return NextResponse.json({ error: 'Missing key or value' }, { status: 400 });
   }
 
-  // First check if record exists
   const { data: existing } = await supabase
     .from('app_settings')
     .select('id')
     .eq('key', key)
     .single();
 
-  console.log('[API /settings POST] Existing record:', existing);
-
   if (existing) {
-    // Update existing
-    const { error } = await supabase
+    await supabase
       .from('app_settings')
       .update({ value, updated_at: new Date().toISOString() })
       .eq('key', key);
-    console.log('[API /settings POST] Update error:', error);
   } else {
-    // Insert new
-    const { error } = await supabase
+    await supabase
       .from('app_settings')
       .insert({ key, value });
-    console.log('[API /settings POST] Insert error:', error);
   }
 
   return NextResponse.json({ success: true });
