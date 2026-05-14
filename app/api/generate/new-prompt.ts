@@ -61,6 +61,8 @@ export const ANTI_PATTERNS = [
 export const OUTPUT_SCHEMA = `
 {
   "meta": {
+    "primary_keyword": "string // The main keyword: [Service] in [City], [State]",
+    "secondary_keywords": ["string x5-7 // Related long-tail keywords"],
     "title": "string // 50-60 chars. Formula: [Service] [City], [ST] | [Company]",
     "description": "string // 150-160 chars. Includes keyword, CTA, differentiator",
     "h1": "string // [Service] in [City], [State]",
@@ -190,8 +192,21 @@ export function buildSystemPrompt(client: Client): string {
   
   return `${profile}
 
+Generate content for: SERVICE=${service.name}, CITY=${city.name}, STATE=${city.state}, COUNTY=${city.county || ''}, POPULATION=${city.population || ''}, LANDMARKS=${(city.landmarks || []).join(', ')}, NEIGHBORHOODS=${(city.neighborhoods || []).join(', ')}, CLIMATE=${city.climate_detail || ''}, HOUSING=${city.housing_detail || ''}, PARENT_SERVICE_URL=/services/${service.slug}/, CITY_HUB_URL=/${service.slug}-${citySlug}/, OTHER_SERVICES=${JSON.stringify(otherServicesLinks)}, SAME_SERVICE_OTHER_CITIES=${JSON.stringify(sameServiceLinks)}
+
+KEYWORD STRATEGY - You MUST generate:
+1. primary_keyword: Format "[Service] in [City], [State]" - this is the main keyword
+2. secondary_keywords: Array of 5-7 related keywords including:
+   - "[Service] near me"
+   - "best [Service] [City]"
+   - "[Service] [City] [State]"
+   - "[Service] company [City]"
+   - "affordable [Service] [City]"
+   - variations with different service aspects (repair, installation, maintenance, etc.)
+   - city-specific variations
+
 Generate a COMPLETE landing page with ALL 10 sections. You MUST include all of these sections in your JSON response:
-1. meta (title, description, h1, slug)
+1. meta (primary_keyword, secondary_keywords array, title, description, h1, slug)
 2. breadcrumb (text)  
 3. hero (review_line, intro_paragraph, cta_primary_text, cta_secondary_text, trust_badges)
 4. trust_strip (array of 5 strings)
