@@ -164,8 +164,9 @@ export default function QueuePage() {
   const loadQueue = useCallback(async () => {
     const supabase = createSupabaseBrowserClient();
     
-    let query = supabase.from('page_queue')
-      .select('*, clients(id, name), services(id, name), cities(id, name, state)'
+let query = supabase
+      .from('page_queue')
+      .select('*, clients(id, name), services(id, name), cities(id, name, state)')
       .order('created_at', { ascending: false });
 
     if (filter === 'planned') {
