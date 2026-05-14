@@ -17,8 +17,6 @@ const systemItems = [
   { name: 'Settings', href: '/settings', icon: 'settings' },
 ];
 
-const WEEKLY_LIMIT = 30; // 10 clients x 3 pages per week
-
 function UsageMeter({ collapsed }: { collapsed: boolean }) {
   const [weekCount, setWeekCount] = useState(0);
   const [monthCount, setMonthCount] = useState(0);
@@ -28,7 +26,7 @@ function UsageMeter({ collapsed }: { collapsed: boolean }) {
       const supabase = createSupabaseBrowserClient();
       const now = new Date();
       
-      // Start of this week
+      // Start of this week (Sunday)
       const startOfWeek = new Date(now);
       startOfWeek.setDate(now.getDate() - now.getDay());
       startOfWeek.setHours(0, 0, 0, 0);
@@ -55,33 +53,26 @@ function UsageMeter({ collapsed }: { collapsed: boolean }) {
     return () => clearInterval(interval);
   }, []);
   
-  const weekPercent = Math.min((weekCount / WEEKLY_LIMIT) * 100, 100);
-  const weekColor = weekPercent > 80 ? 'bg-error' : weekPercent > 60 ? 'bg-warning' : 'bg-success';
-  
   if (collapsed) {
     return (
-      <div className="px-3 py-2" title={`This week: ${weekCount}/${WEEKLY_LIMIT}`}>
-        <div className="w-full h-1 bg-input rounded-full overflow-hidden">
-          <div className={`h-full ${weekColor} rounded-full transition-all`} style={{ width: `${weekPercent}%` }} />
-        </div>
+      <div className="px-3 py-2 text-center" title={`${weekCount} pages this week`}>
+        <span className="text-lg font-bold text-accent">{weekCount}</span>
+        <p className="text-[10px] text-text-disabled">this week</p>
       </div>
     );
   }
   
   return (
-    <div className="px-3 py-2 bg-elevated/50 rounded-lg mx-3 mb-2">
+    <div className="px-3 py-3 bg-elevated/50 rounded-lg mx-3 mb-2">
       <div className="flex items-center justify-between mb-1">
         <span className="text-xs text-text-tertiary">This Week</span>
-        <span className="text-xs font-medium text-text-secondary">{weekCount}/{WEEKLY_LIMIT}</span>
+        <span className="text-sm font-bold text-text-primary">{weekCount} pages</span>
       </div>
-      <div className="w-full h-2 bg-input rounded-full overflow-hidden">
-        <div className={`h-full ${weekColor} rounded-full transition-all`} style={{ width: `${weekPercent}%` }} />
-      </div>
-      <div className="flex items-center justify-between mt-2">
+      <div className="flex items-center justify-between">
         <span className="text-xs text-text-tertiary">This Month</span>
         <span className="text-xs text-text-secondary">{monthCount} pages</span>
       </div>
-      <p className="text-[10px] text-text-disabled mt-1">Free: Groq | $5: Together</p>
+      <p className="text-[10px] text-text-disabled mt-2">Groq & Gemini: unlimited daily</p>
     </div>
   );
 }
