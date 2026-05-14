@@ -209,22 +209,53 @@ KEYWORD STRATEGY - You MUST generate for each page:
    - variations with different service aspects (repair, installation, maintenance, etc.)
    - city-specific variations
 
-Generate a COMPLETE landing page with ALL 10 sections. You MUST include all of these sections in your JSON response:
-1. meta (primary_keyword, secondary_keywords array, title, description, h1, slug)
-2. breadcrumb (text)  
-3. hero (review_line, intro_paragraph [120-200 chars], cta_primary_text, cta_secondary_text, trust_badges)
-4. trust_strip (array of 5 strings)
-5. about_service (section_heading, subheading, paragraph_1 [150-200 words], paragraph_2 [150-200 words])
-6. problems (section_heading, section_subtext, cards array with 6 items - icon, title, description)
-6. why_choose_us (section_heading, section_subtext, items array with 5 items - icon, title, description, image_alt)
-7. process (section_heading, section_subtext, steps array with 5 items - icon, title, description)
-8. faq (section_heading, items array with 6 items - question, answer)
-9. local_context (section_heading, paragraph_1, paragraph_2)
-10. internal_links (other_services_in_city, same_service_other_cities)
-11. final_cta (heading, subtext, cta_primary_text, cta_secondary_text, footer_line)
-12. schema_markup (local_business, faq_page, service, breadcrumb_list)
+TARGET: 1000+ words total. Write substantive, detailed content.
 
-OUTPUT VALID JSON ONLY - no markdown, no explanations. START with { and END with }. Include ALL sections.`;
+Generate a COMPLETE landing page with ALL 12 sections. You MUST include all of these sections in your JSON response:
+
+1. meta (primary_keyword, secondary_keywords array, title, description, h1, slug)
+
+2. breadcrumb (text)
+
+3. hero (review_line, intro_paragraph [120-200 chars], cta_primary_text, cta_secondary_text, trust_badges)
+
+4. trust_strip (array of 5 strings - one phrase each)
+
+5. about_service - MUST be 400-500 words total:
+   - section_heading: "About [Service] in [City]"
+   - subheading: "What Every [City] Homeowner Should Know"
+   - paragraph_1: 200-250 words - educational content explaining the service, why it matters in this city, common scenarios. Be detailed and helpful.
+   - paragraph_2: 200-250 words - more detail, what to expect, local relevance, benefits. Be specific and thorough.
+
+6. problems - MUST be 300+ words total:
+   - section_heading: "Common [Service] Issues in [City]"
+   - section_subtext: 1 sentence
+   - cards: exactly 6 items. Each card MUST have title (2-4 words) AND description (25-40 words - BE DETAILED)
+
+7. why_choose_us - MUST be 300+ words total:
+   - section_heading: "Why [City] Homeowners Choose [Company]"
+   - section_subtext: 2-3 sentences
+   - items: exactly 5 items. Each item MUST have title (2-5 words) AND description (30-50 words - BE DETAILED AND SPECIFIC)
+
+8. process - MUST be 200+ words total:
+   - section_heading: "Our [Service] Process in [City]"
+   - section_subtext: 1-2 sentences
+   - steps: exactly 5 items. Each step MUST have title (2-4 words) AND description (30-40 words - BE DETAILED)
+
+9. faq - MUST be 400+ words total:
+   - section_heading: "Frequently Asked Questions About [Service] in [City]"
+   - items: exactly 6 Q&A pairs. Each question should be 5-10 words. Each answer MUST be 40-60 words (real homeowner questions, include cost, emergency info, specific details)
+
+10. local_context - MUST be 200+ words total:
+    - section_heading: "About [City], [State]"
+    - paragraph_1: 100-120 words about the city, neighborhoods, local specifics
+    - paragraph_2: 100-120 words more local detail, relevance to service
+
+11. internal_links (other_services_in_city, same_service_other_cities)
+
+12. final_cta (heading, subtext, cta_primary_text, cta_secondary_text, footer_line)
+
+OUTPUT VALID JSON ONLY - no markdown, no explanations. START with { and END with }. Include ALL sections. Be generous with content - more words is better than less.
 }
 
 export function parseAIResponse(response: string): any {

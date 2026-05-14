@@ -598,13 +598,7 @@ export default function DraftDetailPage() {
         {/* Action Buttons */}
         {String(draft?.status) !== 'approved' && String(draft?.status) !== 'published' && (
           <div className="fixed bottom-0 left-0 right-0 bg-[#111827] border-t border-gray-800 p-4">
-            <div className="max-w-5xl mx-auto flex gap-3">
-              <button 
-                onClick={handleApprove} 
-                className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium"
-              >
-                ✓ Approve
-              </button>
+            <div className="max-w-5xl mx-auto flex justify-end gap-3">
               <button 
                 onClick={handleReject} 
                 className="px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
@@ -616,6 +610,12 @@ export default function DraftDetailPage() {
                 className="px-4 py-3 bg-gray-800 hover:bg-gray-700 text-red-400 rounded-lg"
               >
                 🗑
+              </button>
+              <button 
+                onClick={handleApprove} 
+                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium"
+              >
+                ✓ Approve
               </button>
             </div>
           </div>
