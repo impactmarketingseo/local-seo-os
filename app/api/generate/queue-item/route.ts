@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
         queue_item_id,
         service_id: queueItem.service_id,
         city_id: queueItem.city_id,
+        model: model || 'groq-mixtral',
       }),
     });
 

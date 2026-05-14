@@ -160,7 +160,7 @@ export default function QueuePage() {
   const [services, setServices] = useState<{ id: string; name: string }[]>([]);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [bulkGenerating, setBulkGenerating] = useState(false);
-  const [model, setModel] = useState<'groq' | 'gemini'>('groq');
+  const [model, setModel] = useState<string>('groq-mixtral');
 
   const loadQueue = useCallback(async () => {
     const supabase = createSupabaseBrowserClient();
@@ -424,11 +424,15 @@ const counts: Record<string, number> = {
           
           <select
             value={model}
-            onChange={(e) => setModel(e.target.value as 'groq' | 'gemini')}
+            onChange={(e) => setModel(e.target.value)}
             className="input-field text-sm"
           >
-            <option value="groq">Groq (Fast)</option>
-            <option value="gemini">Gemini (Backup)</option>
+            <option value="groq-mixtral">Groq Mixtral (32k)</option>
+            <option value="groq-llama70">Groq Llama 3.3 70B (32k)</option>
+            <option value="groq-llama8">Groq Llama 3.1 8B (8k)</option>
+            <option value="gemini-flash">Gemini 1.5 Flash</option>
+            <option value="gemini-flash-002">Gemini 1.5 Flash 002</option>
+            <option value="gemini-exp">Gemini 2.0 Flash Exp</option>
           </select>
           
           {selectedItems.size > 0 && (

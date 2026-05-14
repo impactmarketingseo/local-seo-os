@@ -100,18 +100,36 @@ export async function POST(req: NextRequest) {
     let aiModel = 'groq';
     let tokenCount = 0;
 
-    // Try Groq with different models
+    // Model configuration based on user selection
+    const groqModelMap: Record<string, { name: string; maxTokens: number; systemLimit: number; pageLimit: number }> = {
+      'groq-mixtral': { name: 'mixtral-8x7b-32768', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
+      'groq-llama70': { name: 'llama-3.3-70b-versatile', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
+      'groq-llama8': { name: 'llama-3.1-8b-instant', maxTokens: 6000, systemLimit: 1500, pageLimit: 800 },
+    };
+    
+    const geminiModelMap: Record<string, { name: string; maxTokens: number }> = {
+      'gemini-flash': { name: 'gemini-1.5-flash', maxTokens: 8000 },
+      'gemini-flash-002': { name: 'gemini-1.5-flash-002', maxTokens: 8000 },
+      'gemini-exp': { name: 'gemini-2.0-flash-exp', maxTokens: 8000 },
+    };
+
+    // Try Groq with user-selected or fallback models
     if (groqKey && !content) {
       console.log('Attempting Groq API call...');
       
-      // Try models in order of preference (higher limit first)
-      const groqModels = [
-        { name: 'mixtral-8x7b-32768', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
-        { name: 'llama-3.3-70b-versatile', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
-        { name: 'llama-3.1-8b-instant', maxTokens: 6000, systemLimit: 1500, pageLimit: 800 },
-      ];
+      // Determine which models to try based on user selection
+      let groqModelsToTry: { name: string; maxTokens: number; systemLimit: number; pageLimit: number }[] = [];
       
-      for (const modelConfig of groqModels) {
+      if (model && groqModelMap[model]) {
+        // User selected a specific Groq model - try it first, then fallbacks
+        const selected = groqModelMap[model];
+        groqModelsToTry = [selected, ...Object.values(groqModelMap).filter(m => m.name !== selected.name)];
+      } else {
+        // Default: try all models in order of preference (higher limit first)
+        groqModelsToTry = Object.values(groqModelMap);
+      }
+      
+      for (const modelConfig of groqModelsToTry) {
         try {
           console.log(`Trying Groq model: ${modelConfig.name}`);
           
@@ -157,14 +175,19 @@ export async function POST(req: NextRequest) {
     if (!content && geminiKey) {
       console.log('Trying Gemini...');
       
-      // Try Gemini models in order
-      const geminiModels = [
-        { name: 'gemini-1.5-flash', maxTokens: 8000 },
-        { name: 'gemini-1.5-flash-002', maxTokens: 8000 },
-        { name: 'gemini-2.0-flash-exp', maxTokens: 8000 },
-      ];
+      // Determine which models to try based on user selection
+      let geminiModelsToTry: { name: string; maxTokens: number }[] = [];
       
-      for (const modelConfig of geminiModels) {
+      if (model && geminiModelMap[model]) {
+        // User selected a specific Gemini model
+        const selected = geminiModelMap[model];
+        geminiModelsToTry = [selected, ...Object.values(geminiModelMap).filter(m => m.name !== selected.name)];
+      } else {
+        // Default: try all models
+        geminiModelsToTry = Object.values(geminiModelMap);
+      }
+      
+      for (const modelConfig of geminiModelsToTry) {
         try {
           console.log(`Trying Gemini model: ${modelConfig.name}`);
           const prompt = `${systemPrompt.substring(0, 4000)}\n\n${pageRequest.substring(0, 2000)}`;
