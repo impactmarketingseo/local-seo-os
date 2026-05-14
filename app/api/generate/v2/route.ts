@@ -94,7 +94,9 @@ export async function POST(req: NextRequest) {
     // API keys
     const groqKey = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
     const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-    console.log('Groq key present:', !!groqKey, 'Gemini key present:', !!geminiKey);
+    const cohereKey = process.env.COHERE_API_KEY || process.env.NEXT_PUBLIC_COHERE_API_KEY;
+    const togetherKey = process.env.TOGETHER_API_KEY || process.env.NEXT_PUBLIC_TOGETHER_API_KEY;
+    console.log('Keys - Groq:', !!groqKey, 'Gemini:', !!geminiKey, 'Cohere:', !!cohereKey, 'Together:', !!togetherKey);
 
     let content = '';
     let aiModel = 'groq';
@@ -111,6 +113,17 @@ export async function POST(req: NextRequest) {
       'gemini-flash': { name: 'gemini-1.5-flash', maxTokens: 8000 },
       'gemini-flash-002': { name: 'gemini-1.5-flash-002', maxTokens: 8000 },
       'gemini-exp': { name: 'gemini-2.0-flash-exp', maxTokens: 8000 },
+    };
+
+    const cohereModelMap: Record<string, { name: string; maxTokens: number; systemLimit: number; pageLimit: number }> = {
+      'cohere-command': { name: 'command-r', maxTokens: 16000, systemLimit: 4000, pageLimit: 2000 },
+      'cohere-command-plus': { name: 'command-r-plus', maxTokens: 32000, systemLimit: 6000, pageLimit: 3000 },
+    };
+
+    const togetherModelMap: Record<string, { name: string; maxTokens: number; systemLimit: number; pageLimit: number }> = {
+      'together-llama3': { name: 'meta-llama/Llama-3-70b-chat', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
+      'together-mixtral': { name: 'mistralai/Mixtral-8x7b-instruct-v0.1', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
+      'together-qwen': { name: 'Qwen/Qwen2-72B-Instruct', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
     };
 
     // Try Groq with user-selected or fallback models
@@ -215,9 +228,111 @@ export async function POST(req: NextRequest) {
         }
       }
     }
+
+    // Try Cohere
+    if (!content && cohereKey) {
+      console.log('Trying Cohere API...');
+      
+      let cohereModelsToTry: { name: string; maxTokens: number; systemLimit: number; pageLimit: number }[] = [];
+      
+      if (model && cohereModelMap[model]) {
+        const selected = cohereModelMap[model];
+        cohereModelsToTry = [selected, ...Object.values(cohereModelMap).filter(m => m.name !== selected.name)];
+      } else {
+        cohereModelsToTry = Object.values(cohereModelMap);
+      }
+      
+      for (const modelConfig of cohereModelsToTry) {
+        try {
+          console.log(`Trying Cohere model: ${modelConfig.name}`);
+          const truncatedSystem = systemPrompt.substring(0, modelConfig.systemLimit);
+          const truncatedPage = pageRequest.substring(0, modelConfig.pageLimit);
+          
+          const cohereResponse = await fetch('https://api.cohere.ai/v1/chat', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${cohereKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: modelConfig.name,
+              messages: [
+                { role: 'system', content: truncatedSystem },
+                { role: 'user', content: truncatedPage }
+              ],
+              max_tokens: Math.min(8000, modelConfig.maxTokens - 1000),
+              temperature: 0.7,
+            }),
+          });
+          
+          if (cohereResponse.ok) {
+            const data = await cohereResponse.json();
+            content = data.text || data.message?.content || '';
+            aiModel = 'cohere';
+            console.log(`Cohere ${modelConfig.name} content:`, content.length);
+            if (content) break;
+          } else {
+            console.log(`Cohere ${modelConfig.name} status:`, cohereResponse.status);
+          }
+        } catch (e) {
+          console.log(`Cohere ${modelConfig.name} exception:`, e);
+        }
+      }
+    }
+
+    // Try Together AI
+    if (!content && togetherKey) {
+      console.log('Trying Together AI...');
+      
+      let togetherModelsToTry: { name: string; maxTokens: number; systemLimit: number; pageLimit: number }[] = [];
+      
+      if (model && togetherModelMap[model]) {
+        const selected = togetherModelMap[model];
+        togetherModelsToTry = [selected, ...Object.values(togetherModelMap).filter(m => m.name !== selected.name)];
+      } else {
+        togetherModelsToTry = Object.values(togetherModelMap);
+      }
+      
+      for (const modelConfig of togetherModelsToTry) {
+        try {
+          console.log(`Trying Together model: ${modelConfig.name}`);
+          const truncatedSystem = systemPrompt.substring(0, modelConfig.systemLimit);
+          const truncatedPage = pageRequest.substring(0, modelConfig.pageLimit);
+          
+          const togetherResponse = await fetch('https://api.together.xyz/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${togetherKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: modelConfig.name,
+              messages: [
+                { role: 'system', content: truncatedSystem },
+                { role: 'user', content: truncatedPage }
+              ],
+              max_tokens: Math.min(8000, modelConfig.maxTokens - 1000),
+              temperature: 0.7,
+            }),
+          });
+          
+          if (togetherResponse.ok) {
+            const data = await togetherResponse.json();
+            content = data.choices?.[0]?.message?.content || '';
+            aiModel = 'together';
+            console.log(`Together ${modelConfig.name} content:`, content.length);
+            if (content) break;
+          } else {
+            console.log(`Together ${modelConfig.name} status:`, togetherResponse.status);
+          }
+        } catch (e) {
+          console.log(`Together ${modelConfig.name} exception:`, e);
+        }
+      }
+    }
     
     if (!content) {
-      console.log('Both APIs failed');
+      console.log('All APIs failed');
       return NextResponse.json({ error: 'AI generation failed', details: 'No content from AI API' }, { status: 500 });
     }
     

@@ -427,12 +427,25 @@ const counts: Record<string, number> = {
             onChange={(e) => setModel(e.target.value)}
             className="input-field text-sm"
           >
-            <option value="groq-mixtral">Groq Mixtral (32k)</option>
-            <option value="groq-llama70">Groq Llama 3.3 70B (32k)</option>
-            <option value="groq-llama8">Groq Llama 3.1 8B (8k)</option>
-            <option value="gemini-flash">Gemini 1.5 Flash</option>
-            <option value="gemini-flash-002">Gemini 1.5 Flash 002</option>
-            <option value="gemini-exp">Gemini 2.0 Flash Exp</option>
+            <optgroup label="Groq">
+              <option value="groq-mixtral">Groq Mixtral (32k)</option>
+              <option value="groq-llama70">Groq Llama 3.3 70B (32k)</option>
+              <option value="groq-llama8">Groq Llama 3.1 8B (8k)</option>
+            </optgroup>
+            <optgroup label="Gemini">
+              <option value="gemini-flash">Gemini 1.5 Flash</option>
+              <option value="gemini-flash-002">Gemini 1.5 Flash 002</option>
+              <option value="gemini-exp">Gemini 2.0 Flash Exp</option>
+            </optgroup>
+            <optgroup label="Cohere (Free)">
+              <option value="cohere-command">Cohere Command-R</option>
+              <option value="cohere-command-plus">Cohere Command-R+</option>
+            </optgroup>
+            <optgroup label="Together AI (Free $5)">
+              <option value="together-llama3">Together Llama 3 70B</option>
+              <option value="together-mixtral">Together Mixtral</option>
+              <option value="together-qwen">Together Qwen 72B</option>
+            </optgroup>
           </select>
           
           {selectedItems.size > 0 && (
