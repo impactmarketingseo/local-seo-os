@@ -153,10 +153,10 @@ export const OUTPUT_SCHEMA = `
     "footer_line": "string // e.g., Serving Kaysville and all of Davis County"
   },
   "schema_markup": {
-    "local_business": "string // Complete LocalBusiness JSON-LD",
-    "faq_page": "string // Complete FAQPage JSON-LD",
-    "service": "string // Complete Service JSON-LD",
-    "breadcrumb_list": "string // Complete BreadcrumbList JSON-LD"
+    "local_business": "object // Complete LocalBusiness JSON-LD: { @context, @type: LocalBusiness, name, address: { @type: PostalAddress, streetAddress, addressLocality, addressRegion, postalCode }, geo: { @type: GeoCoordinates, latitude, longitude }, telephone, openingHours, image, url }",
+    "faq_page": "object // Complete FAQPage JSON-LD: { @context, @type: FAQPage, mainEntity: [{ @type: Question, name: question, acceptedAnswer: { @type: Answer, text: answer } }] }",
+    "service": "object // Complete Service JSON-LD: { @context, @type: Service, name, description, provider: { @type: LocalBusiness, name }, areaServed: { @type: City, name } }",
+    "breadcrumb_list": "object // Complete BreadcrumbList JSON-LD: { @context, @type: BreadcrumbList, itemListElement: [{ @type: ListItem, position, name, item: url }] }"
   }
 }
 `;
@@ -254,6 +254,13 @@ Generate a COMPLETE landing page with ALL 12 sections. You MUST include all of t
 11. internal_links (other_services_in_city, same_service_other_cities)
 
 12. final_cta (heading, subtext, cta_primary_text, cta_secondary_text, footer_line)
+
+13. schema_markup - MUST be 4 complete JSON-LD objects:
+   - local_business: { @context, @type: LocalBusiness, name, address: { @type: PostalAddress }, geo: { @type: GeoCoordinates }, telephone, openingHours }
+   - faq_page: { @context, @type: FAQPage, mainEntity: [{ @type: Question, name, acceptedAnswer: { @type: Answer, text } }] }
+   - service: { @context, @type: Service, name, description, provider, areaServed }
+   - breadcrumb_list: { @context, @type: BreadcrumbList, itemListElement: [{ @type: ListItem, position, name, item }] }
+   IMPORTANT: schema_markup must be valid nested JSON objects, not strings!
 
 OUTPUT VALID JSON ONLY - no markdown, no explanations. START with { and END with }. Include ALL sections. Be generous with content - more words is better than less.
 `;
