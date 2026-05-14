@@ -55,11 +55,45 @@ function GeneralTab() {
   const [agencyName, setAgencyName] = useState('Impact Marketing');
   const [timezone, setTimezone] = useState('America/New_York');
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const save = () => {
+  useEffect(() => {
+    async function loadSettings() {
+      const res = await fetch('/api/settings');
+      const data = await res.json();
+      if (data.general) {
+        setAgencyName(data.general.agency_name || 'Impact Marketing');
+        setTimezone(data.general.timezone || 'America/New_York');
+      }
+      setLoading(false);
+    }
+    loadSettings();
+  }, []);
+
+  const save = async () => {
+    await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        key: 'general',
+        value: {
+          agency_name: agencyName,
+          timezone: timezone,
+        },
+      }),
+    });
+    
+    window.dispatchEvent(new CustomEvent('settings-updated', { 
+      detail: { general: { agency_name: agencyName, timezone: timezone } } 
+    }));
+    
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
+
+  if (loading) {
+    return <div className="skeleton h-40 rounded-lg" />;
+  }
 
   return (
     <div className="space-y-6">
@@ -136,10 +170,26 @@ function BrandingTab() {
   };
 
   const save = async () => {
-    setSaved(true);
+    // Calculate hover/active colors from accent
+    const hexToRgb = (hex: string) => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : { r: 59, g: 130, b: 246 };
+    };
     
-    // Save to database
-    await fetch('/api/settings', {
+    const darken = (rgb: {r: number, g: number, b: number}, percent: number) => {
+      return `#${Math.max(0, Math.floor(rgb.r * (1 - percent))).toString(16).padStart(2, '0')}${Math.max(0, Math.floor(rgb.g * (1 - percent))).toString(16).padStart(2, '0')}${Math.max(0, Math.floor(rgb.b * (1 - percent))).toString(16).padStart(2, '0')}`;
+    };
+    
+    const rgb = hexToRgb(accentColor);
+    const hoverColor = darken(rgb, 0.1);
+    const activeColor = darken(rgb, 0.2);
+    
+    // Save to database first
+    const res = await fetch('/api/settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -152,18 +202,23 @@ function BrandingTab() {
       }),
     });
 
-    // Apply CSS variables immediately
-    document.documentElement.style.setProperty('--app-accent', accentColor);
-    document.documentElement.style.setProperty('--primary', accentColor);
-    document.documentElement.style.setProperty('--ring', accentColor);
-    document.documentElement.style.setProperty('--accent', accentColor);
-    
-    // Trigger a custom event that the settings context can listen to
-    window.dispatchEvent(new CustomEvent('settings-updated', { 
-      detail: { branding: { logo_url: logoPreview, app_name: appName, accent_color: accentColor } } 
-    }));
-
-    setTimeout(() => setSaved(false), 2000);
+    if (res.ok) {
+      // Apply CSS variables immediately
+      document.documentElement.style.setProperty('--app-accent', accentColor);
+      document.documentElement.style.setProperty('--app-accent-hover', hoverColor);
+      document.documentElement.style.setProperty('--app-accent-active', activeColor);
+      document.documentElement.style.setProperty('--primary', accentColor);
+      document.documentElement.style.setProperty('--ring', accentColor);
+      document.documentElement.style.setProperty('--accent', accentColor);
+      
+      // Dispatch event for other listeners
+      window.dispatchEvent(new CustomEvent('settings-updated', { 
+        detail: { branding: { logo_url: logoPreview, app_name: appName, accent_color: accentColor } } 
+      }));
+      
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    }
   };
 
   if (loading) {
@@ -214,10 +269,64 @@ function BrandingTab() {
             <input 
               type="color" 
               value={accentColor} 
-              onChange={(e) => setAccentColor(e.target.value)} 
-              className="w-10 h-10 rounded cursor-pointer" 
+              onChange={(e) => {
+                setAccentColor(e.target.value);
+                // Live preview - apply immediately
+                const hexToRgb = (hex: string) => {
+                  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                  return result ? {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                  } : { r: 59, g: 130, b: 246 };
+                };
+                const darken = (rgb: {r: number, g: number, b: number}, percent: number) => {
+                  return `#${Math.max(0, Math.floor(rgb.r * (1 - percent))).toString(16).padStart(2, '0')}${Math.max(0, Math.floor(rgb.g * (1 - percent))).toString(16).padStart(2, '0')}${Math.max(0, Math.floor(rgb.b * (1 - percent))).toString(16).padStart(2, '0')}`;
+                };
+                const rgb = hexToRgb(e.target.value);
+                document.documentElement.style.setProperty('--app-accent', e.target.value);
+                document.documentElement.style.setProperty('--app-accent-hover', darken(rgb, 0.1));
+                document.documentElement.style.setProperty('--app-accent-active', darken(rgb, 0.2));
+                document.documentElement.style.setProperty('--primary', e.target.value);
+                document.documentElement.style.setProperty('--accent', e.target.value);
+                document.documentElement.style.setProperty('--ring', e.target.value);
+              }} 
+              className="w-10 h-10 rounded cursor-pointer border-2 border-border" 
             />
             <span className="text-sm text-text-tertiary mono">{accentColor}</span>
+          </div>
+        </div>
+
+        {/* Live Preview */}
+        <div className="p-4 rounded-lg bg-elevated border border-border">
+          <p className="text-xs text-text-disabled uppercase tracking-wider mb-3">Live Preview</p>
+          <div className="flex flex-col gap-3">
+            <button className="btn-primary w-full">Primary Button</button>
+            <button className="btn-secondary w-full">Secondary Button</button>
+            <div className="flex items-center gap-3">
+              <div className="w-4 h-4 rounded" style={{ backgroundColor: accentColor }} />
+              <span className="text-sm text-text-secondary">Accent indicator</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className="input-label">Color Presets</label>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'].map((color) => (
+              <button
+                key={color}
+                onClick={() => {
+                  setAccentColor(color);
+                  document.documentElement.style.setProperty('--app-accent', color);
+                }}
+                className="w-8 h-8 rounded-full border-2 transition-transform hover:scale-110"
+                style={{ 
+                  backgroundColor: color,
+                  borderColor: accentColor === color ? 'white' : 'transparent'
+                }}
+              />
+            ))}
           </div>
         </div>
 
@@ -251,8 +360,22 @@ function ApiKeysTab() {
 
   const testConnection = async (keyName: string) => {
     setTestStatus({ ...testStatus, [keyName]: 'testing' });
-    await new Promise(r => setTimeout(r, 1000));
-    setTestStatus({ ...testStatus, [keyName]: keyName === 'groq' ? 'connected' : 'not_configured' });
+    
+    try {
+      const response = await fetch('/api/settings/test-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key_name: keyName }),
+      });
+      
+      if (response.ok) {
+        setTestStatus({ ...testStatus, [keyName]: 'connected' });
+      } else {
+        setTestStatus({ ...testStatus, [keyName]: 'not_configured' });
+      }
+    } catch (e) {
+      setTestStatus({ ...testStatus, [keyName]: 'error' });
+    }
   };
 
   return (
@@ -264,7 +387,7 @@ function ApiKeysTab() {
       
       <div className="space-y-3">
         {keys.map((key) => (
-          <div key={key.id} className="flex items-center justify-between p-4 rounded-lg bg-card border border-border">
+          <div key={key.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg bg-card border border-border">
             <div>
               <p className="font-medium text-text-primary">{key.provider}</p>
               <p className="text-sm text-text-tertiary">{key.description}</p>
@@ -272,20 +395,28 @@ function ApiKeysTab() {
             <button
               onClick={() => testConnection(key.key_name)}
               disabled={testStatus[key.key_name] === 'testing'}
-              className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+              className={`rounded-md px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
                 testStatus[key.key_name] === 'connected' 
                   ? 'bg-success/10 text-success' 
-                  : testStatus[key.key_name] === 'not_configured'
+                  : testStatus[key.key_name] === 'not_configured' || testStatus[key.key_name] === 'error'
                   ? 'bg-error/10 text-error'
                   : 'btn-primary'
               }`}
             >
               {testStatus[key.key_name] === 'testing' ? 'Testing...' : 
                testStatus[key.key_name] === 'connected' ? 'Connected' : 
-               testStatus[key.key_name] === 'not_configured' ? 'Not Configured' : 'Test Connection'}
+               testStatus[key.key_name] === 'not_configured' ? 'Not Configured' : 
+               testStatus[key.key_name] === 'error' ? 'Error' : 'Test Connection'}
             </button>
           </div>
         ))}
+      </div>
+      
+      <div className="mt-6 p-4 rounded-lg bg-elevated border border-border">
+        <p className="text-sm text-text-tertiary">
+          <span className="font-medium text-text-secondary">Note:</span> API keys are configured via environment variables in Vercel. 
+          Add GROQ_API_KEY, GEMINI_API_KEY, COHERE_API_KEY, TOGETHER_API_KEY to your Vercel project settings.
+        </p>
       </div>
     </div>
   );
@@ -355,10 +486,51 @@ function QARulesTab() {
     { id: '3', rule_type: 'keyword_in_h1', threshold: 1, enabled: true },
     { id: '4', rule_type: 'banned_words_check', threshold: 0, enabled: true },
   ]);
+  const [loading, setLoading] = useState(true);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    async function loadRules() {
+      const res = await fetch('/api/settings');
+      const data = await res.json();
+      if (data.qa_rules) {
+        setRules(data.qa_rules.map((r: any, i: number) => ({
+          id: String(i + 1),
+          rule_type: r.rule_type || ['min_word_count', 'uniqueness_threshold', 'keyword_in_h1', 'banned_words_check'][i],
+          threshold: r.threshold || [1800, 85, 1, 0][i],
+          enabled: r.enabled !== false,
+        })));
+      }
+      setLoading(false);
+    }
+    loadRules();
+  }, []);
 
   const toggleRule = (id: string) => {
     setRules(rules.map(r => r.id === id ? { ...r, enabled: !r.enabled } : r));
   };
+
+  const saveRules = async () => {
+    await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        key: 'qa_rules',
+        value: rules,
+      }),
+    });
+    
+    window.dispatchEvent(new CustomEvent('settings-updated', { 
+      detail: { qa_rules: rules } 
+    }));
+    
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  if (loading) {
+    return <div className="skeleton h-40 rounded-lg" />;
+  }
 
   return (
     <div className="space-y-6">
@@ -369,8 +541,8 @@ function QARulesTab() {
       
       <div className="space-y-3">
         {rules.map((rule) => (
-          <div key={rule.id} className="flex items-center justify-between p-4 rounded-lg bg-card border border-border">
-            <div>
+          <div key={rule.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg bg-card border border-border">
+            <div className="flex-1">
               <p className="font-medium text-text-primary capitalize">{rule.rule_type.replace(/_/g, ' ')}</p>
               <p className="text-sm text-text-tertiary">
                 {rule.rule_type === 'min_word_count' && 'Minimum word count per page'}
@@ -384,11 +556,17 @@ function QARulesTab() {
                 type="checkbox"
                 checked={rule.enabled}
                 onChange={() => toggleRule(rule.id)}
-                className="w-5 h-5 rounded accent-accent"
+                className="w-5 h-5 rounded accent-accent cursor-pointer"
               />
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="pt-4">
+        <button onClick={saveRules} className="btn-primary">
+          {saved ? 'Saved!' : 'Save Rules'}
+        </button>
       </div>
     </div>
   );
@@ -396,17 +574,79 @@ function QARulesTab() {
 
 function ExportTab() {
   const [exporting, setExporting] = useState<string | null>(null);
+  const supabase = createSupabaseBrowserClient();
 
   const exportData = async (type: string) => {
     setExporting(type);
-    await new Promise(r => setTimeout(r, 1000));
+    
+    try {
+      let data: any[] = [];
+      let filename = '';
+      
+      switch (type) {
+        case 'clients':
+          const { data: clientsData } = await supabase.from('clients').select('*').order('name');
+          data = clientsData || [];
+          filename = 'clients.csv';
+          break;
+        case 'queue':
+          const { data: queueData } = await supabase
+            .from('page_queue')
+            .select('*, clients(name), services(name), cities(name, state)')
+            .order('created_at', { ascending: false });
+          data = queueData || [];
+          filename = 'queue.csv';
+          break;
+        case 'drafts':
+          const { data: draftsData } = await supabase
+            .from('drafts')
+            .select('*, clients(name), services(name), cities(name, state)')
+            .order('created_at', { ascending: false });
+          data = draftsData || [];
+          filename = 'drafts.csv';
+          break;
+        case 'deliverables':
+          const { data: drafts } = await supabase
+            .from('drafts')
+            .select('id, status, created_at, clients(name)')
+            .order('created_at', { ascending: false });
+          data = drafts || [];
+          filename = 'deliverables.csv';
+          break;
+      }
+      
+      if (data.length > 0) {
+        const headers = Object.keys(data[0]).join(',');
+        const rows = data.map(row => 
+          Object.values(row).map(v => {
+            const str = String(v ?? '');
+            return str.includes(',') ? `"${str}"` : str;
+          }).join(',')
+        );
+        const csv = [headers, ...rows].join('\n');
+        
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        alert('No data available to export');
+      }
+    } catch (e) {
+      console.error('Export error:', e);
+      alert('Export failed: ' + e);
+    }
+    
     setExporting(null);
   };
 
   const exportOptions = [
     { id: 'clients', label: 'Client Data', description: 'Export all clients as CSV', icon: 'users' },
-    { id: 'deliverables', label: 'Deliverables', description: 'Export all content as DOCX', icon: 'document' },
-    { id: 'performance', label: 'Performance Reports', description: 'Export analytics as CSV', icon: 'chart' },
+    { id: 'deliverables', label: 'Deliverables', description: 'Export all content as CSV', icon: 'document' },
+    { id: 'drafts', label: 'Drafts', description: 'Export all drafts as CSV', icon: 'file-edit' },
     { id: 'queue', label: 'Queue History', description: 'Export queue as CSV', icon: 'layers' },
   ];
 
@@ -426,7 +666,14 @@ function ExportTab() {
             className="flex items-center justify-start gap-3 p-4 rounded-lg bg-card border border-border text-left hover:border-accent/30 transition-colors"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-              <TabIcon name={option.icon} className="w-5 h-5" />
+              {exporting === option.id ? (
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              ) : (
+                <TabIcon name={option.icon} className="w-5 h-5" />
+              )}
             </div>
             <div>
               <p className="font-medium text-text-primary">{option.label}</p>
@@ -443,7 +690,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="p-4 md:p-6 lg:p-8">
       <div className="mb-6">
         <h1 className="page-title">Settings</h1>
         <p className="text-text-tertiary mt-1">Configure your content operating system</p>

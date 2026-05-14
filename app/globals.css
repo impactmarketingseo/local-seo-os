@@ -64,7 +64,7 @@
   }
 
   ::selection {
-    background: rgba(59, 130, 246, 0.3);
+    background: color-mix(in srgb, var(--app-accent) 30%, transparent);
     color: #F1F3F9;
   }
 
@@ -83,7 +83,7 @@
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #3B82F6;
+    background: var(--app-accent);
   }
 }
 
@@ -107,15 +107,15 @@
 
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-md font-semibold text-white;
-    background: linear-gradient(135deg, #3B82F6, #2563EB);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+    background: linear-gradient(135deg, var(--app-accent), var(--app-accent-hover));
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--app-accent) 25%, transparent);
     transition: all 0.2s ease;
     cursor: pointer;
     display: inline-flex !important;
   }
 
   .btn-primary:hover {
-    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--app-accent) 35%, transparent);
     filter: brightness(1.1);
   }
 
@@ -131,7 +131,7 @@
 
   .btn-secondary:hover {
     @apply border-accent/40 text-text-primary;
-    background: rgba(59, 130, 246, 0.06);
+    background: color-mix(in srgb, var(--app-accent) 6%, transparent);
   }
 
   .btn-ghost {
@@ -162,7 +162,7 @@
 
   .input-field:focus {
     @apply outline-none border-accent;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-accent) 12%, transparent);
   }
 
   .input-field::placeholder {
@@ -264,7 +264,7 @@
 
 @layer utilities {
   .border-accent\/40 {
-    border-color: rgba(59, 130, 246, 0.4);
+    border-color: color-mix(in srgb, var(--app-accent) 40%, transparent);
   }
 
   .border-opacity-80 {
@@ -272,7 +272,7 @@
   }
 
   .bg-accent\/10 {
-    background-color: rgba(59, 130, 246, 0.1);
+    background-color: color-mix(in srgb, var(--app-accent) 10%, transparent);
   }
 
   .bg-success\/10 {
@@ -292,7 +292,7 @@
   }
 
   .text-accent {
-    color: #3B82F6;
+    color: var(--app-accent);
   }
 
   .text-success {
@@ -394,4 +394,9 @@
 
 .animate-scale-in {
   animation: scaleIn 0.2s ease-out forwards;
+}
+
+/* Dynamic accent color utility - can be used in inline styles */
+[data-accent] {
+  --dynamic-accent: var(--app-accent);
 }

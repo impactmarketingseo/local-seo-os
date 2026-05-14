@@ -22,17 +22,18 @@ export async function GET() {
 
   const { data, error } = await supabase.from('app_settings').select('key, value');
 
-  // If table doesn't exist or error, return defaults
-  if (error || !data || data.length === 0) {
-    return NextResponse.json(DEFAULT_SETTINGS);
-  }
+  console.log('[API /settings GET] Data:', data, 'Error:', error);
 
-  const settings: Record<string, any> = {};
+  // Always return all settings, merging defaults with DB values
+  const mergedSettings = { ...DEFAULT_SETTINGS };
   data?.forEach((item) => {
-    settings[item.key] = item.value;
+    if (item.key && item.value) {
+      mergedSettings[item.key] = { ...mergedSettings[item.key], ...item.value };
+    }
   });
 
-  return NextResponse.json(settings);
+  console.log('[API /settings GET] Merged settings:', mergedSettings);
+  return NextResponse.json(mergedSettings);
 }
 
 export async function POST(request: Request) {
@@ -51,6 +52,8 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { key, value } = body;
 
+  console.log('[API /settings POST] Saving:', key, value);
+
   if (!key || !value) {
     return NextResponse.json({ error: 'Missing key or value' }, { status: 400 });
   }
@@ -62,17 +65,21 @@ export async function POST(request: Request) {
     .eq('key', key)
     .single();
 
+  console.log('[API /settings POST] Existing record:', existing);
+
   if (existing) {
     // Update existing
-    await supabase
+    const { error } = await supabase
       .from('app_settings')
       .update({ value, updated_at: new Date().toISOString() })
       .eq('key', key);
+    console.log('[API /settings POST] Update error:', error);
   } else {
     // Insert new
-    await supabase
+    const { error } = await supabase
       .from('app_settings')
       .insert({ key, value });
+    console.log('[API /settings POST] Insert error:', error);
   }
 
   return NextResponse.json({ success: true });

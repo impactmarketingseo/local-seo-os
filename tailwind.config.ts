@@ -25,13 +25,13 @@ const config: Config = {
           disabled: '#4A5068',
         },
         
-        // Accent - Electric Blue
+        // Accent - uses CSS variable for dynamic theming
         accent: {
-          DEFAULT: '#3B82F6',
-          hover: '#2563EB',
-          active: '#1D4ED8',
-          glow: 'rgba(59, 130, 246, 0.12)',
-          glowSubtle: 'rgba(59, 130, 246, 0.06)',
+          DEFAULT: 'var(--app-accent)',
+          hover: 'var(--app-accent-hover, var(--app-accent))',
+          active: 'var(--app-accent-active, var(--app-accent))',
+          glow: 'color-mix(in srgb, var(--app-accent) 12%, transparent)',
+          glowSubtle: 'color-mix(in srgb, var(--app-accent) 6%, transparent)',
         },
         
         // Semantic status colors
