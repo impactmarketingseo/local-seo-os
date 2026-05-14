@@ -204,24 +204,27 @@ export default function DashboardPage() {
       startOfWeek.setHours(0, 0, 0, 0);
       
       // Get all recent drafts and filter client-side
-        const { data: allDrafts } = await supabase
-          .from('drafts')
-          .select('id, title, status, created_at, clients(name), services(name), cities(name, state)')
-          .order('created_at', { ascending: false })
-          .limit(20);
-        
-        // Filter to only show drafts that need attention (not approved/rejected/published)
-        const needsAttentionDrafts = allDrafts?.filter((d: any) => {
-          const status = String(d.status).toLowerCase();
-          return !['approved', 'rejected', 'published'].includes(status);
-        }).slice(0, 5) || [];
-        
-        const [clientsRes, queueRes, weeklyRes, recentRes] = await Promise.all([
-          supabase.from('clients').select('id', { count: 'exact', head: true }).eq('status', 'active'),
-          supabase.from('page_queue').select('id', { count: 'exact', head: true }),
-          supabase.from('drafts').select('id', { count: 'exact', head: true }).gte('created_at', startOfWeek.toISOString()),
-          supabase.from('drafts').select('id, title, status, created_at, clients(name)').order('created_at', { ascending: false }).limit(10),
-        ]);
+      const { data: allDrafts } = await supabase
+        .from('drafts')
+        .select('id, title, status, created_at, clients(name), services(name), cities(name, state)')
+        .order('created_at', { ascending: false })
+        .limit(20);
+      
+      // Filter to only show drafts that need attention (not approved/rejected/published)
+      const needsAttentionDrafts = allDrafts?.filter((d: any) => {
+        const status = String(d.status).toLowerCase();
+        return !['approved', 'rejected', 'published'].includes(status);
+      }).slice(0, 5) || [];
+      
+      console.log('All drafts query result count:', allDrafts?.length || 0);
+      console.log('All drafts statuses:', allDrafts?.map((d: any) => d.status) || []);
+      
+      const [clientsRes, queueRes, weeklyRes, recentRes] = await Promise.all([
+        supabase.from('clients').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+        supabase.from('page_queue').select('id', { count: 'exact', head: true }),
+        supabase.from('drafts').select('id', { count: 'exact', head: true }).gte('created_at', startOfWeek.toISOString()),
+        supabase.from('drafts').select('id, title, status, created_at, clients(name)').order('created_at', { ascending: false }).limit(10),
+      ]);
 
       setStats({
         clients_count: clientsRes.count || 0,
@@ -233,10 +236,12 @@ export default function DashboardPage() {
       });
 
       const attention: AttentionItem[] = [];
-      console.log('Drafts data for attention:', needsAttentionDrafts);
+      console.log('Drafts data for attention:', JSON.stringify(needsAttentionDrafts));
+      
+      // Log each draft's status and title
       if (needsAttentionDrafts && needsAttentionDrafts.length > 0) {
         needsAttentionDrafts.forEach((d: any) => {
-          console.log('Processing draft:', d.id, d.status, d.title);
+          console.log('Draft status:', d.status, '| Title:', d.title, '| Client:', d.clients?.name);
           const serviceName = d.services?.name || null;
           const cityName = d.cities?.name ? `${d.cities.name}, ${d.cities.state}` : null;
           
@@ -249,13 +254,15 @@ export default function DashboardPage() {
           attention.push({
             id: d.id,
             type: 'draft',
-            client_name: d.clients?.name || 'Unknown',
+            client_name: d.clients?.name || 'Unknown Client',
             title: displayTitle,
             issue: 'Ready for review',
             action_label: 'Review',
             action_href: `/drafts/${d.id}`,
           });
         });
+      } else {
+        console.log('No drafts need attention - checking if there are any drafts at all');
       }
       setAttentionItems(attention.slice(0, 5));
 
