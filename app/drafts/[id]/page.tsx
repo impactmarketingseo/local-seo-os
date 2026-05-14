@@ -201,11 +201,11 @@ useEffect(() => {
               Export
             </button>
             <span className={`px-3 py-1.5 rounded-md text-sm font-medium ${status.bg} ${status.text}`}>
-            {draft.status}
-          </span>
-          <button
-            onClick={async () => {
-              const nextStatus = draft.status === 'draft' ? 'review' : draft.status === 'review' ? 'approved' : 'draft';
+{String(draft.status)}
+            </span>
+            <button
+              onClick={async () => {
+                const nextStatus = draft.status === 'draft' ? 'review' : draft.status === 'review' ? 'approved' : 'draft';
               const supabase = createSupabaseBrowserClient();
               await supabase.from('drafts').update({ status: nextStatus }).eq('id', draftId);
               setDraft({ ...draft, status: nextStatus });
@@ -222,11 +222,11 @@ useEffect(() => {
         <div className="flex gap-6 text-sm">
           <div>
             <span className="text-text-disabled text-xs uppercase tracking-wider">Slug</span>
-            <p className="mono text-text-secondary">/{draft.slug}</p>
+            <p className="mono text-text-secondary">/{String(draft.slug || '')}</p>
           </div>
           <div>
             <span className="text-text-disabled text-xs uppercase tracking-wider">Version</span>
-            <p className="text-text-secondary">v{draft.version_number}</p>
+            <p className="text-text-secondary">v{String(draft.version_number || 1)}</p>
           </div>
           <div>
             <span className="text-text-disabled text-xs uppercase tracking-wider">Words</span>
