@@ -41,7 +41,7 @@ function QueueRow({ item, onUpdate, onDelete, onGenerate, delay, selectable, sel
 
   return (
     <div 
-      className="group rounded-lg bg-card/50 border border-border hover:border-accent/30 transition-all duration-300 animate-fade-in card-interactive"
+      className="group rounded-lg bg-card/50 border border-border hover:border-accent/30 transition-all duration-300 animate-fade-in"
       style={delay ? { animationDelay: `${delay}ms` } : undefined}
     >
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4">
@@ -89,11 +89,14 @@ function QueueRow({ item, onUpdate, onDelete, onGenerate, delay, selectable, sel
         </div>
 
         {/* Actions - stack below on mobile */}
-        <div className="flex gap-2 order-1 sm:order-none sm:ml-auto">
+        <div className="flex gap-2 order-1 sm:order-none sm:ml-auto z-10 relative">
           {(String(item.status) === 'planned' || String(item.status) === 'failed' || String(item.status) === 'pending') && (
             <button
-              onClick={() => onGenerate(item.id)}
-              className="btn-primary text-xs py-1.5 px-3"
+              onClick={(e) => {
+                console.log('Generate clicked for item:', item.id, item.status);
+                onGenerate(item.id);
+              }}
+              className="btn-primary text-xs py-1.5 px-3 relative z-20"
             >
               {String(item.status) === 'failed' ? 'Retry' : 'Generate'}
             </button>
