@@ -365,9 +365,9 @@ const counts: Record<string, number> = {
       </div>
 
       {/* Filters */}
-      <div className="mb-4 flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-text-tertiary">Client:</label>
+      <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <label className="text-sm text-text-tertiary shrink-0">Client:</label>
           <select
             value={clientFilter}
             onChange={e => {
@@ -383,7 +383,7 @@ const counts: Record<string, number> = {
                 setServices(allServices);
               }
             }}
-            className="input-field w-auto"
+            className="input-field w-full sm:w-auto min-w-[120px]"
           >
             <option value="">All</option>
             {clients.map(c => (
@@ -391,12 +391,12 @@ const counts: Record<string, number> = {
             ))}
           </select>
         </div>
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-text-tertiary">Service:</label>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <label className="text-sm text-text-tertiary shrink-0">Service:</label>
           <select
             value={serviceFilter}
             onChange={e => setServiceFilter(e.target.value)}
-            className="input-field w-auto"
+            className="input-field w-full sm:w-auto min-w-[120px]"
           >
             <option value="">All</option>
             {services.map(s => (
@@ -416,7 +416,7 @@ const counts: Record<string, number> = {
 
       {/* Bulk Actions Bar */}
       {counts.planned > 0 && (
-        <div className="mb-4 p-3 bg-elevated rounded-lg border border-border flex flex-wrap items-center gap-4">
+        <div className="mb-4 p-3 bg-elevated rounded-lg border border-border flex flex-col sm:flex-row sm:items-center gap-3">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
@@ -430,7 +430,7 @@ const counts: Record<string, number> = {
           <select
             value={model}
             onChange={(e) => setModel(e.target.value)}
-            className="input-field text-sm"
+            className="input-field text-sm w-full sm:w-auto"
           >
             <optgroup label="Groq">
               <option value="groq-mixtral">Groq Mixtral (32k)</option>
