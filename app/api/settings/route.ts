@@ -3,7 +3,13 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
 const DEFAULT_SETTINGS = {
-  branding: { logo_url: null, app_name: 'SEO OS', accent_color: '#3B82F6' },
+  branding: { 
+    logo_url: null, 
+    app_name: 'SEO OS', 
+    accent_color: '#3B82F6',
+    accent_color_2: '#2563EB',
+    use_gradient: false
+  },
   general: { timezone: 'America/New_York' }
 };
 

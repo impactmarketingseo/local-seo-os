@@ -89,6 +89,23 @@
 }
 
 @layer components {
+  /* Card hover effects - lift and subtle glow */
+  .card-interactive {
+    @apply bg-card border border-border rounded-lg p-5 transition-all duration-300;
+    cursor: pointer;
+  }
+  
+  .card-interactive:hover {
+    @apply bg-elevated border-opacity-80;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), 0 0 20px color-mix(in srgb, var(--app-accent) 10%, transparent);
+  }
+  
+  .card-interactive:active {
+    transform: translateY(0);
+    transition-duration: 0.1s;
+  }
+
   .card-standard {
     @apply bg-card border border-border-light rounded-lg p-5 transition-all duration-200;
   }
@@ -103,9 +120,10 @@
 
   .card-accent {
     @apply bg-card border border-accent/40 rounded-lg p-5;
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--app-accent) 8%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.03);
   }
 
+  /* Button press feedback */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-md font-semibold text-white;
     background: var(--app-accent-gradient);
@@ -118,10 +136,44 @@
   .btn-primary:hover {
     box-shadow: 0 4px 16px color-mix(in srgb, var(--app-accent) 35%, transparent);
     filter: brightness(1.1);
+    transform: translateY(-1px);
   }
 
   .btn-primary:active {
-    transform: scale(0.97);
+    transform: scale(0.97) translateY(0);
+    box-shadow: 0 1px 4px color-mix(in srgb, var(--app-accent) 15%, transparent);
+    transition-duration: 0.1s;
+  }
+
+  /* Pulse animation for status indicators */
+  @keyframes pulse-accent {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--app-accent) 40%, transparent);
+    }
+    50% {
+      opacity: 0.8;
+      box-shadow: 0 0 0 8px color-mix(in srgb, var(--app-accent) 0%, transparent);
+    }
+  }
+  
+  .pulse-accent {
+    animation: pulse-accent 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+  }
+  
+  .pulse-ring {
+    animation: pulse-ring 1.5s ease-out infinite;
   }
 
   .btn-secondary {
@@ -214,15 +266,27 @@
     @apply bg-text-disabled;
   }
 
-  .mono {
-    font-family: 'JetBrains Mono', monospace;
+.mono {
+    font-family: 'JetBrains Mono', monospace';
   }
 
+  /* Improved skeleton with pulse effect */
   .skeleton {
     @apply rounded-md;
     background: linear-gradient(90deg, #141620 25%, #1A1D2B 50%, #141620 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s ease-in-out infinite;
+  }
+  
+  .skeleton-pulse {
+    @apply rounded-md;
+    background: #1A1D2B;
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes skeleton-pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.7; }
   }
 
   .section-label {
@@ -395,6 +459,36 @@
 
 .animate-scale-in {
   animation: scaleIn 0.2s ease-out forwards;
+}
+
+/* Subtle grain texture overlay */
+.grain-texture::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.02;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Accent glow effect */
+.glow-accent-dynamic {
+  box-shadow: 0 0 30px color-mix(in srgb, var(--app-accent) 15%, transparent);
+}
+
+/* Hover scale effect */
+.hover-scale {
+  transition: transform 0.2s ease;
+}
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+.hover-scale:active {
+  transform: scale(0.98);
 }
 
 /* Dynamic accent color utility - can be used in inline styles */

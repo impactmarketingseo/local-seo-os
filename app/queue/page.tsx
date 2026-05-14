@@ -41,7 +41,7 @@ function QueueRow({ item, onUpdate, onDelete, onGenerate, delay, selectable, sel
 
   return (
     <div 
-      className="group rounded-lg bg-card/50 border border-border hover:border-accent/30 transition-all animate-fade-in"
+      className="group rounded-lg bg-card/50 border border-border hover:border-accent/30 transition-all duration-300 animate-fade-in card-interactive"
       style={delay ? { animationDelay: `${delay}ms` } : undefined}
     >
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4">
@@ -74,13 +74,15 @@ function QueueRow({ item, onUpdate, onDelete, onGenerate, delay, selectable, sel
         <div className="order-2 sm:order-none">
           <button
             onClick={() => String(item.status) === 'failed' && setShowError(!showError)}
-            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium ${status.bg} ${status.text} ${String(item.status) === 'failed' ? 'cursor-pointer hover:opacity-80' : ''}`}
+            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium ${status.bg} ${status.text} ${String(item.status) === 'failed' ? 'cursor-pointer hover:opacity-80' : ''} ${String(item.status) === 'generating' ? 'pulse-accent' : ''}`}
           >
             {String(item.status) === 'generating' && (
-              <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
+              <>
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: 'currentColor' }} />
+                  <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: 'currentColor' }} />
+                </span>
+              </>
             )}
             {status.label}
           </button>
@@ -516,15 +518,21 @@ const counts: Record<string, number> = {
       {loading ? (
         <QueueSkeleton />
       ) : items.length === 0 ? (
-        <div className="rounded-xl border border-border p-10 text-center">
-          <div className="flex h-14 w-14 mx-auto mb-4 items-center justify-center rounded-full bg-input">
-            <svg className="w-7 h-7 text-text-disabled" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-            </svg>
+        <div className="rounded-xl border border-border p-12 text-center animate-fade-in">
+          <div className="relative mx-auto mb-6 w-20 h-20">
+            <div className="absolute inset-0 rounded-full bg-accent/10 animate-pulse" />
+            <div className="flex h-full w-full items-center justify-center rounded-full bg-elevated">
+              <svg className="w-10 h-10 text-accent/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+            </div>
           </div>
-          <h3 className="font-semibold text-text-primary">No queue items</h3>
-          <p className="text-sm text-text-tertiary mt-1">Add items to your content queue</p>
-          <Link href="/queue/new" className="btn-primary mt-4">
+          <h3 className="text-xl font-semibold text-text-primary mb-2">Your queue is empty</h3>
+          <p className="text-text-tertiary mb-6 max-w-sm mx-auto">Start generating content by adding service+city combinations to your pipeline.</p>
+          <Link href="/queue/new" className="btn-primary">
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
             Add to Queue
           </Link>
         </div>
