@@ -85,13 +85,9 @@ function AttentionCard({ item, delay }: { item: AttentionItem; delay?: number })
           </svg>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-            <p className="font-medium text-text-primary truncate">{item.client_name}</p>
-            {item.title !== 'Untitled Draft' && item.title && (
-              <span className="text-sm text-text-secondary truncate">{item.title}</span>
-            )}
-          </div>
-          <p className="text-sm text-accent font-medium">{item.issue}</p>
+          <p className="font-medium text-text-primary">{item.client_name}</p>
+          <p className="text-sm text-accent font-medium truncate">{item.title}</p>
+          <p className="text-xs text-text-tertiary">{item.issue}</p>
         </div>
       </div>
       <Link href={item.action_href} className="btn-primary text-sm ml-4 shrink-0">
@@ -230,17 +226,18 @@ export default function DashboardPage() {
           const serviceName = d.services?.name || null;
           const cityName = d.cities?.name ? `${d.cities.name}, ${d.cities.state}` : null;
           
-          let subtitle = 'Ready for review';
+          // Build the title from service + city, or use the draft title
+          let displayTitle = d.title || 'Untitled Draft';
           if (serviceName || cityName) {
-            subtitle = [serviceName, cityName].filter(Boolean).join(' in ');
+            displayTitle = [serviceName, cityName].filter(Boolean).join(' in ');
           }
           
           attention.push({
             id: d.id,
             type: 'draft',
             client_name: d.clients?.name || 'Unknown',
-            title: d.title || 'Untitled Draft',
-            issue: subtitle,
+            title: displayTitle,
+            issue: 'Ready for review',
             action_label: 'Review',
             action_href: `/drafts/${d.id}`,
           });
