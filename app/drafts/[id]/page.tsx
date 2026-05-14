@@ -57,18 +57,22 @@ export default function DraftDetailPage() {
 
   async function handleRegenerate() {
     if (!draft?.queue_id) {
-      alert('No queue item found for this draft');
+      alert('No queue item found for this draft. Regenerate from the queue instead.');
       return;
     }
     
     setRegenerating(true);
     try {
+      console.log('Regenerating with queue_id:', draft.queue_id);
       const response = await fetch('/api/generate/queue-item', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ queue_item_id: draft.queue_id, regenerate: true }),
       });
+      
       const result = await response.json();
+      console.log('Regenerate response:', result);
+      
       if (result.success) {
         const supabase = createSupabaseBrowserClient();
         await supabase.from('drafts').delete().eq('id', draftId);
@@ -78,9 +82,10 @@ export default function DraftDetailPage() {
           router.refresh();
         }
       } else {
-        alert(result.error || 'Regeneration failed');
+        alert(result.error || result.details || 'Regeneration failed');
       }
     } catch (e) {
+      console.error('Regenerate error:', e);
       alert('Error: ' + e);
     }
     setRegenerating(false);
