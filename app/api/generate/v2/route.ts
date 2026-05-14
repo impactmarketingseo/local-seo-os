@@ -107,10 +107,10 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             model: 'llama-3.1-8b-instant',
             messages: [
-              { role: 'system', content: systemPrompt.substring(0, 1500) },
-              { role: 'user', content: pageRequest.substring(0, 1000) }
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: pageRequest }
             ],
-            max_tokens: 3000,
+            max_tokens: 8000,
             temperature: 0.7,
           }),
         });
@@ -128,13 +128,13 @@ export async function POST(req: NextRequest) {
           // Try Gemini if Groq fails
           if (!content && geminiKey) {
             console.log('Trying Gemini...');
-            const prompt = `${systemPrompt.substring(0, 1500)}\n\n${pageRequest.substring(0, 1000)}`;
-            const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
+const prompt = `${systemPrompt}\n\n${pageRequest}`;
+          const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.7, maxOutputTokens: 3000 },
+                generationConfig: { temperature: 0.7, maxOutputTokens: 8000 },
               }),
             });
             if (geminiResponse.ok) {
@@ -154,13 +154,13 @@ export async function POST(req: NextRequest) {
       console.log('Groq failed/rate limited, trying Gemini...');
       if (geminiKey) {
         try {
-          const prompt = `${systemPrompt.substring(0, 1500)}\n\n${pageRequest.substring(0, 1000)}`;
+          const prompt = `${systemPrompt}\n\n${pageRequest}`;
           const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               contents: [{ parts: [{ text: prompt }] }],
-              generationConfig: { temperature: 0.7, maxOutputTokens: 3000 },
+              generationConfig: { temperature: 0.7, maxOutputTokens: 8000 },
             }),
           });
           console.log('Gemini status:', geminiResponse.status);
