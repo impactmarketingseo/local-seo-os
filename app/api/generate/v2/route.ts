@@ -191,34 +191,12 @@ export async function POST(req: NextRequest) {
         console.log('Gemini direct exception:', e);
       }
     }
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }],
-              generationConfig: { temperature: 0.7, maxOutputTokens: 8000 },
-            }),
-          });
-          console.log('Gemini status:', geminiResponse.status);
-          if (geminiResponse.ok) {
-            const data = await geminiResponse.json();
-            content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-            aiModel = 'gemini';
-            console.log('Gemini content:', content.length);
-          } else {
-            const err = await geminiResponse.text();
-            console.log('Gemini error:', err.substring(0, 150));
-          }
-        } catch (e) {
-          console.log('Gemini exception:', e);
-        }
-}
-      
-      if (!content) {
-        console.log('Both APIs failed');
-        return NextResponse.json({ error: 'AI generation failed', details: 'No content from AI API' }, { status: 500 });
-      }
+    
+    if (!content) {
+      console.log('Both APIs failed');
+      return NextResponse.json({ error: 'AI generation failed', details: 'No content from AI API' }, { status: 500 });
     }
-
+    
     // Parse the JSON response
     let parsed;
     try {
