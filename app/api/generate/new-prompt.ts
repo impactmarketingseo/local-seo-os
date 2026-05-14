@@ -261,7 +261,7 @@ OUTPUT VALID JSON ONLY - no markdown, no explanations. START with { and END with
 export function parseAIResponse(response: string): any {
   let cleanJson = response.trim();
   
-  // Remove ```json and ``` fences
+  // Remove markdown code fences
   if (cleanJson.startsWith('```')) {
     cleanJson = cleanJson.replace(/^```json\n/, '').replace(/^```\n/, '');
     cleanJson = cleanJson.replace(/\n```$/, '');
