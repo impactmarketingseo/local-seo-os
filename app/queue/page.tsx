@@ -35,7 +35,8 @@ const statusColors: Record<string, { bg: string; text: string; label: string }> 
 const statusTabs = ['all', 'planned', 'generating', 'draft_ready', 'failed'] as const;
 
 function QueueRow({ item, onUpdate, onDelete, onGenerate, delay, selectable, selected, onSelect }: { item: QueueItem; onUpdate: (id: string, status: string) => void; onDelete: (id: string) => void; onGenerate: (id: string) => void; delay?: number; selectable?: boolean; selected?: boolean; onSelect?: (id: string, checked: boolean) => void }) {
-  const status = statusColors[item.status] || statusColors.planned;
+  const statusKey = String(item?.status || 'planned');
+  const status = statusColors[statusKey] || statusColors.planned;
   const [showError, setShowError] = useState(false);
 
   return (
@@ -72,10 +73,10 @@ function QueueRow({ item, onUpdate, onDelete, onGenerate, delay, selectable, sel
         {/* Status - visible on all screens */}
         <div className="order-2 sm:order-none">
           <button
-            onClick={() => item.status === 'failed' && setShowError(!showError)}
-            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium ${status.bg} ${status.text} ${item.status === 'failed' ? 'cursor-pointer hover:opacity-80' : ''}`}
+            onClick={() => String(item.status) === 'failed' && setShowError(!showError)}
+            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium ${status.bg} ${status.text} ${String(item.status) === 'failed' ? 'cursor-pointer hover:opacity-80' : ''}`}
           >
-            {item.status === 'generating' && (
+            {String(item.status) === 'generating' && (
               <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -87,15 +88,15 @@ function QueueRow({ item, onUpdate, onDelete, onGenerate, delay, selectable, sel
 
         {/* Actions - stack below on mobile */}
         <div className="flex gap-2 order-1 sm:order-none sm:ml-auto">
-          {(item.status === 'planned' || item.status === 'failed') && (
+          {(String(item.status) === 'planned' || String(item.status) === 'failed') && (
             <button
               onClick={() => onGenerate(item.id)}
               className="btn-primary text-xs py-1.5 px-3"
             >
-              {item.status === 'failed' ? 'Retry' : 'Generate'}
+              {String(item.status) === 'failed' ? 'Retry' : 'Generate'}
             </button>
           )}
-          {item.status === 'needs_review' && (
+          {String(item.status) === 'needs_review' && (
             <Link
               href={`/drafts`}
               className="btn-secondary text-xs py-1.5 px-3"
@@ -325,7 +326,7 @@ let query = supabase
   }
 
   function toggleSelectAll(checked: boolean) {
-    const plannedItems = items.filter(i => i.status === 'planned').map(i => i.id);
+    const plannedItems = items.filter(i => String(i.status) === 'planned').map(i => i.id);
     if (checked) {
       setSelectedItems(new Set([...selectedItems, ...plannedItems]));
     } else {
@@ -337,10 +338,10 @@ let query = supabase
 
 const counts: Record<string, number> = {
     all: items.length,
-    planned: items.filter(i => i.status === 'planned').length,
-    generating: items.filter(i => i.status === 'generating' || i.status === 'approved_for_gen').length,
-    draft_ready: items.filter(i => i.status === 'draft_ready').length,
-    failed: items.filter(i => i.status === 'failed').length,
+    planned: items.filter(i => String(i.status) === 'planned').length,
+    generating: items.filter(i => String(i.status) === 'generating' || String(i.status) === 'approved_for_gen').length,
+    draft_ready: items.filter(i => String(i.status) === 'draft_ready').length,
+    failed: items.filter(i => String(i.status) === 'failed').length,
   };
 
   return (
@@ -414,7 +415,7 @@ const counts: Record<string, number> = {
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
-              checked={items.filter(i => i.status === 'planned').every(i => selectedItems.has(i.id))}
+              checked={items.filter(i => String(i.status) === 'planned').every(i => selectedItems.has(i.id))}
               onChange={(e) => toggleSelectAll(e.target.checked)}
               className="w-4 h-4 rounded border-border bg-input text-accent focus:ring-accent"
             />
@@ -521,7 +522,7 @@ const counts: Record<string, number> = {
               onDelete={deleteItem}
               onGenerate={generateContent}
               delay={(index + 1) * 30}
-              selectable={item.status === 'planned'}
+              selectable={String(item.status) === 'planned'}
               selected={selectedItems.has(item.id)}
               onSelect={(id, checked) => {
                 const newSelected = new Set(selectedItems);

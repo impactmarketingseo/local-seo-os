@@ -215,7 +215,7 @@ export default function DashboardPage() {
         clients_count: clientsRes.count || 0,
         queue_count: queueRes.count || 0,
         drafts_ready: draftsRes.data?.length || 0,
-        drafts_review: draftsRes.data?.filter((d: any) => d.status === 'review').length || 0,
+        drafts_review: draftsRes.data?.filter((d: any) => String(d.status) === 'review').length || 0,
         generated_this_week: weeklyRes.count || 0,
         approved_this_week: 0,
       });
@@ -241,7 +241,7 @@ export default function DashboardPage() {
         recentRes.data.forEach((d: any) => {
           events.push({
             id: d.id,
-            type: d.status === 'approved' ? 'approved' : 'generated',
+            type: String(d.status) === 'approved' ? 'approved' : 'generated',
             description: d.title || 'New draft generated',
             client_name: d.clients?.name || 'Unknown',
             created_at: d.created_at,

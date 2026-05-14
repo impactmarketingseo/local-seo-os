@@ -143,7 +143,8 @@ export default function DraftsPage() {
       ) : (
         <div className="space-y-3">
           {drafts.map((draft, index) => {
-            const status = statusColors[draft.status] || statusColors.draft;
+            const statusKey = String(draft?.status || 'draft');
+            const status = statusColors[statusKey] || statusColors.draft;
             return (
               <Link 
                 key={draft.id} 
@@ -167,7 +168,7 @@ export default function DraftsPage() {
                   <button 
                     onClick={(e) => {
                       e.preventDefault();
-                      const nextStatus = draft.status === 'draft' ? 'review' : draft.status === 'review' ? 'approved' : 'draft';
+                      const nextStatus = String(draft.status) === 'draft' ? 'review' : String(draft.status) === 'review' ? 'approved' : 'draft';
                       updateStatus(draft.id, nextStatus);
                     }}
                     onMouseEnter={(e) => e.currentTarget.classList.add('ring-2', 'ring-accent')}
@@ -175,7 +176,7 @@ export default function DraftsPage() {
                     className={`px-2.5 py-1 rounded-md text-xs font-medium shrink-0 ${status.bg} ${status.text} cursor-pointer transition-all`}
                     title="Click to change status"
                   >
-                    {draft.status}
+                    {String(draft.status)}
                   </button>
                 </div>
                 {draft.slug && (

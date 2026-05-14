@@ -247,7 +247,7 @@ export default function ClientDetailPage() {
         </div>
         <div className="card-standard">
           <p className="text-xs font-medium uppercase tracking-wider text-text-disabled">Status</p>
-          <p className="mt-1 font-medium capitalize">{client.status}</p>
+          <p className="mt-1 font-medium capitalize">{String(client.status)}</p>
         </div>
         <div className="card-standard">
           <p className="text-xs font-medium uppercase tracking-wider text-text-disabled">CTA Preference</p>

@@ -206,7 +206,7 @@ useEffect(() => {
             </span>
             <button
               onClick={async () => {
-                const nextStatus = draft.status === 'draft' ? 'review' : draft.status === 'review' ? 'approved' : 'draft';
+                const nextStatus = String(draft.status) === 'draft' ? 'review' : String(draft.status) === 'review' ? 'approved' : 'draft';
               const supabase = createSupabaseBrowserClient();
               await supabase.from('drafts').update({ status: nextStatus }).eq('id', draftId);
               setDraft({ ...draft, status: nextStatus });
@@ -575,7 +575,7 @@ useEffect(() => {
       </div>
 
       {/* Action Buttons */}
-      {draft.status !== 'approved' && draft.status !== 'published' && (
+      {String(draft.status) !== 'approved' && String(draft.status) !== 'published' && (
         <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4">
           <div className="flex gap-3 lg:ml-64">
             <button type="button" onClick={handleApprove} className="flex-1 btn-primary">

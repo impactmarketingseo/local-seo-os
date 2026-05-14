@@ -43,7 +43,8 @@ function getNicheColor(niche: string): string {
 }
 
 function ClientCard({ client, delay }: { client: Client; delay?: number }) {
-  const status = statusColors[client.status] || statusColors.paused;
+  const statusKey = String(client?.status || 'paused');
+  const status = statusColors[statusKey] || statusColors.paused;
   const nicheColor = getNicheColor(client.niche);
   
   return (
