@@ -287,18 +287,35 @@ export default function DashboardPage() {
       }
       setAttentionItems(attention.slice(0, 5));
 
-      const events: ActivityEvent[] = [];
-      if (recentRes.data) {
-        recentRes.data.forEach((d: any) => {
-          events.push({
-            id: d.id,
-            type: String(d.status) === 'approved' ? 'approved' : 'generated',
-            description: d.title || 'New draft generated',
-            client_name: d.clients?.name || 'Unknown',
-            created_at: d.created_at,
-          });
-        });
-      }
+      // Use the already-fetched drafts with relations
+      const recentDrafts = draftsWithRelations.slice(0, 10);
+      
+      const events: ActivityEvent[] = recentDrafts.map((d: any) => {
+        // Get client name from mapped relations
+        const clientName = d.clients?.name || 'Unknown Client';
+        
+        // Build description - try content_json title, then service+city, then original title
+        let description = 'New draft generated';
+        if (d.content_json?.meta?.title) {
+          description = d.content_json.meta.title;
+        } else if (d.content_json?.meta?.h1) {
+          description = d.content_json.meta.h1;
+        } else if (d.title && d.title !== 'Untitled') {
+          description = d.title;
+        } else if (d.services?.name || d.cities?.name) {
+          const serviceName = d.services?.name || '';
+          const cityName = d.cities?.name ? `${d.cities.name}, ${d.cities.state}` : '';
+          description = [serviceName, cityName].filter(Boolean).join(' in ') || 'New draft generated';
+        }
+        
+        return {
+          id: d.id,
+          type: String(d.status) === 'approved' ? 'approved' : 'generated',
+          description,
+          client_name: clientName,
+          created_at: d.created_at,
+        };
+      });
       setActivityEvents(events);
       setLoading(false);
     }

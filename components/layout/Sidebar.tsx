@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, type ReactNode } from 'react';
 import { useAppSettings } from '@/lib/settings-context';
+import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
 const navItems = [
   { name: 'Dashboard', href: '/', icon: 'home' },
@@ -15,6 +16,75 @@ const navItems = [
 const systemItems = [
   { name: 'Settings', href: '/settings', icon: 'settings' },
 ];
+
+const WEEKLY_LIMIT = 30; // 10 clients x 3 pages per week
+
+function UsageMeter({ collapsed }: { collapsed: boolean }) {
+  const [weekCount, setWeekCount] = useState(0);
+  const [monthCount, setMonthCount] = useState(0);
+  
+  useEffect(() => {
+    async function loadUsage() {
+      const supabase = createSupabaseBrowserClient();
+      const now = new Date();
+      
+      // Start of this week
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      
+      // Start of this month
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      
+      const { count: weekDrafts } = await supabase
+        .from('drafts')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', startOfWeek.toISOString());
+      
+      const { count: monthDrafts } = await supabase
+        .from('drafts')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', startOfMonth.toISOString());
+      
+      setWeekCount(weekDrafts || 0);
+      setMonthCount(monthDrafts || 0);
+    }
+    loadUsage();
+    // Refresh every 5 minutes
+    const interval = setInterval(loadUsage, 300000);
+    return () => clearInterval(interval);
+  }, []);
+  
+  const weekPercent = Math.min((weekCount / WEEKLY_LIMIT) * 100, 100);
+  const weekColor = weekPercent > 80 ? 'bg-error' : weekPercent > 60 ? 'bg-warning' : 'bg-success';
+  
+  if (collapsed) {
+    return (
+      <div className="px-3 py-2" title={`This week: ${weekCount}/${WEEKLY_LIMIT}`}>
+        <div className="w-full h-1 bg-input rounded-full overflow-hidden">
+          <div className={`h-full ${weekColor} rounded-full transition-all`} style={{ width: `${weekPercent}%` }} />
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="px-3 py-2 bg-elevated/50 rounded-lg mx-3 mb-2">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-xs text-text-tertiary">This Week</span>
+        <span className="text-xs font-medium text-text-secondary">{weekCount}/{WEEKLY_LIMIT}</span>
+      </div>
+      <div className="w-full h-2 bg-input rounded-full overflow-hidden">
+        <div className={`h-full ${weekColor} rounded-full transition-all`} style={{ width: `${weekPercent}%` }} />
+      </div>
+      <div className="flex items-center justify-between mt-2">
+        <span className="text-xs text-text-tertiary">This Month</span>
+        <span className="text-xs text-text-secondary">{monthCount} pages</span>
+      </div>
+      <p className="text-[10px] text-text-disabled mt-1">Free: Groq | $5: Together</p>
+    </div>
+  );
+}
 
 function Icon({ name, className }: { name: string; className?: string }) {
   const icons: Record<string, ReactNode> = {
@@ -156,6 +226,9 @@ export function Sidebar() {
             {!collapsed && <span>New Client</span>}
           </Link>
         </div>
+
+        {/* Usage Meter */}
+        <UsageMeter collapsed={collapsed} />
 
         {/* Workspace Section */}
         <div className="px-3 py-2">
