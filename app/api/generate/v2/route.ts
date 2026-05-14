@@ -72,25 +72,29 @@ export async function POST(req: NextRequest) {
       .eq('active', true);
 
     // Build prompts
-    const systemPrompt = buildSystemPrompt(client);
-    const pageRequest = buildPageRequest(
-      service,
-      city,
-      allServices as any || [],
-      serviceCities as any || []
-    );
+    console.log('Building prompts...');
+    let systemPrompt: string;
+    let pageRequest: string;
+    try {
+      systemPrompt = buildSystemPrompt(client);
+      console.log('System prompt built, length:', systemPrompt.length);
+      
+      pageRequest = buildPageRequest(
+        service,
+        city,
+        allServices as any || [],
+        serviceCities as any || []
+      );
+      console.log('Page request built, length:', pageRequest.length);
+    } catch (e) {
+      console.error('Error building prompts:', e);
+      return NextResponse.json({ error: 'Failed to build prompts', details: String(e) }, { status: 500 });
+    }
 
-    console.log('Building prompts complete');
-    console.log('System prompt length:', systemPrompt.length);
-    console.log('Page request:', pageRequest.substring(0, 200));
-
-    // Try Groq first
+    // API keys
     const groqKey = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
     const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-
-    console.log('Groq key:', !!groqKey, 'Gemini key:', !!geminiKey);
-    console.log('System prompt length:', systemPrompt.length);
-    console.log('Page request length:', pageRequest.length);
+    console.log('Groq key present:', !!groqKey, 'Gemini key present:', !!geminiKey);
 
     let content = '';
     let aiModel = 'groq';
@@ -98,7 +102,7 @@ export async function POST(req: NextRequest) {
 
     // Try Groq
     if (groqKey) {
-      console.log('Calling Groq...');
+      console.log('Attempting Groq API call...');
       try {
         const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
@@ -117,11 +121,11 @@ export async function POST(req: NextRequest) {
           }),
         });
 
-        console.log('Groq status:', groqResponse.status);
+        console.log('Groq response status:', groqResponse.status);
 
         if (!groqResponse.ok) {
           const err = await groqResponse.text();
-          console.log('Groq error:', groqResponse.status, err);
+          console.log('Groq error:', err);
         }
 
         if (groqResponse.ok) {
@@ -129,31 +133,6 @@ export async function POST(req: NextRequest) {
           content = data.choices?.[0]?.message?.content || '';
           tokenCount = data.usage?.total_tokens || 0;
           console.log('Groq content length:', content.length);
-        } else {
-          // Try Gemini if Groq fails
-          if (geminiKey) {
-            console.log('Trying Gemini...');
-            const prompt = `${systemPrompt}\n\n${pageRequest}`;
-            const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.7, maxOutputTokens: 8000 },
-              }),
-            });
-            console.log('Gemini status:', geminiResponse.status);
-            if (!geminiResponse.ok) {
-              const err = await geminiResponse.text();
-              console.log('Gemini error:', err);
-            }
-            if (geminiResponse.ok) {
-              const data = await geminiResponse.json();
-              content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-              aiModel = 'gemini';
-              console.log('Gemini content:', content.length);
-            }
-          }
         }
       } catch (e) {
         console.log('Groq exception:', e);
