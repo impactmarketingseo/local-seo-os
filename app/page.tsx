@@ -204,20 +204,21 @@ export default function DashboardPage() {
       startOfWeek.setHours(0, 0, 0, 0);
       
       // Get all recent drafts and filter client-side
-      const { data: allDrafts } = await supabase
+      const { data: allDrafts, error: draftsError } = await supabase
         .from('drafts')
-        .select('id, title, status, created_at, clients(name), services(name), cities(name, state)')
+        .select('*, clients(name), services(name), cities(name, state)')
         .order('created_at', { ascending: false })
         .limit(20);
+      
+      console.log('Drafts query error:', draftsError);
+      console.log('All drafts query result count:', allDrafts?.length || 0);
+      console.log('All drafts statuses:', allDrafts?.map((d: any) => d.status) || []);
       
       // Filter to only show drafts that need attention (not approved/rejected/published)
       const needsAttentionDrafts = allDrafts?.filter((d: any) => {
         const status = String(d.status).toLowerCase();
         return !['approved', 'rejected', 'published'].includes(status);
       }).slice(0, 5) || [];
-      
-      console.log('All drafts query result count:', allDrafts?.length || 0);
-      console.log('All drafts statuses:', allDrafts?.map((d: any) => d.status) || []);
       
       const [clientsRes, queueRes, weeklyRes, recentRes] = await Promise.all([
         supabase.from('clients').select('id', { count: 'exact', head: true }).eq('status', 'active'),
