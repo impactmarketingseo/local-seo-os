@@ -597,8 +597,8 @@ export default function DraftDetailPage() {
 
         {/* Action Buttons */}
         {String(draft?.status) !== 'approved' && String(draft?.status) !== 'published' && (
-          <div className="fixed bottom-0 left-0 right-0 bg-[#111827] border-t border-gray-800 p-4 z-40">
-            <div className="flex justify-end gap-3 pr-6">
+          <div className="fixed bottom-0 right-0 bg-[#111827] border-t border-l border-gray-800 p-4 z-40">
+            <div className="flex gap-3">
               <button 
                 onClick={handleApprove} 
                 className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium"
