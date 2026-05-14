@@ -353,12 +353,12 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-6 lg:grid-cols-2">
         {/* Attention Queue */}
         <div className="card-standard">
           <div className="flex items-center justify-between mb-4">
             <h2 className="section-title">Needs Your Attention</h2>
-            <Link href="/drafts" className="text-sm text-accent hover:underline shrink-0">View All</Link>
+            <Link href="/drafts" className="text-sm text-accent hover:underline">View All</Link>
           </div>
           {loading ? (
             <div className="space-y-3">

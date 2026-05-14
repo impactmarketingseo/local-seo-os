@@ -11,13 +11,14 @@ interface NavItem {
   href: string;
   icon: string;
   badge?: 'queue' | 'drafts' | 'failed';
+  showBadge?: boolean;
 }
 
 const navItems: NavItem[] = [
-  { name: 'Dashboard', href: '/', icon: 'home' },
-  { name: 'Clients', href: '/clients', icon: 'building' },
-  { name: 'Queue', href: '/queue', icon: 'layers', badge: 'queue' },
-  { name: 'Drafts', href: '/drafts', icon: 'file-edit', badge: 'drafts' },
+  { name: 'Dashboard', href: '/', icon: 'home', showBadge: false },
+  { name: 'Clients', href: '/clients', icon: 'building', showBadge: false },
+  { name: 'Queue', href: '/queue', icon: 'layers', badge: 'queue', showBadge: true },
+  { name: 'Drafts', href: '/drafts', icon: 'file-edit', badge: 'drafts', showBadge: true },
 ];
 
 const systemItems = [
@@ -216,14 +217,14 @@ function NavWithBadge({ item, collapsed }: { item: NavItem; collapsed: boolean }
       )}
       <Icon name={item.icon} className="w-5 h-5 flex-shrink-0" />
       {!collapsed && <span className="flex-1">{item.name}</span>}
-      {badgeCount > 0 && !collapsed && (
+      {badgeCount > 0 && !collapsed && item.showBadge !== false && (
         <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
           item.badge === 'queue' ? 'bg-warning/20 text-warning' : 'bg-accent/20 text-accent'
         }`}>
           {badgeCount}
         </span>
       )}
-      {badgeCount > 0 && collapsed && (
+      {badgeCount > 0 && collapsed && item.showBadge !== false && (
         <span className="absolute -top-1 -right-1 w-4 h-4 text-[10px] font-bold rounded-full bg-warning text-white flex items-center justify-center">
           {badgeCount > 9 ? '9+' : badgeCount}
         </span>
