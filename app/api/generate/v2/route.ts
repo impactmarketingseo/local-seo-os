@@ -89,6 +89,8 @@ export async function POST(req: NextRequest) {
     const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
     console.log('Groq key:', !!groqKey, 'Gemini key:', !!geminiKey);
+    console.log('System prompt length:', systemPrompt.length);
+    console.log('Page request length:', pageRequest.length);
 
     let content = '';
     let aiModel = 'groq';
@@ -117,19 +119,22 @@ export async function POST(req: NextRequest) {
 
         console.log('Groq status:', groqResponse.status);
 
+        if (!groqResponse.ok) {
+          const err = await groqResponse.text();
+          console.log('Groq error:', groqResponse.status, err);
+        }
+
         if (groqResponse.ok) {
           const data = await groqResponse.json();
           content = data.choices?.[0]?.message?.content || '';
           tokenCount = data.usage?.total_tokens || 0;
           console.log('Groq content length:', content.length);
         } else {
-          const err = await groqResponse.text();
-          console.log('Groq error:', groqResponse.status, err.substring(0, 150));
           // Try Gemini if Groq fails
-          if (!content && geminiKey) {
+          if (geminiKey) {
             console.log('Trying Gemini...');
-const prompt = `${systemPrompt}\n\n${pageRequest}`;
-          const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
+            const prompt = `${systemPrompt}\n\n${pageRequest}`;
+            const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -137,6 +142,11 @@ const prompt = `${systemPrompt}\n\n${pageRequest}`;
                 generationConfig: { temperature: 0.7, maxOutputTokens: 8000 },
               }),
             });
+            console.log('Gemini status:', geminiResponse.status);
+            if (!geminiResponse.ok) {
+              const err = await geminiResponse.text();
+              console.log('Gemini error:', err);
+            }
             if (geminiResponse.ok) {
               const data = await geminiResponse.json();
               content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -150,12 +160,37 @@ const prompt = `${systemPrompt}\n\n${pageRequest}`;
       }
     }
 
-    if (!content) {
-      console.log('Groq failed/rate limited, trying Gemini...');
-      if (geminiKey) {
-        try {
-          const prompt = `${systemPrompt}\n\n${pageRequest}`;
-          const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+    // Gemini fallback if no groq key
+    if (!content && geminiKey) {
+      console.log('Trying Gemini directly...');
+      try {
+        const prompt = `${systemPrompt}\n\n${pageRequest}`;
+        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.7, maxOutputTokens: 8000 },
+          }),
+        });
+        console.log('Gemini direct status:', geminiResponse.status);
+        if (!geminiResponse.ok) {
+          const err = await geminiResponse.text();
+          console.log('Gemini direct error:', err);
+        }
+        if (geminiResponse.ok) {
+          const data = await geminiResponse.json();
+          content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          aiModel = 'gemini';
+          console.log('Gemini direct content:', content.length);
+        } else {
+          const err = await geminiResponse.text();
+          console.log('Gemini direct error:', err.substring(0, 200));
+        }
+      } catch (e) {
+        console.log('Gemini direct exception:', e);
+      }
+    }
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -176,7 +211,7 @@ const prompt = `${systemPrompt}\n\n${pageRequest}`;
         } catch (e) {
           console.log('Gemini exception:', e);
         }
-      }
+}
       
       if (!content) {
         console.log('Both APIs failed');
