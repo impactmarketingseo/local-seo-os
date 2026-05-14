@@ -105,8 +105,8 @@ export async function POST(req: NextRequest) {
       console.log('Attempting Groq API call...');
       try {
         // Truncate prompts to stay under token limits
-        const truncatedSystem = systemPrompt.substring(0, 3000);
-        const truncatedPage = pageRequest.substring(0, 1500);
+        const truncatedSystem = systemPrompt.substring(0, 2000);
+        const truncatedPage = pageRequest.substring(0, 1000);
         
         console.log('Truncated system:', truncatedSystem.length, 'Page:', truncatedPage.length);
         
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
               { role: 'system', content: truncatedSystem },
               { role: 'user', content: truncatedPage }
             ],
-            max_tokens: 8000,
+            max_tokens: 2000,
             temperature: 0.7,
           }),
         });
