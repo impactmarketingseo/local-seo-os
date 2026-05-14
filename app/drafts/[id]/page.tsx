@@ -212,7 +212,7 @@ useEffect(() => {
             }}
             className="btn-secondary text-sm"
           >
-            {draft.status === 'draft' ? 'Submit for Review' : draft.status === 'review' ? 'Approve' : 'Revert'}
+            {String(draft.status) === 'draft' ? 'Submit for Review' : String(draft.status) === 'review' ? 'Approve' : 'Revert'}
           </button>
         </div>
       </div>
