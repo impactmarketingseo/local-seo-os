@@ -77,6 +77,12 @@ export const OUTPUT_SCHEMA = `
     "trust_badges": ["string x4 // Short credential labels"]
   },
   "trust_strip": ["string x5 // Credential/trust phrases"],
+  "about_service": {
+    "section_heading": "string // e.g., About AC Repair in [City]",
+    "subheading": "string // e.g., What Every [City] Homeowner Should Know",
+    "paragraph_1": "string // 150-200 words. Educational content explaining the service, why it matters, common scenarios in this city/climate. Natural keyword placement.",
+    "paragraph_2": "string // 150-200 words. More detail, what to expect, benefits, local relevance. Mention specific neighborhoods or landmarks if available."
+  },
   "problems": {
     "section_heading": "string // Signs You Need [Service] in [City]",
     "section_subtext": "string // 1 sentence",
@@ -208,7 +214,8 @@ Generate a COMPLETE landing page with ALL 10 sections. You MUST include all of t
 2. breadcrumb (text)  
 3. hero (review_line, intro_paragraph [120-200 chars], cta_primary_text, cta_secondary_text, trust_badges)
 4. trust_strip (array of 5 strings)
-5. problems (section_heading, section_subtext, cards array with 6 items - icon, title, description)
+5. about_service (section_heading, subheading, paragraph_1 [150-200 words], paragraph_2 [150-200 words])
+6. problems (section_heading, section_subtext, cards array with 6 items - icon, title, description)
 6. why_choose_us (section_heading, section_subtext, items array with 5 items - icon, title, description, image_alt)
 7. process (section_heading, section_subtext, steps array with 5 items - icon, title, description)
 8. faq (section_heading, items array with 6 items - question, answer)
@@ -274,6 +281,12 @@ export function validateOutput(output: any): string[] {
   }
   if (!output.hero?.intro_paragraph || output.hero.intro_paragraph.length < 120) {
     errors.push('Hero intro_paragraph must be 120-200 characters');
+  }
+  if (!output.about_service?.paragraph_1 || output.about_service.paragraph_1.length < 150) {
+    errors.push('About service paragraph_1 must be 150-200 words');
+  }
+  if (!output.about_service?.paragraph_2 || output.about_service.paragraph_2.length < 150) {
+    errors.push('About service paragraph_2 must be 150-200 words');
   }
   
   // Check problems

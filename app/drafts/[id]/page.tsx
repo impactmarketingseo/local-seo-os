@@ -83,7 +83,7 @@ export default function DraftDetailPage() {
         <div className="bg-[#111827] rounded-xl border border-gray-800 mb-6">
           <div className="border-b border-gray-800">
             <div className="flex overflow-x-auto">
-              {['preview', 'seo', 'hero', 'problems', 'why', 'process', 'faq', 'local', 'links', 'schema'].map((tab) => (
+              {['preview', 'seo', 'hero', 'about', 'problems', 'why', 'process', 'faq', 'local', 'links', 'schema'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -126,6 +126,15 @@ export default function DraftDetailPage() {
                         <span key={i} className="text-sm text-gray-300">✓ {item}</span>
                       ))}
                     </div>
+                  </section>
+                )}
+
+                {content.about_service && (
+                  <section className="bg-[#1a2234] p-8 rounded-xl border border-gray-800">
+                    <h2 className="text-2xl font-bold text-white mb-2">{content.about_service.section_heading}</h2>
+                    <p className="text-lg text-blue-400 mb-4">{content.about_service.subheading}</p>
+                    <p className="text-gray-300 leading-relaxed mb-4">{content.about_service.paragraph_1}</p>
+                    <p className="text-gray-300 leading-relaxed">{content.about_service.paragraph_2}</p>
                   </section>
                 )}
 
@@ -295,6 +304,27 @@ export default function DraftDetailPage() {
                 <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
                   <label className="block text-sm text-gray-400 mb-2">Review Line</label>
                   <input type="text" value={content.hero?.review_line || ''} readOnly className="w-full p-3 bg-[#0a0f1a] border border-gray-700 rounded-lg text-white" />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'about' && (
+              <div className="space-y-4">
+                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
+                  <label className="block text-sm text-gray-400 mb-2">Section Heading</label>
+                  <input type="text" value={content.about_service?.section_heading || ''} readOnly className="w-full p-3 bg-[#0a0f1a] border border-gray-700 rounded-lg text-white" />
+                </div>
+                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
+                  <label className="block text-sm text-gray-400 mb-2">Subheading</label>
+                  <input type="text" value={content.about_service?.subheading || ''} readOnly className="w-full p-3 bg-[#0a0f1a] border border-gray-700 rounded-lg text-white" />
+                </div>
+                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
+                  <label className="block text-sm text-gray-400 mb-2">Paragraph 1 (150-200 words)</label>
+                  <textarea value={content.about_service?.paragraph_1 || ''} readOnly className="w-full p-3 border border-gray-700 rounded-lg bg-[#0a0f1a] text-white h-40" />
+                </div>
+                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
+                  <label className="block text-sm text-gray-400 mb-2">Paragraph 2 (150-200 words)</label>
+                  <textarea value={content.about_service?.paragraph_2 || ''} readOnly className="w-full p-3 border border-gray-700 rounded-lg bg-[#0a0f1a] text-white h-40" />
                 </div>
               </div>
             )}
