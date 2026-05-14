@@ -181,7 +181,6 @@ useEffect(() => {
           >
             {regenerating ? 'Regenerating...' : 'Regenerate'}
           </button>
-          )}
           <button
               onClick={() => {
                 const json = JSON.stringify(draft.content_json || draft, null, 2);
