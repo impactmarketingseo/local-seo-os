@@ -256,14 +256,16 @@ Generate a COMPLETE landing page with ALL 12 sections. You MUST include all of t
 12. final_cta (heading, subtext, cta_primary_text, cta_secondary_text, footer_line)
 
 OUTPUT VALID JSON ONLY - no markdown, no explanations. START with { and END with }. Include ALL sections. Be generous with content - more words is better than less.
+`;
 }
 
 export function parseAIResponse(response: string): any {
   let cleanJson = response.trim();
   
   // Remove markdown code fences
-  if (cleanJson.startsWith('```')) {
-    cleanJson = cleanJson.replace(/^```json\n/, '').replace(/^```\n/, '');
+  const fence = '```';
+  if (cleanJson.startsWith(fence)) {
+    cleanJson = cleanJson.replace(/^```json\n/, '').replace(new RegExp('^```\\n'), '');
     cleanJson = cleanJson.replace(/\n```$/, '');
   }
   
