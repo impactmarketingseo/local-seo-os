@@ -100,80 +100,96 @@ export async function POST(req: NextRequest) {
     let aiModel = 'groq';
     let tokenCount = 0;
 
-    // Try Groq
+    // Try Groq with different models
     if (groqKey && !content) {
       console.log('Attempting Groq API call...');
-      try {
-        // Truncate prompts to stay under token limits
-        const truncatedSystem = systemPrompt.substring(0, 2000);
-        const truncatedPage = pageRequest.substring(0, 1000);
-        
-        console.log('Truncated system:', truncatedSystem.length, 'Page:', truncatedPage.length);
-        
-        const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${groqKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'llama-3.1-8b-instant',
-            messages: [
-              { role: 'system', content: truncatedSystem },
-              { role: 'user', content: truncatedPage }
-            ],
-            max_tokens: 2000,
-            temperature: 0.7,
-          }),
-        });
+      
+      // Try models in order of preference (higher limit first)
+      const groqModels = [
+        { name: 'mixtral-8x7b-32768', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
+        { name: 'llama-3.3-70b-versatile', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
+        { name: 'llama-3.1-8b-instant', maxTokens: 6000, systemLimit: 1500, pageLimit: 800 },
+      ];
+      
+      for (const modelConfig of groqModels) {
+        try {
+          console.log(`Trying Groq model: ${modelConfig.name}`);
+          
+          const truncatedSystem = systemPrompt.substring(0, modelConfig.systemLimit);
+          const truncatedPage = pageRequest.substring(0, modelConfig.pageLimit);
+          
+          const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${groqKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: modelConfig.name,
+              messages: [
+                { role: 'system', content: truncatedSystem },
+                { role: 'user', content: truncatedPage }
+              ],
+              max_tokens: Math.min(8000, modelConfig.maxTokens - 1000),
+              temperature: 0.7,
+            }),
+          });
 
-        console.log('Groq response status:', groqResponse.status);
+          console.log(`Groq ${modelConfig.name} status:`, groqResponse.status);
 
-        if (!groqResponse.ok) {
-          let errText = '';
-          try {
-            const errData = await groqResponse.json();
-            errText = JSON.stringify(errData);
-          } catch {
-            errText = 'Could not parse error';
+          if (groqResponse.ok) {
+            const data = await groqResponse.json();
+            content = data.choices?.[0]?.message?.content || '';
+            tokenCount = data.usage?.total_tokens || 0;
+            console.log(`Groq ${modelConfig.name} content length:`, content.length);
+            if (content) break;
+          } else {
+            const errData = await groqResponse.json().catch(() => ({}));
+            console.log(`Groq ${modelConfig.name} error:`, errData?.error?.message || 'unknown');
           }
-          console.log('Groq error:', errText);
-        } else {
-          const data = await groqResponse.json();
-          content = data.choices?.[0]?.message?.content || '';
-          tokenCount = data.usage?.total_tokens || 0;
-          console.log('Groq content length:', content.length);
+        } catch (e) {
+          console.log(`Groq ${modelConfig.name} exception:`, e);
         }
-      } catch (e) {
-        console.log('Groq exception:', e);
       }
     }
 
-    // Gemini fallback
+    // Gemini fallback with different models
     if (!content && geminiKey) {
-      console.log('Trying Gemini directly...');
-      try {
-        const prompt = `${systemPrompt.substring(0, 4000)}\n\n${pageRequest.substring(0, 2000)}`;
-        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 8000 },
-          }),
-        });
-        console.log('Gemini direct status:', geminiResponse.status);
-        
-        if (!geminiResponse.ok) {
-          console.log('Gemini direct error - status:', geminiResponse.status);
-        } else {
-          const data = await geminiResponse.json();
-          content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          aiModel = 'gemini';
-          console.log('Gemini direct content:', content.length);
+      console.log('Trying Gemini...');
+      
+      // Try Gemini models in order
+      const geminiModels = [
+        { name: 'gemini-1.5-flash', maxTokens: 8000 },
+        { name: 'gemini-1.5-flash-002', maxTokens: 8000 },
+        { name: 'gemini-2.0-flash-exp', maxTokens: 8000 },
+      ];
+      
+      for (const modelConfig of geminiModels) {
+        try {
+          console.log(`Trying Gemini model: ${modelConfig.name}`);
+          const prompt = `${systemPrompt.substring(0, 4000)}\n\n${pageRequest.substring(0, 2000)}`;
+          
+          const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelConfig.name}:generateContent?key=${geminiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.7, maxOutputTokens: modelConfig.maxTokens },
+            }),
+          });
+          
+          if (geminiResponse.ok) {
+            const data = await geminiResponse.json();
+            content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            aiModel = 'gemini';
+            console.log(`Gemini ${modelConfig.name} content:`, content.length);
+            if (content) break;
+          } else {
+            console.log(`Gemini ${modelConfig.name} status:`, geminiResponse.status);
+          }
+        } catch (e) {
+          console.log(`Gemini ${modelConfig.name} exception:`, e);
         }
-      } catch (e) {
-        console.log('Gemini direct exception:', e);
       }
     }
     
