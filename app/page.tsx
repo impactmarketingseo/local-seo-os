@@ -78,19 +78,23 @@ function AttentionCard({ item, delay }: { item: AttentionItem; delay?: number })
       className="flex items-center justify-between p-4 rounded-lg bg-card border border-border hover:border-accent/30 transition-all animate-slide-up" 
       style={delay ? { animationDelay: `${delay}ms` } : undefined}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-1 min-w-0">
         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${typeColors[item.type] || 'bg-input text-text-tertiary'}`}>
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             {typeIcons[item.type]}
           </svg>
         </div>
-        <div>
-          <p className="font-medium text-text-primary">{item.client_name}</p>
-          <p className="text-sm text-text-tertiary">{item.title}</p>
-          <p className="text-xs text-error font-medium">{item.issue}</p>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+            <p className="font-medium text-text-primary truncate">{item.client_name}</p>
+            {item.title !== 'Untitled Draft' && item.title && (
+              <span className="text-sm text-text-secondary truncate">{item.title}</span>
+            )}
+          </div>
+          <p className="text-sm text-accent font-medium">{item.issue}</p>
         </div>
       </div>
-      <Link href={item.action_href} className="btn-primary text-sm">
+      <Link href={item.action_href} className="btn-primary text-sm ml-4 shrink-0">
         {item.action_label}
       </Link>
     </div>
@@ -206,7 +210,7 @@ export default function DashboardPage() {
       const [clientsRes, queueRes, draftsRes, recentRes, weeklyRes] = await Promise.all([
         supabase.from('clients').select('id', { count: 'exact', head: true }).eq('status', 'active'),
         supabase.from('page_queue').select('id', { count: 'exact', head: true }),
-        supabase.from('drafts').select('id, title, status, created_at, clients(name)').in('status', ['draft', 'review']).order('created_at', { ascending: false }).limit(5),
+        supabase.from('drafts').select('id, title, status, created_at, clients(name), services(name), cities(name, state)').in('status', ['draft', 'review']).order('created_at', { ascending: false }).limit(5),
         supabase.from('drafts').select('id, title, status, created_at, clients(name)').order('created_at', { ascending: false }).limit(10),
         supabase.from('drafts').select('id', { count: 'exact', head: true }).gte('created_at', startOfWeek.toISOString()),
       ]);
@@ -223,12 +227,20 @@ export default function DashboardPage() {
       const attention: AttentionItem[] = [];
       if (draftsRes.data) {
         draftsRes.data.forEach((d: any) => {
+          const serviceName = d.services?.name || null;
+          const cityName = d.cities?.name ? `${d.cities.name}, ${d.cities.state}` : null;
+          
+          let subtitle = 'Ready for review';
+          if (serviceName || cityName) {
+            subtitle = [serviceName, cityName].filter(Boolean).join(' in ');
+          }
+          
           attention.push({
             id: d.id,
             type: 'draft',
             client_name: d.clients?.name || 'Unknown',
             title: d.title || 'Untitled Draft',
-            issue: 'Ready for review',
+            issue: subtitle,
             action_label: 'Review',
             action_href: `/drafts/${d.id}`,
           });

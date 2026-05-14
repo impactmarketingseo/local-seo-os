@@ -146,16 +146,22 @@ function BrandingTab() {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+useEffect(() => {
     async function loadSettings() {
       const res = await fetch('/api/settings');
       const data = await res.json();
       if (data.branding) {
         setAppName(data.branding.app_name || 'SEO OS');
         setAccentColor(data.branding.accent_color || '#3B82F6');
-        setAccentColor2(data.branding.accent_color_2 || '#8B5CF6');
+        setAccentColor2(data.branding.accent_color_2 || '#2563EB');
         setUseGradient(data.branding.use_gradient || false);
         setLogoPreview(data.branding.logo_url || null);
+        // Apply the color variables on load
+        applyColorVariables(
+          data.branding.accent_color || '#3B82F6',
+          data.branding.accent_color_2 || '#2563EB',
+          data.branding.use_gradient || false
+        );
       }
       setLoading(false);
     }
@@ -227,7 +233,15 @@ function BrandingTab() {
       applyColorVariables(accentColor, accentColor2, useGradient);
       
       window.dispatchEvent(new CustomEvent('settings-updated', { 
-        detail: { branding: { logo_url: logoPreview, app_name: appName, accent_color: accentColor } } 
+        detail: { 
+          branding: { 
+            logo_url: logoPreview, 
+            app_name: appName, 
+            accent_color: accentColor,
+            accent_color_2: accentColor2,
+            use_gradient: useGradient
+          } 
+        } 
       }));
       
       setSaved(true);
