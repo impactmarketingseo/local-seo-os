@@ -260,10 +260,16 @@ export default function DashboardPage() {
           const serviceName = d.services?.name || null;
           const cityName = d.cities?.name ? `${d.cities.name}, ${d.cities.state}` : null;
           
-          // Build the title from service + city, or use the draft title
-          let displayTitle = d.title || 'Untitled Draft';
-          if (serviceName || cityName) {
+          // Build the title - try content_json.meta.title, then service+city, then original title, then Untitled
+          let displayTitle = 'Untitled Draft';
+          if (d.content_json?.meta?.title) {
+            displayTitle = d.content_json.meta.title;
+          } else if (d.content_json?.meta?.h1) {
+            displayTitle = d.content_json.meta.h1;
+          } else if (serviceName || cityName) {
             displayTitle = [serviceName, cityName].filter(Boolean).join(' in ');
+          } else if (d.title && d.title !== 'Untitled') {
+            displayTitle = d.title;
           }
           
           attention.push({
