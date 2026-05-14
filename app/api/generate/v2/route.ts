@@ -101,9 +101,15 @@ export async function POST(req: NextRequest) {
     let tokenCount = 0;
 
     // Try Groq
-    if (groqKey) {
+    if (groqKey && !content) {
       console.log('Attempting Groq API call...');
       try {
+        // Truncate prompts to stay under token limits
+        const truncatedSystem = systemPrompt.substring(0, 3000);
+        const truncatedPage = pageRequest.substring(0, 1500);
+        
+        console.log('Truncated system:', truncatedSystem.length, 'Page:', truncatedPage.length);
+        
         const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -113,8 +119,8 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             model: 'llama-3.1-8b-instant',
             messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: pageRequest }
+              { role: 'system', content: truncatedSystem },
+              { role: 'user', content: truncatedPage }
             ],
             max_tokens: 8000,
             temperature: 0.7,
@@ -124,11 +130,15 @@ export async function POST(req: NextRequest) {
         console.log('Groq response status:', groqResponse.status);
 
         if (!groqResponse.ok) {
-          const err = await groqResponse.text();
-          console.log('Groq error:', err);
-        }
-
-        if (groqResponse.ok) {
+          let errText = '';
+          try {
+            const errData = await groqResponse.json();
+            errText = JSON.stringify(errData);
+          } catch {
+            errText = 'Could not parse error';
+          }
+          console.log('Groq error:', errText);
+        } else {
           const data = await groqResponse.json();
           content = data.choices?.[0]?.message?.content || '';
           tokenCount = data.usage?.total_tokens || 0;
@@ -139,11 +149,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Gemini fallback if no groq key
+    // Gemini fallback
     if (!content && geminiKey) {
       console.log('Trying Gemini directly...');
       try {
-        const prompt = `${systemPrompt}\n\n${pageRequest}`;
+        const prompt = `${systemPrompt.substring(0, 4000)}\n\n${pageRequest.substring(0, 2000)}`;
         const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -153,18 +163,14 @@ export async function POST(req: NextRequest) {
           }),
         });
         console.log('Gemini direct status:', geminiResponse.status);
+        
         if (!geminiResponse.ok) {
-          const err = await geminiResponse.text();
-          console.log('Gemini direct error:', err);
-        }
-        if (geminiResponse.ok) {
+          console.log('Gemini direct error - status:', geminiResponse.status);
+        } else {
           const data = await geminiResponse.json();
           content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
           aiModel = 'gemini';
           console.log('Gemini direct content:', content.length);
-        } else {
-          const err = await geminiResponse.text();
-          console.log('Gemini direct error:', err.substring(0, 200));
         }
       } catch (e) {
         console.log('Gemini direct exception:', e);
