@@ -203,26 +203,40 @@ export default function DashboardPage() {
       startOfWeek.setDate(now.getDate() - now.getDay());
       startOfWeek.setHours(0, 0, 0, 0);
       
-      const [clientsRes, queueRes, draftsRes, recentRes, weeklyRes] = await Promise.all([
-        supabase.from('clients').select('id', { count: 'exact', head: true }).eq('status', 'active'),
-        supabase.from('page_queue').select('id', { count: 'exact', head: true }),
-        supabase.from('drafts').select('id, title, status, created_at, clients(name), services(name), cities(name, state)').not('status', 'eq', 'approved').not('status', 'eq', 'rejected').not('status', 'eq', 'published').order('created_at', { ascending: false }).limit(5),
-        supabase.from('drafts').select('id, title, status, created_at, clients(name)').order('created_at', { ascending: false }).limit(10),
-        supabase.from('drafts').select('id', { count: 'exact', head: true }).gte('created_at', startOfWeek.toISOString()),
-      ]);
+      // Get all recent drafts and filter client-side
+        const { data: allDrafts } = await supabase
+          .from('drafts')
+          .select('id, title, status, created_at, clients(name), services(name), cities(name, state)')
+          .order('created_at', { ascending: false })
+          .limit(20);
+        
+        // Filter to only show drafts that need attention (not approved/rejected/published)
+        const needsAttentionDrafts = allDrafts?.filter((d: any) => {
+          const status = String(d.status).toLowerCase();
+          return !['approved', 'rejected', 'published'].includes(status);
+        }).slice(0, 5) || [];
+        
+        const [clientsRes, queueRes, weeklyRes, recentRes] = await Promise.all([
+          supabase.from('clients').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+          supabase.from('page_queue').select('id', { count: 'exact', head: true }),
+          supabase.from('drafts').select('id', { count: 'exact', head: true }).gte('created_at', startOfWeek.toISOString()),
+          supabase.from('drafts').select('id, title, status, created_at, clients(name)').order('created_at', { ascending: false }).limit(10),
+        ]);
 
       setStats({
         clients_count: clientsRes.count || 0,
         queue_count: queueRes.count || 0,
-        drafts_ready: draftsRes.data?.filter((d: any) => ['draft', 'review'].includes(String(d.status))).length || 0,
-        drafts_review: draftsRes.data?.filter((d: any) => !['draft', 'review', 'approved', 'rejected', 'published'].includes(String(d.status))).length || 0,
+        drafts_ready: needsAttentionDrafts.length,
+        drafts_review: needsAttentionDrafts.filter((d: any) => String(d.status) === 'review').length || 0,
         generated_this_week: weeklyRes.count || 0,
         approved_this_week: 0,
       });
 
       const attention: AttentionItem[] = [];
-      if (draftsRes.data) {
-        draftsRes.data.forEach((d: any) => {
+      console.log('Drafts data for attention:', needsAttentionDrafts);
+      if (needsAttentionDrafts && needsAttentionDrafts.length > 0) {
+        needsAttentionDrafts.forEach((d: any) => {
+          console.log('Processing draft:', d.id, d.status, d.title);
           const serviceName = d.services?.name || null;
           const cityName = d.cities?.name ? `${d.cities.name}, ${d.cities.state}` : null;
           
