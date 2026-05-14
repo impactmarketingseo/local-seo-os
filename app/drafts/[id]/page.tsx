@@ -12,6 +12,90 @@ export default function DraftDetailPage() {
   const [draft, setDraft] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>('preview');
+  const [regenerating, setRegenerating] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [wordCount, setWordCount] = useState(0);
+
+  useEffect(() => {
+    async function loadDraft() {
+      const supabase = createSupabaseBrowserClient();
+      const { data } = await supabase
+        .from('drafts')
+        .select('*')
+        .eq('id', draftId)
+        .single();
+      
+      if (data) {
+        setDraft(data);
+        // Calculate word count from content
+        const c = data.content_json || {};
+        const text = typeof c === 'object' ? JSON.stringify(c) : String(c || '');
+        setWordCount(text.split(/\s+/).filter(Boolean).length);
+      }
+      setLoading(false);
+    }
+    loadDraft();
+  }, [draftId]);
+
+  async function handleApprove() {
+    const supabase = createSupabaseBrowserClient();
+    await supabase.from('drafts').update({ status: 'approved' }).eq('id', draftId);
+    if (draft) setDraft({ ...draft, status: 'approved' });
+  }
+
+  async function handleReject() {
+    const supabase = createSupabaseBrowserClient();
+    await supabase.from('drafts').update({ status: 'rejected' }).eq('id', draftId);
+    if (draft) setDraft({ ...draft, status: 'rejected' });
+  }
+
+  async function handleDelete() {
+    const supabase = createSupabaseBrowserClient();
+    await supabase.from('drafts').delete().eq('id', draftId);
+    router.push('/drafts');
+  }
+
+  async function handleRegenerate() {
+    if (!draft?.queue_id) {
+      alert('No queue item found for this draft');
+      return;
+    }
+    
+    setRegenerating(true);
+    try {
+      const response = await fetch('/api/generate/queue-item', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ queue_item_id: draft.queue_id, regenerate: true }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        const supabase = createSupabaseBrowserClient();
+        await supabase.from('drafts').delete().eq('id', draftId);
+        if (result.draft_id) {
+          router.push('/drafts/' + result.draft_id);
+        } else {
+          router.refresh();
+        }
+      } else {
+        alert(result.error || 'Regeneration failed');
+      }
+    } catch (e) {
+      alert('Error: ' + e);
+    }
+    setRegenerating(false);
+  }
+
+  function handleExport() {
+    const json = JSON.stringify(draft.content_json || draft, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${draft.slug || 'draft'}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   useEffect(() => {
     async function loadDraft() {
@@ -70,11 +154,37 @@ export default function DraftDetailPage() {
         
         <div className="bg-[#111827] rounded-xl p-6 mb-6 border border-gray-800">
           <div className="flex justify-between items-start mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-white">{String(title)}</h1>
-              <span className={`inline-block mt-2 px-3 py-1 rounded-full text-sm font-medium ${status.bg} ${status.text}`}>
-                {String(draft?.status)}
-              </span>
+            <div className="flex items-center gap-4">
+              <button onClick={() => router.back()} className="text-gray-400 hover:text-white">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <div>
+                <h1 className="text-3xl font-bold text-white">{String(title)}</h1>
+                <div className="flex items-center gap-3 mt-2">
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${status.bg} ${status.text}`}>
+                    {String(draft?.status)}
+                  </span>
+                  <span className="text-gray-400 text-sm">{wordCount} words</span>
+                  <span className="text-gray-500 text-sm">v{draft?.version_number || 1}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button 
+                onClick={handleRegenerate} 
+                disabled={regenerating}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm"
+              >
+                {regenerating ? 'Regenerating...' : 'Regenerate'}
+              </button>
+              <button 
+                onClick={handleExport}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm"
+              >
+                Export
+              </button>
             </div>
           </div>
           <p className="text-gray-400">{content.meta?.description}</p>
@@ -484,6 +594,56 @@ export default function DraftDetailPage() {
             )}
           </div>
         </div>
+
+        {/* Action Buttons */}
+        {String(draft?.status) !== 'approved' && String(draft?.status) !== 'published' && (
+          <div className="fixed bottom-0 left-0 right-0 bg-[#111827] border-t border-gray-800 p-4">
+            <div className="max-w-5xl mx-auto flex gap-3">
+              <button 
+                onClick={handleApprove} 
+                className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium"
+              >
+                ✓ Approve
+              </button>
+              <button 
+                onClick={handleReject} 
+                className="px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
+              >
+                Reject
+              </button>
+              <button 
+                onClick={() => setShowDelete(true)} 
+                className="px-4 py-3 bg-gray-800 hover:bg-gray-700 text-red-400 rounded-lg"
+              >
+                🗑
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Modal */}
+        {showDelete && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+            <div className="bg-[#111827] rounded-xl p-6 max-w-sm w-full mx-4 border border-gray-800">
+              <h3 className="text-lg font-medium text-white mb-2">Delete Draft?</h3>
+              <p className="text-gray-400 mb-6">This action cannot be undone.</p>
+              <div className="flex gap-3">
+                <button 
+                  onClick={handleDelete} 
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
+                >
+                  Delete
+                </button>
+                <button 
+                  onClick={() => setShowDelete(false)} 
+                  className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
