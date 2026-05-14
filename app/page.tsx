@@ -206,7 +206,7 @@ export default function DashboardPage() {
       const [clientsRes, queueRes, draftsRes, recentRes, weeklyRes] = await Promise.all([
         supabase.from('clients').select('id', { count: 'exact', head: true }).eq('status', 'active'),
         supabase.from('page_queue').select('id', { count: 'exact', head: true }),
-        supabase.from('drafts').select('id, title, status, created_at, clients(name), services(name), cities(name, state)').in('status', ['draft', 'review']).order('created_at', { ascending: false }).limit(5),
+        supabase.from('drafts').select('id, title, status, created_at, clients(name), services(name), cities(name, state)').not('status', 'eq', 'approved').not('status', 'eq', 'rejected').not('status', 'eq', 'published').order('created_at', { ascending: false }).limit(5),
         supabase.from('drafts').select('id, title, status, created_at, clients(name)').order('created_at', { ascending: false }).limit(10),
         supabase.from('drafts').select('id', { count: 'exact', head: true }).gte('created_at', startOfWeek.toISOString()),
       ]);
@@ -214,8 +214,8 @@ export default function DashboardPage() {
       setStats({
         clients_count: clientsRes.count || 0,
         queue_count: queueRes.count || 0,
-        drafts_ready: draftsRes.data?.length || 0,
-        drafts_review: draftsRes.data?.filter((d: any) => String(d.status) === 'review').length || 0,
+        drafts_ready: draftsRes.data?.filter((d: any) => ['draft', 'review'].includes(String(d.status))).length || 0,
+        drafts_review: draftsRes.data?.filter((d: any) => !['draft', 'review', 'approved', 'rejected', 'published'].includes(String(d.status))).length || 0,
         generated_this_week: weeklyRes.count || 0,
         approved_this_week: 0,
       });
