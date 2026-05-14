@@ -93,16 +93,31 @@
   .card-interactive {
     @apply bg-card border border-border rounded-lg p-5 transition-all duration-300;
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .card-interactive::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent, color-mix(in srgb, var(--app-accent) 5%, transparent));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .card-interactive:hover::before {
+    opacity: 1;
   }
   
   .card-interactive:hover {
     @apply bg-elevated border-opacity-80;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), 0 0 20px color-mix(in srgb, var(--app-accent) 10%, transparent);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 30px color-mix(in srgb, var(--app-accent) 15%, transparent);
   }
   
   .card-interactive:active {
-    transform: translateY(0);
+    transform: translateY(-1px);
     transition-duration: 0.1s;
   }
 
@@ -134,9 +149,9 @@
   }
 
   .btn-primary:hover {
-    box-shadow: 0 4px 16px color-mix(in srgb, var(--app-accent) 35%, transparent);
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--app-accent) 40%, transparent);
     filter: brightness(1.1);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
   }
 
   .btn-primary:active {
