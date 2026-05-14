@@ -154,25 +154,25 @@ export default function DraftDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0f1a]">
-      <div className="max-w-5xl mx-auto p-6">
-        <button onClick={() => router.back()} className="mb-6 text-blue-400 hover:text-blue-300">← Back to Drafts</button>
+      <div className="max-w-5xl mx-auto p-3 md:p-6">
+        <button onClick={() => router.back()} className="mb-4 md:mb-6 text-blue-400 hover:text-blue-300 text-sm md:text-base">← Back to Drafts</button>
         
-        <div className="bg-[#111827] rounded-xl p-6 mb-6 border border-gray-800">
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex items-center gap-4">
-              <button onClick={() => router.back()} className="text-gray-400 hover:text-white">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="bg-[#111827] rounded-xl p-4 md:p-6 mb-4 md:mb-6 border border-gray-800">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
+              <button onClick={() => router.back()} className="text-gray-400 hover:text-white p-1">
+                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
               <div>
-                <h1 className="text-3xl font-bold text-white">{String(title)}</h1>
-                <div className="flex items-center gap-3 mt-2">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${status.bg} ${status.text}`}>
+                <h1 className="text-xl md:text-3xl font-bold text-white leading-tight">{String(title)}</h1>
+                <div className="flex flex-wrap items-center gap-2 md:gap-3 mt-2">
+                  <span className={`px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium ${status.bg} ${status.text}`}>
                     {String(draft?.status)}
                   </span>
-                  <span className="text-gray-400 text-sm">{wordCount} words</span>
-                  <span className="text-gray-500 text-sm">v{draft?.version_number || 1}</span>
+                  <span className="text-gray-400 text-xs md:text-sm">{wordCount} words</span>
+                  <span className="text-gray-500 text-xs md:text-sm">v{draft?.version_number || 1}</span>
                 </div>
               </div>
             </div>
@@ -180,13 +180,13 @@ export default function DraftDetailPage() {
               <button 
                 onClick={handleRegenerate} 
                 disabled={regenerating}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm"
+                className="px-3 md:px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-xs md:text-sm"
               >
                 {regenerating ? 'Regenerating...' : 'Regenerate'}
               </button>
               <button 
                 onClick={handleExport}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm"
+                className="px-3 md:px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-xs md:text-sm"
               >
                 Export
               </button>
@@ -197,12 +197,12 @@ export default function DraftDetailPage() {
 
         <div className="bg-[#111827] rounded-xl border border-gray-800 mb-6">
           <div className="border-b border-gray-800">
-            <div className="flex overflow-x-auto">
+            <div className="flex overflow-x-auto -mx-3 px-3 md:mx-0 md:px-0">
               {['preview', 'seo', 'hero', 'about', 'problems', 'why', 'process', 'faq', 'local', 'links', 'schema'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-5 py-4 text-sm font-medium border-b-2 capitalize whitespace-nowrap ${
+                  className={`px-3 md:px-5 py-3 md:py-4 text-xs md:text-sm font-medium border-b-2 capitalize whitespace-nowrap ${
                     activeTab === tab 
                       ? 'border-blue-500 text-blue-400' 
                       : 'border-transparent text-gray-400 hover:text-gray-300'
@@ -218,17 +218,17 @@ export default function DraftDetailPage() {
             {activeTab === 'preview' && (
               <div className="space-y-8">
                 {content.hero && (
-                  <section className="bg-[#1a2234] p-8 rounded-xl border border-gray-800">
-                    <h1 className="text-4xl font-bold text-white mb-4">{content.hero.h1 || title}</h1>
-                    <p className="text-xl text-gray-300 mb-6">{content.hero.intro_paragraph}</p>
-                    <div className="flex gap-4 flex-wrap">
-                      <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">{content.hero.cta_primary_text || 'Get Started'}</button>
-                      <button className="px-6 py-3 border border-gray-600 text-gray-300 rounded-lg font-medium hover:bg-gray-800">{content.hero.cta_secondary_text || 'Learn More'}</button>
+                  <section className="bg-[#1a2234] p-4 md:p-8 rounded-xl border border-gray-800">
+                    <h1 className="text-lg md:text-2xl md:text-4xl font-bold text-white mb-3 md:mb-4">{content.hero.h1 || title}</h1>
+                    <p className="text-base md:text-xl text-gray-300 mb-4 md:mb-6">{content.hero.intro_paragraph}</p>
+                    <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+                      <button className="px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 text-sm md:text-base">{content.hero.cta_primary_text || 'Get Started'}</button>
+                      <button className="px-4 md:px-6 py-2 md:py-3 border border-gray-600 text-gray-300 rounded-lg font-medium hover:bg-gray-800 text-sm md:text-base">{content.hero.cta_secondary_text || 'Learn More'}</button>
                     </div>
-                    <p className="mt-4 text-sm text-gray-500">{content.hero.review_line}</p>
-                    <div className="flex gap-3 mt-4 flex-wrap">
+                    <p className="mt-3 md:mt-4 text-xs md:text-sm text-gray-500">{content.hero.review_line}</p>
+                    <div className="flex flex-wrap gap-2 md:gap-3 mt-3 md:mt-4">
                       {content.hero.trust_badges?.map((badge: string, i: number) => (
-                        <span key={i} className="text-sm text-gray-400 bg-gray-800/50 px-3 py-1.5 rounded border border-gray-700">{badge}</span>
+                        <span key={i} className="text-xs md:text-sm text-gray-400 bg-gray-800/50 px-2 md:px-3 py-1 md:py-1.5 rounded border border-gray-700">{badge}</span>
                       ))}
                     </div>
                   </section>
@@ -246,7 +246,7 @@ export default function DraftDetailPage() {
 
                 {content.about_service && (
                   <section className="bg-[#1a2234] p-8 rounded-xl border border-gray-800">
-                    <h2 className="text-2xl font-bold text-white mb-2">{content.about_service.section_heading}</h2>
+                    <h2 className="text-lg md:text-2xl font-bold text-white mb-2">{content.about_service.section_heading}</h2>
                     <p className="text-lg text-blue-400 mb-4">{content.about_service.subheading}</p>
                     <p className="text-gray-300 leading-relaxed mb-4">{content.about_service.paragraph_1}</p>
                     <p className="text-gray-300 leading-relaxed">{content.about_service.paragraph_2}</p>
@@ -255,7 +255,7 @@ export default function DraftDetailPage() {
 
                 {content.problems && (
                   <section className="bg-[#1a2234] p-8 rounded-xl border border-gray-800">
-                    <h2 className="text-2xl font-bold text-white mb-2">{content.problems.section_heading}</h2>
+                    <h2 className="text-lg md:text-2xl font-bold text-white mb-2">{content.problems.section_heading}</h2>
                     <p className="text-gray-400 mb-6">{content.problems.section_subtext}</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {content.problems.cards?.map((card: any, i: number) => (
@@ -274,16 +274,16 @@ export default function DraftDetailPage() {
                 )}
 
                 {content.why_choose_us && (
-                  <section className="bg-[#1a2234] p-8 rounded-xl border border-gray-800">
-                    <h2 className="text-2xl font-bold text-white mb-2">{content.why_choose_us.section_heading}</h2>
-                    <p className="text-gray-400 mb-6">{content.why_choose_us.section_subtext}</p>
+                  <section className="bg-[#1a2234] p-4 md:p-8 rounded-xl border border-gray-800">
+                    <h2 className="text-lg md:text-lg md:text-2xl font-bold text-white mb-2">{content.why_choose_us.section_heading}</h2>
+                    <p className="text-gray-400 text-sm md:text-base mb-4 md:mb-6">{content.why_choose_us.section_subtext}</p>
                     <div className="space-y-3">
                       {content.why_choose_us.items?.map((item: any, i: number) => (
-                        <div key={i} className="flex gap-4 p-4 bg-[#0a0f1a] rounded-lg border border-gray-700">
-                          <span className="text-xl">{item.icon?.replace('fa ', 'fa-')}</span>
+                        <div key={i} className="flex gap-3 md:gap-4 p-3 md:p-4 bg-[#0a0f1a] rounded-lg border border-gray-700">
+                          <span className="text-lg md:text-xl">{item.icon?.replace('fa ', 'fa-')}</span>
                           <div>
-                            <h3 className="font-semibold text-white">{item.title}</h3>
-                            <p className="text-sm text-gray-400 mt-1">{item.description}</p>
+                            <h3 className="font-semibold text-white text-sm md:text-base">{item.title}</h3>
+                            <p className="text-xs md:text-sm text-gray-400 mt-1">{item.description}</p>
                           </div>
                         </div>
                       ))}
@@ -293,7 +293,7 @@ export default function DraftDetailPage() {
 
                 {content.process && (
                   <section className="bg-[#1a2234] p-8 rounded-xl border border-gray-800">
-                    <h2 className="text-2xl font-bold text-white mb-2">{content.process.section_heading}</h2>
+                    <h2 className="text-lg md:text-2xl font-bold text-white mb-2">{content.process.section_heading}</h2>
                     <p className="text-gray-400 mb-6">{content.process.section_subtext}</p>
                     <div className="space-y-4">
                       {content.process.steps?.map((step: any, i: number) => (
@@ -311,7 +311,7 @@ export default function DraftDetailPage() {
 
                 {content.faq && (
                   <section className="bg-[#1a2234] p-8 rounded-xl border border-gray-800">
-                    <h2 className="text-2xl font-bold text-white mb-4">{content.faq.section_heading}</h2>
+                    <h2 className="text-lg md:text-2xl font-bold text-white mb-4">{content.faq.section_heading}</h2>
                     <div className="space-y-4">
                       {content.faq.items?.map((item: any, i: number) => (
                         <div key={i} className="p-4 bg-[#0a0f1a] rounded-lg border border-gray-700">
@@ -325,7 +325,7 @@ export default function DraftDetailPage() {
 
                 {content.local_context && (
                   <section className="bg-[#1a2234] p-8 rounded-xl border border-gray-800">
-                    <h2 className="text-2xl font-bold text-white mb-4">{content.local_context.section_heading}</h2>
+                    <h2 className="text-lg md:text-2xl font-bold text-white mb-4">{content.local_context.section_heading}</h2>
                     <p className="text-gray-300 leading-relaxed">{content.local_context.paragraph_1}</p>
                     <p className="text-gray-300 leading-relaxed mt-4">{content.local_context.paragraph_2}</p>
                   </section>
@@ -333,7 +333,7 @@ export default function DraftDetailPage() {
 
                 {content.final_cta && (
                   <section className="bg-blue-600 p-8 rounded-xl">
-                    <h2 className="text-2xl font-bold text-white mb-2">{content.final_cta.heading}</h2>
+                    <h2 className="text-lg md:text-2xl font-bold text-white mb-2">{content.final_cta.heading}</h2>
                     <p className="text-blue-100 mb-4">{content.final_cta.subtext}</p>
                     <div className="flex gap-4 flex-wrap">
                       <button className="px-6 py-3 bg-white text-blue-600 rounded-lg font-medium">{content.final_cta.cta_primary_text}</button>
@@ -346,7 +346,7 @@ export default function DraftDetailPage() {
 
             {activeTab === 'seo' && (
               <div className="space-y-6">
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
                   <h3 className="text-white font-semibold mb-4">Primary Keyword</h3>
                   <input 
                     type="text" 
@@ -356,7 +356,7 @@ export default function DraftDetailPage() {
                   />
                 </div>
 
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
                   <h3 className="text-white font-semibold mb-4">Secondary Keywords</h3>
                   <div className="flex flex-wrap gap-2">
                     {secondaryKeywords.map((kw: string, i: number) => (
@@ -367,30 +367,30 @@ export default function DraftDetailPage() {
                   </div>
                 </div>
 
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
                   <h3 className="text-white font-semibold mb-4">Meta Information</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm text-gray-400 mb-1">Page Title</label>
+                      <label className="block text-xs md:text-sm text-gray-400 mb-1">Page Title</label>
                       <input type="text" value={content.meta?.title || ''} readOnly className="w-full p-3 bg-[#0a0f1a] border border-gray-700 rounded-lg text-white" />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-400 mb-1">Meta Description</label>
+                      <label className="block text-xs md:text-sm text-gray-400 mb-1">Meta Description</label>
                       <textarea value={content.meta?.description || ''} readOnly className="w-full p-3 border border-gray-700 rounded-lg bg-[#0a0f1a] text-white h-20" />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-400 mb-1">H1</label>
+                      <label className="block text-xs md:text-sm text-gray-400 mb-1">H1</label>
                       <input type="text" value={content.meta?.h1 || ''} readOnly className="w-full p-3 bg-[#0a0f1a] border border-gray-700 rounded-lg text-white" />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-400 mb-1">Slug</label>
+                      <label className="block text-xs md:text-sm text-gray-400 mb-1">Slug</label>
                       <div className="flex">
                         <span className="p-3 bg-gray-800 border border-gray-700 border-r-0 rounded-l-lg text-gray-500">/</span>
                         <input type="text" value={content.meta?.slug || ''} readOnly className="flex-1 p-3 bg-[#0a0f1a] border border-gray-700 rounded-r-lg text-white" />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-400 mb-1">Breadcrumb</label>
+                      <label className="block text-xs md:text-sm text-gray-400 mb-1">Breadcrumb</label>
                       <input type="text" value={content.breadcrumb?.text || ''} readOnly className="w-full p-3 bg-[#0a0f1a] border border-gray-700 rounded-lg text-white" />
                     </div>
                   </div>
@@ -400,24 +400,24 @@ export default function DraftDetailPage() {
 
             {activeTab === 'hero' && (
               <div className="space-y-4">
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">H1</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">H1</label>
                   <input type="text" value={content.hero?.h1 || content.meta?.h1 || ''} readOnly className="w-full p-3 bg-[#0a0f1a] border border-gray-700 rounded-lg text-white" />
                 </div>
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Intro Paragraph</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Intro Paragraph</label>
                   <textarea value={content.hero?.intro_paragraph || ''} readOnly className="w-full p-3 border border-gray-700 rounded-lg bg-[#0a0f1a] text-white h-24" />
                 </div>
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">CTA Primary</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">CTA Primary</label>
                   <input type="text" value={content.hero?.cta_primary_text || ''} readOnly className="w-full p-3 bg-[#0a0f1a] border border-gray-700 rounded-lg text-white" />
                 </div>
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">CTA Secondary</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">CTA Secondary</label>
                   <input type="text" value={content.hero?.cta_secondary_text || ''} readOnly className="w-full p-3 bg-[#0a0f1a] border border-gray-700 rounded-lg text-white" />
                 </div>
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Review Line</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Review Line</label>
                   <input type="text" value={content.hero?.review_line || ''} readOnly className="w-full p-3 bg-[#0a0f1a] border border-gray-700 rounded-lg text-white" />
                 </div>
               </div>
@@ -425,37 +425,37 @@ export default function DraftDetailPage() {
 
             {activeTab === 'about' && (
               <div className="space-y-4">
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Section Heading</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Section Heading</label>
                   <input type="text" value={content.about_service?.section_heading || ''} readOnly className="w-full p-3 bg-[#0a0f1a] border border-gray-700 rounded-lg text-white" />
                 </div>
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Subheading</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Subheading</label>
                   <input type="text" value={content.about_service?.subheading || ''} readOnly className="w-full p-3 bg-[#0a0f1a] border border-gray-700 rounded-lg text-white" />
                 </div>
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Paragraph 1 (150-200 words)</label>
-                  <textarea value={content.about_service?.paragraph_1 || ''} readOnly className="w-full p-3 border border-gray-700 rounded-lg bg-[#0a0f1a] text-white h-40" />
+                <div className="bg-[#1a2234] p-4 md:p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Paragraph 1 (150-200 words)</label>
+                  <textarea value={content.about_service?.paragraph_1 || ''} readOnly className="w-full p-3 border border-gray-700 rounded-lg bg-[#0a0f1a] text-white h-32 md:h-40" />
                 </div>
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Paragraph 2 (150-200 words)</label>
-                  <textarea value={content.about_service?.paragraph_2 || ''} readOnly className="w-full p-3 border border-gray-700 rounded-lg bg-[#0a0f1a] text-white h-40" />
+                <div className="bg-[#1a2234] p-4 md:p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Paragraph 2 (150-200 words)</label>
+                  <textarea value={content.about_service?.paragraph_2 || ''} readOnly className="w-full p-3 border border-gray-700 rounded-lg bg-[#0a0f1a] text-white h-32 md:h-40" />
                 </div>
               </div>
             )}
 
             {activeTab === 'problems' && (
               <div className="space-y-4">
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Section Heading</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Section Heading</label>
                   <input type="text" value={content.problems?.section_heading || ''} readOnly className="w-full p-3 bg-[#0a0f1a] border border-gray-700 rounded-lg text-white" />
                 </div>
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Section Subtext</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Section Subtext</label>
                   <textarea value={content.problems?.section_subtext || ''} readOnly className="w-full p-3 border border-gray-700 rounded-lg bg-[#0a0f1a] text-white h-20" />
                 </div>
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Problem Cards ({content.problems?.cards?.length || 0})</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Problem Cards ({content.problems?.cards?.length || 0})</label>
                   <div className="space-y-3">
                     {content.problems?.cards?.map((card: any, i: number) => (
                       <div key={i} className="p-4 bg-[#0a0f1a] rounded-lg border border-gray-700">
@@ -473,16 +473,16 @@ export default function DraftDetailPage() {
 
             {activeTab === 'why' && (
               <div className="space-y-4">
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Section Heading</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Section Heading</label>
                   <input type="text" value={content.why_choose_us?.section_heading || ''} readOnly className="w-full p-3 bg-[#0a0f1a] border border-gray-700 rounded-lg text-white" />
                 </div>
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Section Subtext</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Section Subtext</label>
                   <textarea value={content.why_choose_us?.section_subtext || ''} readOnly className="w-full p-3 border border-gray-700 rounded-lg bg-[#0a0f1a] text-white h-20" />
                 </div>
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Items ({content.why_choose_us?.items?.length || 0})</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Items ({content.why_choose_us?.items?.length || 0})</label>
                   <div className="space-y-3">
                     {content.why_choose_us?.items?.map((item: any, i: number) => (
                       <div key={i} className="p-4 bg-[#0a0f1a] rounded-lg border border-gray-700">
@@ -500,16 +500,16 @@ export default function DraftDetailPage() {
 
             {activeTab === 'process' && (
               <div className="space-y-4">
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Section Heading</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Section Heading</label>
                   <input type="text" value={content.process?.section_heading || ''} readOnly className="w-full p-3 bg-[#0a0f1a] border border-gray-700 rounded-lg text-white" />
                 </div>
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Section Subtext</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Section Subtext</label>
                   <textarea value={content.process?.section_subtext || ''} readOnly className="w-full p-3 border border-gray-700 rounded-lg bg-[#0a0f1a] text-white h-20" />
                 </div>
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Steps ({content.process?.steps?.length || 0})</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Steps ({content.process?.steps?.length || 0})</label>
                   <div className="space-y-3">
                     {content.process?.steps?.map((step: any, i: number) => (
                       <div key={i} className="p-4 bg-[#0a0f1a] rounded-lg border border-gray-700 flex gap-4">
@@ -527,12 +527,12 @@ export default function DraftDetailPage() {
 
             {activeTab === 'faq' && (
               <div className="space-y-4">
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Section Heading</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Section Heading</label>
                   <input type="text" value={content.faq?.section_heading || ''} readOnly className="w-full p-3 bg-[#0a0f1a] border border-gray-700 rounded-lg text-white" />
                 </div>
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Questions ({content.faq?.items?.length || 0})</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Questions ({content.faq?.items?.length || 0})</label>
                   <div className="space-y-3">
                     {content.faq?.items?.map((item: any, i: number) => (
                       <div key={i} className="p-4 bg-[#0a0f1a] rounded-lg border border-gray-700">
@@ -547,16 +547,16 @@ export default function DraftDetailPage() {
 
             {activeTab === 'local' && (
               <div className="space-y-4">
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Section Heading</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Section Heading</label>
                   <input type="text" value={content.local_context?.section_heading || ''} readOnly className="w-full p-3 bg-[#0a0f1a] border border-gray-700 rounded-lg text-white" />
                 </div>
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Paragraph 1</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Paragraph 1</label>
                   <textarea value={content.local_context?.paragraph_1 || ''} readOnly className="w-full p-3 border border-gray-700 rounded-lg bg-[#0a0f1a] text-white h-24" />
                 </div>
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Paragraph 2</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Paragraph 2</label>
                   <textarea value={content.local_context?.paragraph_2 || ''} readOnly className="w-full p-3 border border-gray-700 rounded-lg bg-[#0a0f1a] text-white h-24" />
                 </div>
               </div>
@@ -564,8 +564,8 @@ export default function DraftDetailPage() {
 
             {activeTab === 'links' && (
               <div className="space-y-4">
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Other Services in City ({content.internal_links?.other_services_in_city?.length || 0})</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Other Services in City ({content.internal_links?.other_services_in_city?.length || 0})</label>
                   <div className="space-y-2">
                     {content.internal_links?.other_services_in_city?.map((link: any, i: number) => (
                       <div key={i} className="p-3 bg-[#0a0f1a] rounded-lg border border-gray-700 flex justify-between items-center">
@@ -575,8 +575,8 @@ export default function DraftDetailPage() {
                     ))}
                   </div>
                 </div>
-                <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                  <label className="block text-sm text-gray-400 mb-2">Same Service in Other Cities ({content.internal_links?.same_service_other_cities?.length || 0})</label>
+                <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                  <label className="block text-xs md:text-sm text-gray-400 mb-2">Same Service in Other Cities ({content.internal_links?.same_service_other_cities?.length || 0})</label>
                   <div className="space-y-2">
                     {content.internal_links?.same_service_other_cities?.map((link: any, i: number) => (
                       <div key={i} className="p-3 bg-[#0a0f1a] rounded-lg border border-gray-700 flex justify-between items-center">
@@ -590,8 +590,8 @@ export default function DraftDetailPage() {
             )}
 
             {activeTab === 'schema' && (
-              <div className="bg-[#1a2234] p-5 rounded-xl border border-gray-800">
-                <label className="block text-sm text-gray-400 mb-2">Schema Markup</label>
+              <div className="bg-[#1a2234] p-4 md:p-5 rounded-xl border border-gray-800">
+                <label className="block text-xs md:text-sm text-gray-400 mb-2">Schema Markup</label>
                 <pre className="p-4 bg-[#0a0f1a] rounded-lg text-green-400 text-xs overflow-auto max-h-[500px] border border-gray-700">
                   {JSON.stringify(content.schema_markup || {}, null, 2)}
                 </pre>
