@@ -595,30 +595,54 @@ export default function DraftDetailPage() {
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - Mobile: bottom right */}
         {String(draft?.status) !== 'approved' && String(draft?.status) !== 'published' && (
-          <div className="fixed bottom-0 right-0 bg-[#111827] border-t border-l border-gray-800 p-4 z-40">
-            <div className="flex gap-3">
+          <>
+            {/* Desktop: bottom left, avoiding sidebar */}
+            <div className="fixed bottom-4 left-64 bg-[#111827] border border-gray-700 rounded-lg p-3 z-40 shadow-xl hidden lg:flex gap-2">
               <button 
                 onClick={handleApprove} 
-                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium"
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium"
               >
                 ✓ Approve
               </button>
               <button 
                 onClick={handleReject} 
-                className="px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
+                className="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm"
               >
                 Reject
               </button>
               <button 
                 onClick={() => setShowDelete(true)} 
-                className="px-4 py-3 bg-gray-800 hover:bg-gray-700 text-red-400 rounded-lg"
+                className="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-red-400 rounded-lg text-sm"
               >
                 🗑
               </button>
             </div>
-          </div>
+            {/* Mobile: bottom right */}
+            <div className="fixed bottom-4 right-4 bg-[#111827] border border-gray-700 rounded-lg p-3 z-40 shadow-xl lg:hidden">
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleApprove} 
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium"
+                >
+                  ✓ Approve
+                </button>
+                <button 
+                  onClick={handleReject} 
+                  className="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm"
+                >
+                  Reject
+                </button>
+                <button 
+                  onClick={() => setShowDelete(true)} 
+                  className="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-red-400 rounded-lg text-sm"
+                >
+                  🗑
+                </button>
+              </div>
+            </div>
+          </>
         )}
 
         {/* Delete Modal */}
