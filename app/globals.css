@@ -18,6 +18,7 @@
     --app-accent: #3B82F6;
     --app-accent-hover: #2563EB;
     --app-accent-active: #1D4ED8;
+    --app-accent-gradient: linear-gradient(135deg, #3B82F6, #2563EB);
     
     --primary: var(--app-accent);
     --primary-foreground: #FFFFFF;
@@ -107,7 +108,7 @@
 
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-md font-semibold text-white;
-    background: linear-gradient(135deg, var(--app-accent), var(--app-accent-hover));
+    background: var(--app-accent-gradient);
     box-shadow: 0 2px 8px color-mix(in srgb, var(--app-accent) 25%, transparent);
     transition: all 0.2s ease;
     cursor: pointer;

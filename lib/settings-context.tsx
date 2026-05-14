@@ -7,6 +7,8 @@ interface AppSettings {
     logo_url?: string | null;
     app_name?: string;
     accent_color?: string;
+    accent_color_2?: string;
+    use_gradient?: boolean;
   };
   general?: {
     timezone?: string;
@@ -32,30 +34,37 @@ export function useAppSettings() {
 function applyBranding(branding: AppSettings['branding']) {
   if (!branding) return;
   
-  if (branding.accent_color) {
-    const hexToRgb = (hex: string) => {
-      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-      return result ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-      } : { r: 59, g: 130, b: 246 };
-    };
-    
-    const darken = (rgb: {r: number, g: number, b: number}, percent: number) => {
-      return `#${Math.max(0, Math.floor(rgb.r * (1 - percent))).toString(16).padStart(2, '0')}${Math.max(0, Math.floor(rgb.g * (1 - percent))).toString(16).padStart(2, '0')}${Math.max(0, Math.floor(rgb.b * (1 - percent))).toString(16).padStart(2, '0')}`;
-    };
-    
-    const rgb = hexToRgb(branding.accent_color);
-    const hoverColor = darken(rgb, 0.1);
-    const activeColor = darken(rgb, 0.2);
-    
-    document.documentElement.style.setProperty('--app-accent', branding.accent_color);
-    document.documentElement.style.setProperty('--app-accent-hover', hoverColor);
-    document.documentElement.style.setProperty('--app-accent-active', activeColor);
-    document.documentElement.style.setProperty('--primary', branding.accent_color);
-    document.documentElement.style.setProperty('--ring', branding.accent_color);
-    document.documentElement.style.setProperty('--accent', branding.accent_color);
+  const accent = branding.accent_color || '#3B82F6';
+  const accent2 = branding.accent_color_2 || '#2563EB';
+  const useGradient = branding.use_gradient || false;
+  
+  const hexToRgb = (hex: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : { r: 59, g: 130, b: 246 };
+  };
+  
+  const darken = (rgb: {r: number, g: number, b: number}, percent: number) => {
+    return `#${Math.max(0, Math.floor(rgb.r * (1 - percent))).toString(16).padStart(2, '0')}${Math.max(0, Math.floor(rgb.g * (1 - percent))).toString(16).padStart(2, '0')}${Math.max(0, Math.floor(rgb.b * (1 - percent))).toString(16).padStart(2, '0')}`;
+  };
+  
+  document.documentElement.style.setProperty('--app-accent', accent);
+  document.documentElement.style.setProperty('--primary', accent);
+  document.documentElement.style.setProperty('--ring', accent);
+  document.documentElement.style.setProperty('--accent', accent);
+  
+  if (useGradient) {
+    document.documentElement.style.setProperty('--app-accent-hover', accent2);
+    document.documentElement.style.setProperty('--app-accent-active', darken(hexToRgb(accent), 0.15));
+    document.documentElement.style.setProperty('--app-accent-gradient', `linear-gradient(135deg, ${accent}, ${accent2})`);
+  } else {
+    const rgb = hexToRgb(accent);
+    document.documentElement.style.setProperty('--app-accent-hover', darken(rgb, 0.1));
+    document.documentElement.style.setProperty('--app-accent-active', darken(rgb, 0.2));
+    document.documentElement.style.setProperty('--app-accent-gradient', `linear-gradient(135deg, ${accent}, ${darken(hexToRgb(accent), 0.1)})`);
   }
 }
 
@@ -73,7 +82,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
         // Apply branding settings on load
         if (data.branding) {
           applyBranding(data.branding);
-          console.log('[Settings] Loaded accent color:', data.branding.accent_color);
         }
       } catch (e) {
         console.error('Failed to load settings:', e);
@@ -89,7 +97,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
       setSettings(prev => ({ ...prev, ...newSettings }));
       if (newSettings.branding) {
         applyBranding(newSettings.branding);
-        console.log('[Settings] Updated accent color:', newSettings.branding.accent_color);
       }
     };
     
@@ -100,12 +107,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
   const updateSettings = (newSettings: AppSettings) => {
     setSettings(prev => ({ ...prev, ...newSettings }));
   };
-
-  // Debug: log current accent color
-  useEffect(() => {
-    const accent = getComputedStyle(document.documentElement).getPropertyValue('--app-accent').trim();
-    console.log('[Settings] Current --app-accent:', accent || '(not set, using default #3B82F6)');
-  }, [loading]);
 
   return (
     <AppSettingsContext.Provider value={{ settings, loading, updateSettings }}>

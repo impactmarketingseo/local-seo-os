@@ -141,6 +141,8 @@ function BrandingTab() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [appName, setAppName] = useState('SEO OS');
   const [accentColor, setAccentColor] = useState('#3B82F6');
+  const [accentColor2, setAccentColor2] = useState('#8B5CF6');
+  const [useGradient, setUseGradient] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -151,6 +153,8 @@ function BrandingTab() {
       if (data.branding) {
         setAppName(data.branding.app_name || 'SEO OS');
         setAccentColor(data.branding.accent_color || '#3B82F6');
+        setAccentColor2(data.branding.accent_color_2 || '#8B5CF6');
+        setUseGradient(data.branding.use_gradient || false);
         setLogoPreview(data.branding.logo_url || null);
       }
       setLoading(false);
@@ -169,8 +173,7 @@ function BrandingTab() {
     }
   };
 
-  const save = async () => {
-    // Calculate hover/active colors from accent
+  const applyColorVariables = (accent: string, accent2: string, gradient: boolean) => {
     const hexToRgb = (hex: string) => {
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
       return result ? {
@@ -184,10 +187,26 @@ function BrandingTab() {
       return `#${Math.max(0, Math.floor(rgb.r * (1 - percent))).toString(16).padStart(2, '0')}${Math.max(0, Math.floor(rgb.g * (1 - percent))).toString(16).padStart(2, '0')}${Math.max(0, Math.floor(rgb.b * (1 - percent))).toString(16).padStart(2, '0')}`;
     };
     
-    const rgb = hexToRgb(accentColor);
-    const hoverColor = darken(rgb, 0.1);
-    const activeColor = darken(rgb, 0.2);
+    const rgb1 = hexToRgb(accent);
+    const rgb2 = hexToRgb(accent2);
     
+    if (gradient) {
+      document.documentElement.style.setProperty('--app-accent', accent);
+      document.documentElement.style.setProperty('--app-accent-hover', accent2);
+      document.documentElement.style.setProperty('--app-accent-active', darken(rgb1, 0.15));
+      document.documentElement.style.setProperty('--app-accent-gradient', `linear-gradient(135deg, ${accent}, ${accent2})`);
+    } else {
+      document.documentElement.style.setProperty('--app-accent', accent);
+      document.documentElement.style.setProperty('--app-accent-hover', darken(rgb1, 0.1));
+      document.documentElement.style.setProperty('--app-accent-active', darken(rgb1, 0.2));
+      document.documentElement.style.setProperty('--app-accent-gradient', accent);
+    }
+    document.documentElement.style.setProperty('--primary', accent);
+    document.documentElement.style.setProperty('--accent', accent);
+    document.documentElement.style.setProperty('--ring', accent);
+  };
+
+  const save = async () => {
     // Save to database first
     const res = await fetch('/api/settings', {
       method: 'POST',
@@ -198,20 +217,15 @@ function BrandingTab() {
           logo_url: logoPreview,
           app_name: appName,
           accent_color: accentColor,
+          accent_color_2: accentColor2,
+          use_gradient: useGradient,
         },
       }),
     });
 
     if (res.ok) {
-      // Apply CSS variables immediately
-      document.documentElement.style.setProperty('--app-accent', accentColor);
-      document.documentElement.style.setProperty('--app-accent-hover', hoverColor);
-      document.documentElement.style.setProperty('--app-accent-active', activeColor);
-      document.documentElement.style.setProperty('--primary', accentColor);
-      document.documentElement.style.setProperty('--ring', accentColor);
-      document.documentElement.style.setProperty('--accent', accentColor);
+      applyColorVariables(accentColor, accentColor2, useGradient);
       
-      // Dispatch event for other listeners
       window.dispatchEvent(new CustomEvent('settings-updated', { 
         detail: { branding: { logo_url: logoPreview, app_name: appName, accent_color: accentColor } } 
       }));
@@ -224,6 +238,10 @@ function BrandingTab() {
   if (loading) {
     return <div className="skeleton h-40 rounded-lg" />;
   }
+
+  const gradientStyle = useGradient 
+    ? { background: `linear-gradient(135deg, ${accentColor}, ${accentColor2})` }
+    : { backgroundColor: accentColor };
 
   return (
     <div className="space-y-6">
@@ -263,33 +281,36 @@ function BrandingTab() {
           />
         </div>
 
+        {/* Gradient Toggle */}
+        <div className="flex items-center gap-3">
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input 
+              type="checkbox" 
+              checked={useGradient}
+              onChange={(e) => {
+                setUseGradient(e.target.checked);
+                applyColorVariables(accentColor, accentColor2, e.target.checked);
+              }}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-input rounded-full peer peer-checked:bg-accent/20 peer-checked:after:border-accent after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-text-disabled after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:bg-accent"></div>
+          </label>
+          <div>
+            <p className="font-medium text-text-primary">Gradient Mode</p>
+            <p className="text-xs text-text-tertiary">Use two colors for buttons</p>
+          </div>
+        </div>
+
+        {/* Primary Color */}
         <div>
-          <label className="input-label">Accent Color</label>
+          <label className="input-label">{useGradient ? 'Gradient Start Color' : 'Accent Color'}</label>
           <div className="flex items-center gap-3 mt-2">
             <input 
               type="color" 
               value={accentColor} 
               onChange={(e) => {
                 setAccentColor(e.target.value);
-                // Live preview - apply immediately
-                const hexToRgb = (hex: string) => {
-                  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-                  return result ? {
-                    r: parseInt(result[1], 16),
-                    g: parseInt(result[2], 16),
-                    b: parseInt(result[3], 16)
-                  } : { r: 59, g: 130, b: 246 };
-                };
-                const darken = (rgb: {r: number, g: number, b: number}, percent: number) => {
-                  return `#${Math.max(0, Math.floor(rgb.r * (1 - percent))).toString(16).padStart(2, '0')}${Math.max(0, Math.floor(rgb.g * (1 - percent))).toString(16).padStart(2, '0')}${Math.max(0, Math.floor(rgb.b * (1 - percent))).toString(16).padStart(2, '0')}`;
-                };
-                const rgb = hexToRgb(e.target.value);
-                document.documentElement.style.setProperty('--app-accent', e.target.value);
-                document.documentElement.style.setProperty('--app-accent-hover', darken(rgb, 0.1));
-                document.documentElement.style.setProperty('--app-accent-active', darken(rgb, 0.2));
-                document.documentElement.style.setProperty('--primary', e.target.value);
-                document.documentElement.style.setProperty('--accent', e.target.value);
-                document.documentElement.style.setProperty('--ring', e.target.value);
+                applyColorVariables(e.target.value, accentColor2, useGradient);
               }} 
               className="w-10 h-10 rounded cursor-pointer border-2 border-border" 
             />
@@ -297,38 +318,99 @@ function BrandingTab() {
           </div>
         </div>
 
+        {/* Secondary Color (for gradient) */}
+        {useGradient && (
+          <div className="animate-fade-in">
+            <label className="input-label">Gradient End Color</label>
+            <div className="flex items-center gap-3 mt-2">
+              <input 
+                type="color" 
+                value={accentColor2} 
+                onChange={(e) => {
+                  setAccentColor2(e.target.value);
+                  applyColorVariables(accentColor, e.target.value, useGradient);
+                }} 
+                className="w-10 h-10 rounded cursor-pointer border-2 border-border" 
+              />
+              <span className="text-sm text-text-tertiary mono">{accentColor2}</span>
+            </div>
+          </div>
+        )}
+
         {/* Live Preview */}
         <div className="p-4 rounded-lg bg-elevated border border-border">
           <p className="text-xs text-text-disabled uppercase tracking-wider mb-3">Live Preview</p>
           <div className="flex flex-col gap-3">
-            <button className="btn-primary w-full">Primary Button</button>
+            <button 
+              className="btn-primary w-full" 
+              style={useGradient ? { background: `linear-gradient(135deg, ${accentColor}, ${accentColor2})` } : {}}
+            >
+              Primary Button
+            </button>
             <button className="btn-secondary w-full">Secondary Button</button>
             <div className="flex items-center gap-3">
-              <div className="w-4 h-4 rounded" style={{ backgroundColor: accentColor }} />
+              <div className="w-4 h-4 rounded" style={{ background: useGradient ? `linear-gradient(135deg, ${accentColor}, ${accentColor2})` : accentColor }} />
               <span className="text-sm text-text-secondary">Accent indicator</span>
             </div>
           </div>
         </div>
 
-        <div>
-          <label className="input-label">Color Presets</label>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'].map((color) => (
-              <button
-                key={color}
-                onClick={() => {
-                  setAccentColor(color);
-                  document.documentElement.style.setProperty('--app-accent', color);
-                }}
-                className="w-8 h-8 rounded-full border-2 transition-transform hover:scale-110"
-                style={{ 
-                  backgroundColor: color,
-                  borderColor: accentColor === color ? 'white' : 'transparent'
-                }}
-              />
-            ))}
+        {/* Gradient Presets */}
+        {useGradient && (
+          <div className="animate-fade-in">
+            <label className="input-label">Gradient Presets</label>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {[
+                { start: '#3B82F6', end: '#2563EB', name: 'Blue' },
+                { start: '#10B981', end: '#059669', name: 'Emerald' },
+                { start: '#F59E0B', end: '#D97706', name: 'Amber' },
+                { start: '#8B5CF6', end: '#7C3AED', name: 'Violet' },
+                { start: '#EC4899', end: '#DB2777', name: 'Pink' },
+                { start: '#06B6D4', end: '#0891B2', name: 'Cyan' },
+                { start: '#10B981', end: '#3B82F6', name: 'Teal' },
+                { start: '#F59E0B', end: '#EF4444', name: 'Sunset' },
+              ].map((preset) => (
+                <button
+                  key={preset.name}
+                  onClick={() => {
+                    setAccentColor(preset.start);
+                    setAccentColor2(preset.end);
+                    applyColorVariables(preset.start, preset.end, useGradient);
+                  }}
+                  className="w-10 h-10 rounded-lg transition-transform hover:scale-110"
+                  style={{ 
+                    background: `linear-gradient(135deg, ${preset.start}, ${preset.end})`,
+                    border: accentColor === preset.start && accentColor2 === preset.end ? '2px solid white' : '2px solid transparent'
+                  }}
+                  title={preset.name}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Solid Color Presets (when not using gradient) */}
+        {!useGradient && (
+          <div>
+            <label className="input-label">Color Presets</label>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'].map((color) => (
+                <button
+                  key={color}
+                  onClick={() => {
+                    setAccentColor(color);
+                    applyColorVariables(color, accentColor2, useGradient);
+                  }}
+                  className="w-8 h-8 rounded-full border-2 transition-transform hover:scale-110"
+                  style={{ 
+                    backgroundColor: color,
+                    borderColor: accentColor === color ? 'white' : 'transparent'
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="pt-4">
           <button onClick={save} className="btn-primary">
