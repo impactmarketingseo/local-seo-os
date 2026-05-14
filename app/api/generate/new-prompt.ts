@@ -71,7 +71,7 @@ export const OUTPUT_SCHEMA = `
   "breadcrumb": "string // Home / Services / [Service] / [City], [ST]",
   "hero": {
     "review_line": "string // e.g., 4.9 stars - 47 reviews on Google",
-    "intro_paragraph": "string // 2-3 sentences. Bold the key phrase. Mention city.",
+    "intro_paragraph": "string // 120-200 characters. 2-3 sentences. Bold the key phrase. Mention city.",
     "cta_primary_text": "string // e.g., Schedule Furnace Repair",
     "cta_secondary_text": "string // e.g., Call 801-508-4816",
     "trust_badges": ["string x4 // Short credential labels"]
@@ -262,11 +262,20 @@ export function validateOutput(output: any): string[] {
   if (!output.meta?.title || output.meta.title.length > 60) {
     errors.push('Meta title must be 50-60 characters');
   }
+  if (!output.meta?.primary_keyword) {
+    errors.push('Meta must include primary_keyword');
+  }
+  if (!output.meta?.secondary_keywords || output.meta.secondary_keywords.length < 5) {
+    errors.push('Meta must include 5-7 secondary_keywords');
+  }
   if (!output.meta?.description || output.meta.description.length > 160) {
     errors.push('Meta description must be 150-160 characters');
   }
   if (!output.meta?.h1?.includes(' in ')) {
     errors.push('H1 must follow format: [Service] in [City], [State]');
+  }
+  if (!output.hero?.intro_paragraph || output.hero.intro_paragraph.length < 120) {
+    errors.push('Hero intro_paragraph must be 120-200 characters');
   }
   
   // Check problems

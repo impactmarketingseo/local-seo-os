@@ -53,8 +53,8 @@ export default function DraftDetailPage() {
   const statusKey = String(draft?.status || 'draft');
   const status = statusColors[statusKey] || statusColors.draft;
 
-  const primaryKeyword = content.meta?.h1?.replace(/\|.*$/, '').trim() || title;
-  const secondaryKeywords = content.meta?.keywords || content.meta?.secondary_keywords || [
+  const primaryKeyword = content.meta?.primary_keyword || content.meta?.h1?.replace(/\|.*$/, '').trim() || title;
+  const secondaryKeywords = content.meta?.secondary_keywords || content.meta?.keywords || [
     `${title.split(' ')[0]} ${title.split(' ').slice(1, 3).join(' ')} near me`,
     `best ${title.split(' ').slice(0, 3).join(' ')}`,
     `${title.split(' ')[0]} services in local area`,
