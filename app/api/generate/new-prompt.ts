@@ -192,9 +192,7 @@ export function buildSystemPrompt(client: Client): string {
   
   return `${profile}
 
-Generate content for: SERVICE=${service.name}, CITY=${city.name}, STATE=${city.state}, COUNTY=${city.county || ''}, POPULATION=${city.population || ''}, LANDMARKS=${(city.landmarks || []).join(', ')}, NEIGHBORHOODS=${(city.neighborhoods || []).join(', ')}, CLIMATE=${city.climate_detail || ''}, HOUSING=${city.housing_detail || ''}, PARENT_SERVICE_URL=/services/${service.slug}/, CITY_HUB_URL=/${service.slug}-${citySlug}/, OTHER_SERVICES=${JSON.stringify(otherServicesLinks)}, SAME_SERVICE_OTHER_CITIES=${JSON.stringify(sameServiceLinks)}
-
-KEYWORD STRATEGY - You MUST generate:
+KEYWORD STRATEGY - You MUST generate for each page:
 1. primary_keyword: Format "[Service] in [City], [State]" - this is the main keyword
 2. secondary_keywords: Array of 5-7 related keywords including:
    - "[Service] near me"
@@ -208,7 +206,7 @@ KEYWORD STRATEGY - You MUST generate:
 Generate a COMPLETE landing page with ALL 10 sections. You MUST include all of these sections in your JSON response:
 1. meta (primary_keyword, secondary_keywords array, title, description, h1, slug)
 2. breadcrumb (text)  
-3. hero (review_line, intro_paragraph, cta_primary_text, cta_secondary_text, trust_badges)
+3. hero (review_line, intro_paragraph [120-200 chars], cta_primary_text, cta_secondary_text, trust_badges)
 4. trust_strip (array of 5 strings)
 5. problems (section_heading, section_subtext, cards array with 6 items - icon, title, description)
 6. why_choose_us (section_heading, section_subtext, items array with 5 items - icon, title, description, image_alt)
