@@ -206,16 +206,27 @@ export default function DashboardPage() {
       // Get all recent drafts and filter client-side
       const { data: allDrafts, error: draftsError } = await supabase
         .from('drafts')
-        .select('*, clients(name), services(name), cities(name, state)')
+        .select('*, clients(name), service_id, city_id')
         .order('created_at', { ascending: false })
         .limit(20);
       
+      // Now fetch services and cities separately
+      const { data: allServices } = await supabase.from('services').select('id, name');
+      const { data: allCities } = await supabase.from('cities').select('id, name, state');
+      
+      // Map services and cities to drafts
+      const draftsWithRelations = allDrafts?.map((d: any) => ({
+        ...d,
+        services: allServices?.find((s: any) => s.id === d.service_id) || null,
+        cities: allCities?.find((c: any) => c.id === d.city_id) || null,
+      })) || [];
+      
       console.log('Drafts query error:', draftsError);
-      console.log('All drafts query result count:', allDrafts?.length || 0);
-      console.log('All drafts statuses:', allDrafts?.map((d: any) => d.status) || []);
+      console.log('All drafts query result count:', draftsWithRelations.length || 0);
+      console.log('All drafts statuses:', draftsWithRelations.map((d: any) => d.status) || []);
       
       // Filter to only show drafts that need attention (not approved/rejected/published)
-      const needsAttentionDrafts = allDrafts?.filter((d: any) => {
+      const needsAttentionDrafts = draftsWithRelations.filter((d: any) => {
         const status = String(d.status).toLowerCase();
         return !['approved', 'rejected', 'published'].includes(status);
       }).slice(0, 5) || [];
