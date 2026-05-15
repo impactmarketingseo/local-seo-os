@@ -75,7 +75,7 @@ function AttentionCard({ item, delay }: { item: AttentionItem; delay?: number })
 
   return (
     <div 
-      className="flex items-start gap-3 py-3 border-b border-border/50 last:border-0 animate-slide-up" 
+      className="flex flex-col sm:flex-row sm:items-start items-center gap-3 py-3 border-b border-border/50 last:border-0 animate-slide-up" 
       style={delay ? { animationDelay: `${delay}ms` } : undefined}
     >
       <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${typeColors[item.type] || 'bg-input text-text-tertiary'}`}>
@@ -83,12 +83,12 @@ function AttentionCard({ item, delay }: { item: AttentionItem; delay?: number })
           {typeIcons[item.type]}
         </svg>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-medium text-text-primary text-sm">{item.client_name}</p>
-        <p className="text-xs text-accent font-medium truncate">{item.title}</p>
+      <div className="flex-1 min-w-0 w-full text-center sm:text-left">
+        <p className="font-medium text-text-primary text-sm break-words">{item.client_name}</p>
+        <p className="text-xs text-accent font-medium break-words">{item.title}</p>
         <p className="text-xs text-text-tertiary">{item.issue}</p>
       </div>
-      <Link href={item.action_href} className="btn-primary text-xs px-3 py-1.5 shrink-0">
+      <Link href={item.action_href} className="btn-primary text-xs px-3 py-1.5 shrink-0 w-full sm:w-auto mt-2 sm:mt-0">
         {item.action_label}
       </Link>
     </div>
