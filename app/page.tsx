@@ -324,17 +324,17 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 overflow-x-hidden">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0 max-w-[100vw] box-border">
+      <div className="flex items-center justify-between mb-4 sm:mb-8">
         <div>
-          <h1 className="page-title">Dashboard</h1>
-          <p className="text-text-tertiary mt-1">Your content operations war room</p>
+          <h1 className="page-title text-lg sm:text-2xl">Dashboard</h1>
+          <p className="text-text-tertiary mt-1 text-xs sm:text-sm">Your content operations war room</p>
         </div>
       </div>
       
       {/* Top Stats Row */}
-      <div className="radial-glow pb-8">
-        <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4 min-w-0">
+      <div className="radial-glow pb-4 sm:pb-8 w-full min-w-0">
+        <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4 min-w-0 w-full">
           {loading ? (
             <>
               <StatCardSkeleton />
@@ -353,12 +353,12 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2 min-w-0">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 min-w-0 w-full">
         {/* Attention Queue */}
         <div className="card-standard">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="section-title">Needs Your Attention</h2>
-            <Link href="/drafts" className="text-sm text-accent hover:underline">View All</Link>
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 className="section-title text-sm sm:text-base">Needs Your Attention</h2>
+            <Link href="/drafts" className="text-xs sm:text-sm text-accent hover:underline">View All</Link>
           </div>
           {loading ? (
             <div className="space-y-3">
@@ -379,8 +379,8 @@ export default function DashboardPage() {
 
         {/* Quick Actions Grid */}
         <div className="card-standard">
-          <h2 className="section-title mb-4">Quick Actions</h2>
-          <div className="grid gap-3 grid-cols-2">
+          <h2 className="section-title mb-3 sm:mb-4 text-sm sm:text-base">Quick Actions</h2>
+          <div className="grid gap-2 sm:gap-3 grid-cols-2">
             <QuickActionCard 
               icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />}
               label="Add New Client" 
