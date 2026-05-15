@@ -262,6 +262,25 @@ export function Sidebar() {
   useEffect(() => setIsOpen(false), [pathname]);
   useEffect(() => { if (isOpen) document.body.style.overflow = 'hidden'; else document.body.style.overflow = 'unset'; }, [isOpen]);
 
+  // Update mobile status counts
+  useEffect(() => {
+    async function loadMobileCounts() {
+      const supabase = createSupabaseBrowserClient();
+      const [queueRes, draftsRes] = await Promise.all([
+        supabase.from('page_queue').select('id', { count: 'exact', head: true }).in('status', ['pending', 'planned', 'failed']),
+        supabase.from('drafts').select('id', { count: 'exact', head: true }).in('status', ['generated', 'review']),
+      ]);
+      
+      const queueEl = document.getElementById('mobile-queue-count');
+      const reviewEl = document.getElementById('mobile-review-count');
+      if (queueEl) queueEl.textContent = String(queueRes.count || 0);
+      if (reviewEl) reviewEl.textContent = String(draftsRes.count || 0);
+    }
+    loadMobileCounts();
+    const interval = setInterval(loadMobileCounts, 30000);
+    return () => clearInterval(interval);
+  }, [isOpen]);
+
   const LogoImage = () => {
     if (loading) {
       return <div className="w-8 h-8 rounded-lg bg-input animate-pulse" />;
@@ -312,6 +331,21 @@ export function Sidebar() {
             </button>
           </div>
           <div className="p-4">
+            {/* Status Summary */}
+            <div className="mb-4 p-3 bg-elevated/50 rounded-lg">
+              <p className="text-xs text-text-disabled mb-2">Status</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="text-xs">
+                  <span className="text-text-tertiary">Queue</span>
+                  <p className="font-medium text-warning" id="mobile-queue-count">-</p>
+                </div>
+                <div className="text-xs">
+                  <span className="text-text-tertiary">Review</span>
+                  <p className="font-medium text-accent" id="mobile-review-count">-</p>
+                </div>
+              </div>
+            </div>
+            
             <p className="text-xs text-text-tertiary uppercase font-semibold mb-2 tracking-wider">Workspace</p>
             <nav className="space-y-1 mb-6">
               {navItems.map((item) => {

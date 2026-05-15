@@ -75,22 +75,22 @@ function AttentionCard({ item, delay }: { item: AttentionItem; delay?: number })
 
   return (
     <div 
-      className="flex items-center justify-between p-4 rounded-lg bg-card border border-border hover:border-accent/30 transition-all animate-slide-up" 
+      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-card border border-border hover:border-accent/30 transition-all animate-slide-up" 
       style={delay ? { animationDelay: `${delay}ms` } : undefined}
     >
-      <div className="flex items-center gap-4 flex-1 min-w-0">
+      <div className="flex items-center gap-4 flex-1 min-w-0 w-full">
         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${typeColors[item.type] || 'bg-input text-text-tertiary'}`}>
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             {typeIcons[item.type]}
           </svg>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-text-primary">{item.client_name}</p>
+          <p className="font-medium text-text-primary truncate">{item.client_name}</p>
           <p className="text-sm text-accent font-medium truncate">{item.title}</p>
           <p className="text-xs text-text-tertiary">{item.issue}</p>
         </div>
       </div>
-      <Link href={item.action_href} className="btn-primary text-sm ml-4 shrink-0">
+      <Link href={item.action_href} className="btn-primary text-sm shrink-0 w-full sm:w-auto text-center">
         {item.action_label}
       </Link>
     </div>
@@ -144,10 +144,10 @@ function QuickActionCard({ icon, label, description, href, delay }: { icon: Reac
   return (
     <Link 
       href={href} 
-      className="group card-standard hover:border-accent/40 animate-scale-in"
+      className="group card-standard hover:border-accent/40 animate-scale-in text-center sm:text-left"
       style={delay ? { animationDelay: `${delay}ms` } : undefined}
     >
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent group-hover:bg-accent group-hover:text-white transition-colors">
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent group-hover:bg-accent group-hover:text-white transition-colors mx-auto sm:mx-0">
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           {icon}
         </svg>
@@ -380,7 +380,7 @@ export default function DashboardPage() {
         {/* Quick Actions Grid */}
         <div className="card-standard">
           <h2 className="section-title mb-4">Quick Actions</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 grid-cols-2">
             <QuickActionCard 
               icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />}
               label="Add New Client" 
