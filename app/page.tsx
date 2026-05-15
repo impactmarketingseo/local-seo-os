@@ -324,7 +324,7 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="p-4 sm:p-6 lg:p-8 overflow-x-hidden">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="page-title">Dashboard</h1>
@@ -334,7 +334,7 @@ export default function DashboardPage() {
       
       {/* Top Stats Row */}
       <div className="radial-glow pb-8">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
           {loading ? (
             <>
               <StatCardSkeleton />
