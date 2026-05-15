@@ -33,13 +33,13 @@ interface ActivityEvent {
 
 function StatCard({ label, value, trend, trendUp, highlight }: { label: string; value: number; trend?: string; trendUp?: boolean; highlight?: boolean }) {
   return (
-    <div className={`card-standard ${highlight ? 'glow-pulse' : ''}`}>
+    <div className={`card-standard ${highlight ? 'glow-pulse' : ''}`} style={{ padding: '12px' }}>
       <p className="text-[10px] sm:text-xs font-medium uppercase tracking-wider text-text-tertiary">{label}</p>
-      <div className="mt-1 sm:mt-2 flex items-baseline gap-1 sm:gap-2">
+      <div className="mt-1 flex items-baseline gap-1">
         <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary">{value}</p>
         {trend && (
-          <span className={`flex items-center text-xs font-medium ${trendUp ? 'text-success' : 'text-error'}`}>
-            {trendUp ? '↑' : '↓'} {trend}
+          <span className={`flex items-center text-[10px] sm:text-xs font-medium ${trendUp ? 'text-success' : 'text-error'}`}>
+            {trendUp ? '↑' : '↓'}
           </span>
         )}
       </div>
@@ -144,16 +144,16 @@ function QuickActionCard({ icon, label, description, href, delay }: { icon: Reac
   return (
     <Link 
       href={href} 
-      className="group card-standard hover:border-accent/40 animate-scale-in text-center sm:text-left"
+      className="group card-standard hover:border-accent/40 animate-scale-in text-center p-3 sm:p-5"
       style={delay ? { animationDelay: `${delay}ms` } : undefined}
     >
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent group-hover:bg-accent group-hover:text-white transition-colors mx-auto sm:mx-0">
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-accent/10 text-accent group-hover:bg-accent group-hover:text-white transition-colors mx-auto">
+        <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           {icon}
         </svg>
       </div>
-      <p className="mt-3 font-semibold text-text-primary">{label}</p>
-      <p className="mt-1 text-sm text-text-tertiary">{description}</p>
+      <p className="mt-2 font-semibold text-text-primary text-xs sm:text-sm">{label}</p>
+      <p className="mt-1 text-[10px] sm:text-xs text-text-tertiary">{description}</p>
     </Link>
   );
 }
@@ -324,17 +324,15 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8" style={{ maxWidth: '100vw', overflowX: 'hidden', boxSizing: 'border-box' }}>
-      <div className="flex items-center justify-between mb-4 sm:mb-8">
-        <div>
-          <h1 className="page-title text-lg sm:text-2xl">Dashboard</h1>
-          <p className="text-text-tertiary mt-1 text-xs sm:text-sm">Your content operations war room</p>
-        </div>
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="page-title">Dashboard</h1>
+        <p className="text-text-tertiary mt-1 text-sm">Your content operations war room</p>
       </div>
       
       {/* Top Stats Row */}
-      <div className="radial-glow pb-4 sm:pb-8" style={{ maxWidth: '100%' }}>
-        <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="radial-glow pb-6 sm:pb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {loading ? (
             <>
               <StatCardSkeleton />
@@ -353,12 +351,12 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2" style={{ maxWidth: '100%' }}>
+      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Attention Queue */}
-        <div className="card-standard">
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h2 className="section-title text-sm sm:text-base">Needs Your Attention</h2>
-            <Link href="/drafts" className="text-xs sm:text-sm text-accent hover:underline shrink-0">View All</Link>
+        <div className="card-standard" style={{ padding: '12px' }}>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="section-title text-sm">Needs Your Attention</h2>
+            <Link href="/drafts" className="text-xs text-accent hover:underline shrink-0">View All</Link>
           </div>
           {loading ? (
             <div className="space-y-3">
@@ -378,9 +376,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Actions Grid */}
-        <div className="card-standard">
-          <h2 className="section-title mb-3 sm:mb-4 text-sm sm:text-base">Quick Actions</h2>
-          <div className="grid gap-2 sm:gap-3 grid-cols-2">
+        <div className="card-standard" style={{ padding: '12px' }}>
+          <h2 className="section-title mb-3 text-sm">Quick Actions</h2>
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <QuickActionCard 
               icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />}
               label="Add New Client" 
