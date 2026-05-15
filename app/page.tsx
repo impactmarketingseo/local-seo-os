@@ -34,11 +34,11 @@ interface ActivityEvent {
 function StatCard({ label, value, trend, trendUp, highlight }: { label: string; value: number; trend?: string; trendUp?: boolean; highlight?: boolean }) {
   return (
     <div className={`card-standard ${highlight ? 'glow-pulse' : ''}`}>
-      <p className="text-xs font-medium uppercase tracking-wider text-text-tertiary">{label}</p>
-      <div className="mt-2 flex items-baseline gap-2">
-        <p className="text-4xl font-bold text-text-primary">{value}</p>
+      <p className="text-[10px] sm:text-xs font-medium uppercase tracking-wider text-text-tertiary">{label}</p>
+      <div className="mt-1 sm:mt-2 flex items-baseline gap-1 sm:gap-2">
+        <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary">{value}</p>
         {trend && (
-          <span className={`flex items-center text-sm font-medium ${trendUp ? 'text-success' : 'text-error'}`}>
+          <span className={`flex items-center text-xs font-medium ${trendUp ? 'text-success' : 'text-error'}`}>
             {trendUp ? '↑' : '↓'} {trend}
           </span>
         )}
@@ -334,7 +334,7 @@ export default function DashboardPage() {
       
       {/* Top Stats Row */}
       <div className="radial-glow pb-8">
-        <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4 min-w-0">
           {loading ? (
             <>
               <StatCardSkeleton />
@@ -353,7 +353,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 min-w-0">
         {/* Attention Queue */}
         <div className="card-standard">
           <div className="flex items-center justify-between mb-4">
