@@ -81,7 +81,7 @@ export default function DraftsPage() {
 
   if (loading) {
     return (
-      <div className="p-6 lg:p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="skeleton h-8 w-24 mb-6" />
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => <div key={i} className="skeleton h-24 rounded-lg" />)}
@@ -128,7 +128,7 @@ export default function DraftsPage() {
 
       {/* Draft List */}
       {drafts.length === 0 ? (
-        <div className="card-standard text-center">
+        <div className="rounded-lg border border-border text-center" style={{ backgroundColor: 'var(--background)', padding: '40px' }}>
           <div className="flex h-14 w-14 mx-auto mb-4 items-center justify-center rounded-full bg-input">
             <svg className="w-7 h-7 text-text-disabled" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -149,8 +149,8 @@ export default function DraftsPage() {
               <Link 
                 key={draft.id} 
                 href={`/drafts/${draft.id}`} 
-                className="block card-standard hover:border-accent/40 animate-fade-in"
-                style={{ animationDelay: `${index * 50}ms` }}
+                className="block rounded-lg border border-border hover:border-accent/40 animate-fade-in transition-all"
+                style={{ animationDelay: `${index * 50}ms`, backgroundColor: 'var(--background)', padding: '20px' }}
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1 min-w-0 mr-3">
