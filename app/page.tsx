@@ -324,7 +324,7 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0 max-w-[100vw] box-border">
+    <div className="p-4 sm:p-6 lg:p-8" style={{ maxWidth: '100vw', overflowX: 'hidden', boxSizing: 'border-box' }}>
       <div className="flex items-center justify-between mb-4 sm:mb-8">
         <div>
           <h1 className="page-title text-lg sm:text-2xl">Dashboard</h1>
@@ -333,8 +333,8 @@ export default function DashboardPage() {
       </div>
       
       {/* Top Stats Row */}
-      <div className="radial-glow pb-4 sm:pb-8 w-full min-w-0">
-        <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4 min-w-0 w-full">
+      <div className="radial-glow pb-4 sm:pb-8" style={{ maxWidth: '100%' }}>
+        <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
           {loading ? (
             <>
               <StatCardSkeleton />
@@ -353,12 +353,12 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 min-w-0 w-full">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2" style={{ maxWidth: '100%' }}>
         {/* Attention Queue */}
         <div className="card-standard">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h2 className="section-title text-sm sm:text-base">Needs Your Attention</h2>
-            <Link href="/drafts" className="text-xs sm:text-sm text-accent hover:underline">View All</Link>
+            <Link href="/drafts" className="text-xs sm:text-sm text-accent hover:underline shrink-0">View All</Link>
           </div>
           {loading ? (
             <div className="space-y-3">
@@ -369,7 +369,7 @@ export default function DashboardPage() {
           ) : attentionItems.length === 0 ? (
             <EmptyAttention />
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3" style={{ maxWidth: '100%' }}>
               {attentionItems.map((item, index) => (
                 <AttentionCard key={item.id} item={item} delay={(index + 1) * 50} />
               ))}
