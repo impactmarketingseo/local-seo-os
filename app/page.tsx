@@ -49,9 +49,9 @@ function StatCard({ label, value, trend, trendUp, highlight }: { label: string; 
 
 function StatCardSkeleton() {
   return (
-    <div className="card-standard">
-      <div className="skeleton h-4 w-24 mb-2" />
-      <div className="skeleton h-10 w-16" />
+    <div className="card-standard" style={{ padding: '12px' }}>
+      <div className="skeleton h-3 w-20 mb-2" />
+      <div className="skeleton h-8 w-12" />
     </div>
   );
 }
@@ -75,22 +75,20 @@ function AttentionCard({ item, delay }: { item: AttentionItem; delay?: number })
 
   return (
     <div 
-      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-card border border-border hover:border-accent/30 transition-all animate-slide-up" 
+      className="flex items-start gap-3 py-3 border-b border-border/50 last:border-0 animate-slide-up" 
       style={delay ? { animationDelay: `${delay}ms` } : undefined}
     >
-      <div className="flex items-center gap-4 flex-1 min-w-0 w-full">
-        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${typeColors[item.type] || 'bg-input text-text-tertiary'}`}>
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            {typeIcons[item.type]}
-          </svg>
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-text-primary truncate">{item.client_name}</p>
-          <p className="text-sm text-accent font-medium truncate">{item.title}</p>
-          <p className="text-xs text-text-tertiary">{item.issue}</p>
-        </div>
+      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${typeColors[item.type] || 'bg-input text-text-tertiary'}`}>
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          {typeIcons[item.type]}
+        </svg>
       </div>
-      <Link href={item.action_href} className="btn-primary text-sm shrink-0 w-full sm:w-auto text-center">
+      <div className="flex-1 min-w-0">
+        <p className="font-medium text-text-primary text-sm">{item.client_name}</p>
+        <p className="text-xs text-accent font-medium truncate">{item.title}</p>
+        <p className="text-xs text-text-tertiary">{item.issue}</p>
+      </div>
+      <Link href={item.action_href} className="btn-primary text-xs px-3 py-1.5 shrink-0">
         {item.action_label}
       </Link>
     </div>
@@ -367,7 +365,7 @@ export default function DashboardPage() {
           ) : attentionItems.length === 0 ? (
             <EmptyAttention />
           ) : (
-            <div className="space-y-3" style={{ maxWidth: '100%' }}>
+            <div>
               {attentionItems.map((item, index) => (
                 <AttentionCard key={item.id} item={item} delay={(index + 1) * 50} />
               ))}
