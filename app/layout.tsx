@@ -25,11 +25,11 @@ export default async function RootLayout({
   
   return (
     <html lang="en">
-      <body className="min-h-screen bg-app antialiased">
+      <body className="min-h-screen bg-app antialiased overflow-x-hidden">
         <AppSettingsProvider>
           <ToastContainer />
           {isAuthenticated && <Sidebar />}
-          <main className={isAuthenticated ? 'pt-14 lg:pt-0 lg:ml-64 min-h-screen' : 'min-h-screen'}>
+          <main className={isAuthenticated ? 'pt-14 lg:pt-0 lg:ml-64 min-h-screen overflow-x-hidden' : 'min-h-screen'}>
             {children}
           </main>
         </AppSettingsProvider>
