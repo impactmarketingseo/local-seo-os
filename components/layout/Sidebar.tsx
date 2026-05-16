@@ -368,14 +368,26 @@ export function Sidebar() {
               {systemItems.map((item) => (
                 <Link key={item.name} href={item.href}
                   className={`flex items-center gap-3 px-4 py-3 rounded-md transition-colors ${
-                    pathname === item.href 
-                      ? 'bg-accent/10 text-text-primary font-medium' 
+                    pathname === item.href
+                      ? 'bg-accent/10 text-text-primary font-medium'
                       : 'text-text-tertiary hover:bg-elevated hover:text-text-secondary'
                   }`}>
                   <Icon name={item.icon} className="w-5 h-5" />
                   {item.name}
                 </Link>
               ))}
+              <button
+                onClick={async () => {
+                  await fetch('/api/auth/logout', { method: 'POST' });
+                  window.location.href = '/login';
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-md transition-colors text-text-tertiary hover:bg-elevated hover:text-text-secondary"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Sign Out
+              </button>
             </nav>
             <Link href="/clients/new" className="mt-6 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-md bg-accent hover:bg-accent-hover font-medium text-white transition-colors">
               <Icon name="plus" className="w-5 h-5" />
@@ -436,8 +448,8 @@ export function Sidebar() {
               return (
                 <Link key={item.name} href={item.href}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all relative ${
-                    isActive 
-                      ? 'bg-accent/10 text-text-primary' 
+                    isActive
+                      ? 'bg-accent/10 text-text-primary'
                       : 'text-text-tertiary hover:bg-elevated hover:text-text-secondary'
                   }`}>
                   {isActive && (
@@ -448,6 +460,18 @@ export function Sidebar() {
                 </Link>
               );
             })}
+            <button
+              onClick={async () => {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.href = '/login';
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all text-text-tertiary hover:bg-elevated hover:text-text-secondary`}
+            >
+              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              {!collapsed && <span>Sign Out</span>}
+            </button>
           </nav>
           <div className={`flex items-center justify-between mt-4 ${collapsed ? 'flex-col gap-3' : ''}`}>
             {!collapsed && (
@@ -458,7 +482,7 @@ export function Sidebar() {
                 <p className="text-xs text-text-disabled">v1.0.0</p>
               </div>
             )}
-            <button 
+            <button
               onClick={() => setCollapsed(!collapsed)}
               className="p-1.5 rounded-md text-text-disabled hover:text-text-secondary hover:bg-elevated transition-colors"
             >

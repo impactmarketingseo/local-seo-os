@@ -22,7 +22,7 @@ export default async function RootLayout({
 }) {
   const cookieStore = await cookies();
   const isAuthenticated = cookieStore.has('access_password');
-  
+
   return (
     <html lang="en">
       <body className="min-h-screen bg-app antialiased overflow-x-hidden">
@@ -30,7 +30,9 @@ export default async function RootLayout({
           <ToastContainer />
           {isAuthenticated && <Sidebar />}
           <main className={isAuthenticated ? 'pt-14 lg:pt-0 lg:ml-64 min-h-screen overflow-x-hidden' : 'min-h-screen'}>
-            {children}
+            <div className={!isAuthenticated ? 'min-h-screen flex items-center justify-center bg-sidebar' : ''}>
+              {children}
+            </div>
           </main>
         </AppSettingsProvider>
       </body>
