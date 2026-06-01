@@ -39,7 +39,9 @@ export async function POST(req: NextRequest) {
 
     console.log('Queue item:', { service_id: queueItem.service_id, city_id: queueItem.city_id });
 
-    const generateUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    // Derive base URL from the incoming request
+    const url = new URL(req.url);
+    const generateUrl = `${url.protocol}//${url.host}`;
 
     const generateResponse = await fetch(`${generateUrl}/api/generate/v2`, {
       method: 'POST',

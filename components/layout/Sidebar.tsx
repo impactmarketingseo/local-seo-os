@@ -111,7 +111,7 @@ function ModelHealth({ collapsed }: { collapsed: boolean }) {
   useEffect(() => {
     async function checkGroq() {
       try {
-        const res = await fetch('https://api.groq.com/openapi/v1/models', {
+        const res = await fetch('https://api.groq.com/openai/v1/models', {
           method: 'HEAD',
           headers: { Authorization: `Bearer ${process.env.NEXT_PUBLIC_GROQ_API_KEY || ''}` },
         });
