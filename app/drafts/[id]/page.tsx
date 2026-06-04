@@ -607,11 +607,38 @@ export default function DraftDetailPage() {
           </div>
         </div>
 
-        {/* Action Buttons - Mobile: bottom right */}
-        {String(draft?.status) !== 'approved' && String(draft?.status) !== 'complete' && String(draft?.status) !== 'published' && (
-          <>
-            {/* Desktop: bottom left, avoiding sidebar */}
-            <div className="fixed bottom-4 left-64 bg-card border border-border rounded-lg p-3 z-40 shadow-xl hidden lg:flex gap-2">
+        {/* Action Buttons - always visible */}
+        <>
+          {/* Desktop: bottom left, avoiding sidebar */}
+          <div className="fixed bottom-4 left-64 bg-card border border-border rounded-lg p-3 z-40 shadow-xl hidden lg:flex gap-2">
+            <button 
+              onClick={handleApprove} 
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-text-primary rounded-lg text-sm font-medium"
+            >
+              ✓ Approve
+            </button>
+            <button 
+              onClick={handleComplete} 
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-text-primary rounded-lg text-sm font-medium"
+            >
+              ✓ Mark Complete
+            </button>
+            <button 
+              onClick={handleReject} 
+              className="px-3 py-2 bg-gray-700 hover:bg-elevated text-text-primary rounded-lg text-sm"
+            >
+              Reject
+            </button>
+            <button 
+              onClick={() => setShowDelete(true)} 
+              className="px-3 py-2 bg-gray-700 hover:bg-gray-700 text-red-400 rounded-lg text-sm"
+            >
+              🗑
+            </button>
+          </div>
+          {/* Mobile: bottom right */}
+          <div className="fixed bottom-4 right-4 bg-card border border-border rounded-lg p-3 z-40 shadow-xl lg:hidden">
+            <div className="flex gap-2">
               <button 
                 onClick={handleApprove} 
                 className="px-4 py-2 bg-green-600 hover:bg-green-700 text-text-primary rounded-lg text-sm font-medium"
@@ -622,7 +649,7 @@ export default function DraftDetailPage() {
                 onClick={handleComplete} 
                 className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-text-primary rounded-lg text-sm font-medium"
               >
-                ✓ Mark Complete
+                ✓ Complete
               </button>
               <button 
                 onClick={handleReject} 
@@ -637,37 +664,8 @@ export default function DraftDetailPage() {
                 🗑
               </button>
             </div>
-            {/* Mobile: bottom right */}
-            <div className="fixed bottom-4 right-4 bg-card border border-border rounded-lg p-3 z-40 shadow-xl lg:hidden">
-              <div className="flex gap-2">
-                <button 
-                  onClick={handleApprove} 
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-text-primary rounded-lg text-sm font-medium"
-                >
-                  ✓ Approve
-                </button>
-                <button 
-                  onClick={handleComplete} 
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-text-primary rounded-lg text-sm font-medium"
-                >
-                  ✓ Complete
-                </button>
-                <button 
-                  onClick={handleReject} 
-                  className="px-3 py-2 bg-gray-700 hover:bg-elevated text-text-primary rounded-lg text-sm"
-                >
-                  Reject
-                </button>
-                <button 
-                  onClick={() => setShowDelete(true)} 
-                  className="px-3 py-2 bg-gray-700 hover:bg-gray-700 text-red-400 rounded-lg text-sm"
-                >
-                  🗑
-                </button>
-              </div>
-            </div>
-          </>
-        )}
+          </div>
+        </>
 
         {/* Delete Modal */}
         {showDelete && (
