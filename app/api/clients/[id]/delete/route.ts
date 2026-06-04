@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function DELETE(
   req: NextRequest,
@@ -7,7 +12,6 @@ export async function DELETE(
 ) {
   try {
     const { id: clientId } = await params;
-    const supabase = createAdminClient();
 
     if (!clientId) {
       return NextResponse.json({ error: 'Missing client id' }, { status: 400 });
