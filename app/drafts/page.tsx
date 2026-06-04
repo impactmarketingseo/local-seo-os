@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { toast } from '@/components/Toast';
 
 interface Draft {
   id: string;
@@ -76,8 +77,13 @@ export default function DraftsPage() {
 
   async function updateStatus(id: string, status: string) {
     const supabase = createSupabaseBrowserClient();
-    await supabase.from('drafts').update({ status }).eq('id', id);
+    const { error } = await supabase.from('drafts').update({ status }).eq('id', id);
+    if (error) {
+      toast('Failed to update status: ' + error.message, 'error');
+      return;
+    }
     setDrafts(drafts.map(d => d.id === id ? { ...d, status } : d));
+    toast(`Status changed to ${status}`, 'success');
   }
 
   if (loading) {
