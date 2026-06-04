@@ -63,6 +63,9 @@ export default function ClientDetailPage() {
   const [cloning, setCloning] = useState(false);
   const [otherClients, setOtherClients] = useState<{id: string, name: string}[]>([]);
   const [stats, setStats] = useState({ drafts: 0, queue: 0, published: 0 });
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     async function loadClient() {
@@ -151,6 +154,27 @@ export default function ClientDetailPage() {
     setCities(cities.filter(c => c.id !== id));
   }
 
+  async function handleDelete() {
+    if (deleteConfirm !== client?.name) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/clients/${clientId}/delete`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast(data.error || 'Failed to delete client', 'error');
+        setDeleting(false);
+        return;
+      }
+      toast(`Client "${client?.name}" and all associated data deleted`, 'success');
+      router.push('/clients');
+    } catch (e) {
+      toast('Failed to delete: ' + e, 'error');
+      setDeleting(false);
+    }
+  }
+
   async function cloneFromClient(sourceClientId: string) {
     if (!sourceClientId || sourceClientId === clientId) return;
     setCloning(true);
@@ -227,6 +251,12 @@ export default function ClientDetailPage() {
           >
             Edit
           </Link>
+          <button
+            onClick={() => setShowDelete(true)}
+            className="rounded-md px-4 py-2.5 text-sm font-medium text-error hover:bg-error/10 transition-colors border border-error/30"
+          >
+            Delete
+          </button>
           <Link
             href="/queue"
             className="btn-primary"
@@ -300,6 +330,67 @@ export default function ClientDetailPage() {
           )}
         </div>
       </div>
+
+      {showDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-xl border border-error/30 bg-card p-6 shadow-2xl">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-error/10">
+                <svg className="w-5 h-5 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-text-primary">Delete Client</h3>
+                <p className="text-sm text-text-tertiary">This action cannot be undone.</p>
+              </div>
+            </div>
+
+            <div className="mb-4 rounded-lg border border-error/20 bg-error/5 p-3 text-sm">
+              <p className="text-text-secondary mb-2">The following will be permanently removed:</p>
+              <ul className="space-y-1 text-text-tertiary">
+                <li>• {services.length} service{services.length !== 1 ? 's' : ''}</li>
+                <li>• {cities.length} cit{cities.length !== 1 ? 'ies' : 'y'}</li>
+                <li>• {stats.queue} queue item{stats.queue !== 1 ? 's' : ''}</li>
+                <li>• {stats.drafts} draft{stats.drafts !== 1 ? 's' : ''} (including content and versions)</li>
+                <li>• WordPress connection (if any)</li>
+              </ul>
+            </div>
+
+            <p className="mb-2 text-sm text-text-secondary">
+              Type <span className="font-mono font-semibold text-error">{client.name}</span> to confirm:
+            </p>
+            <input
+              type="text"
+              value={deleteConfirm}
+              onChange={(e) => setDeleteConfirm(e.target.value)}
+              placeholder={client.name}
+              className="input-field mb-4"
+              autoFocus
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setShowDelete(false);
+                  setDeleteConfirm('');
+                }}
+                disabled={deleting}
+                className="btn-secondary"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting || deleteConfirm !== client.name}
+                className="rounded-md bg-error px-4 py-2.5 text-sm font-medium text-white hover:bg-error/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deleting ? 'Deleting...' : 'Delete Forever'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
