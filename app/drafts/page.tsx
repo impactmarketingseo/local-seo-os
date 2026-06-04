@@ -44,7 +44,7 @@ export default function DraftsPage() {
       const supabase = createSupabaseBrowserClient();
       let query = supabase
         .from('drafts')
-        .select('*')
+        .select('*, clients(name)')
         .order('created_at', { ascending: false });
       if (filter !== 'all') query = query.eq('status', filter);
       if (clientFilter) query = query.eq('client_id', clientFilter);
@@ -161,6 +161,11 @@ export default function DraftsPage() {
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1 min-w-0 mr-3">
+                    {(draft as any).clients?.name && (
+                      <span className="inline-block mb-1.5 rounded-md bg-accent/10 text-accent px-2 py-0.5 text-xs font-medium">
+                        {(draft as any).clients.name}
+                      </span>
+                    )}
                     <h3 className="font-semibold text-text-primary truncate">
                       {(draft as any).content_json?.meta?.title || 
                        (draft as any).content_json?.meta?.h1 || 
