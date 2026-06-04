@@ -156,7 +156,7 @@ export const OUTPUT_SCHEMA = `
     "local_business": "object // Complete LocalBusiness JSON-LD: { @context, @type: LocalBusiness, name, address: { @type: PostalAddress, streetAddress, addressLocality, addressRegion, postalCode }, geo: { @type: GeoCoordinates, latitude, longitude }, telephone, openingHours, image, url }",
     "faq_page": "object // Complete FAQPage JSON-LD: { @context, @type: FAQPage, mainEntity: [{ @type: Question, name: question, acceptedAnswer: { @type: Answer, text: answer } }] }",
     "service": "object // Complete Service JSON-LD: { @context, @type: Service, name, description, provider: { @type: LocalBusiness, name }, areaServed: { @type: City, name } }",
-    "breadcrumb_list": "object // Complete BreadcrumbList JSON-LD: { @context, @type: BreadcrumbList, itemListElement: [{ @type: ListItem, position, name, item: url }] }"
+    "breadcrumb_list": "object // Complete BreadcrumbList JSON-LD: { @context, @type: BreadcrumbList, itemListElement: [{ @type: ListItem, position: 1, name: 'Home', item: 'https://example.com' }, { @type: ListItem, position: 2, name: 'Services', item: 'https://example.com/services' }, ...] }. position MUST be a number starting at 1 and incrementing by 1 for each item."
   }
 }
 `;
@@ -287,17 +287,32 @@ export function parseAIResponse(response: string): any {
   cleanJson = cleanJson.substring(startIdx, endIdx + 1);
   
   // Try to parse, if fails try to extract just the first valid JSON object
+  let parsed: any;
   try {
-    return JSON.parse(cleanJson);
+    parsed = JSON.parse(cleanJson);
   } catch (err) {
     // Try removing any trailing text after last }
     const tryAgain = cleanJson.replace(/}\s*$/, '').trim() + '}';
     try {
-      return JSON.parse(tryAgain);
+      parsed = JSON.parse(tryAgain);
     } catch {
       throw new Error('Failed to parse JSON: ' + (err as Error).message);
     }
   }
+
+  // Auto-fix: ensure BreadcrumbList items have position
+  if (parsed?.schema_markup?.breadcrumb_list?.itemListElement) {
+    const items = parsed.schema_markup.breadcrumb_list.itemListElement;
+    if (Array.isArray(items)) {
+      items.forEach((item: any, idx: number) => {
+        if (item && item.position == null) {
+          item.position = idx + 1;
+        }
+      });
+    }
+  }
+
+  return parsed;
 }
 
 export function validateOutput(output: any): string[] {
