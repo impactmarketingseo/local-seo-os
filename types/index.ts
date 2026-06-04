@@ -114,7 +114,7 @@ export interface QueueItem {
   keyword_target?: KeywordTarget;
 }
 
-export type DraftStatus = 'draft' | 'review' | 'approved' | 'rejected' | 'published';
+export type DraftStatus = 'draft' | 'review' | 'approved' | 'complete' | 'rejected' | 'published';
 
 export interface Draft {
   id: string;

@@ -26,6 +26,7 @@ const statusColors: Record<string, { bg: string; text: string }> = {
   draft: { bg: 'bg-warning/10', text: 'text-warning' },
   review: { bg: 'bg-info/10', text: 'text-info' },
   approved: { bg: 'bg-success/10', text: 'text-success' },
+  complete: { bg: 'bg-purple-500/10', text: 'text-purple-400' },
   rejected: { bg: 'bg-error/10', text: 'text-error' },
 };
 
@@ -116,7 +117,7 @@ export default function DraftsPage() {
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
-        {['all', 'draft', 'review', 'approved', 'rejected'].map((status) => (
+        {['all', 'draft', 'review', 'approved', 'complete', 'rejected'].map((status) => (
           <button key={status} onClick={() => setFilter(status)}
             className={`px-4 py-2 rounded-md text-sm font-medium capitalize whitespace-nowrap transition-colors ${
               filter === status ? 'bg-accent text-white' : 'bg-input text-text-tertiary hover:text-text-secondary'
@@ -168,7 +169,14 @@ export default function DraftsPage() {
                   <button 
                     onClick={(e) => {
                       e.preventDefault();
-                      const nextStatus = String(draft.status) === 'draft' ? 'review' : String(draft.status) === 'review' ? 'approved' : 'draft';
+                      const current = String(draft.status);
+                      const cycle: Record<string, string> = {
+                        draft: 'review',
+                        review: 'approved',
+                        approved: 'complete',
+                        complete: 'draft',
+                      };
+                      const nextStatus = cycle[current] || 'draft';
                       updateStatus(draft.id, nextStatus);
                     }}
                     onMouseEnter={(e) => e.currentTarget.classList.add('ring-2', 'ring-accent')}

@@ -43,6 +43,12 @@ export default function DraftDetailPage() {
     if (draft) setDraft({ ...draft, status: 'approved' });
   }
 
+  async function handleComplete() {
+    const supabase = createSupabaseBrowserClient();
+    await supabase.from('drafts').update({ status: 'complete' }).eq('id', draftId);
+    if (draft) setDraft({ ...draft, status: 'complete' });
+  }
+
   async function handleReject() {
     const supabase = createSupabaseBrowserClient();
     await supabase.from('drafts').update({ status: 'rejected' }).eq('id', draftId);
@@ -137,6 +143,7 @@ export default function DraftDetailPage() {
     draft: { bg: 'bg-yellow-900/30', text: 'text-yellow-400' },
     review: { bg: 'bg-blue-900/30', text: 'text-accent' },
     approved: { bg: 'bg-green-900/30', text: 'text-green-400' },
+    complete: { bg: 'bg-purple-900/30', text: 'text-purple-400' },
     rejected: { bg: 'bg-red-900/30', text: 'text-red-400' },
   };
   const statusKey = String(draft?.status || 'draft');
@@ -601,7 +608,7 @@ export default function DraftDetailPage() {
         </div>
 
         {/* Action Buttons - Mobile: bottom right */}
-        {String(draft?.status) !== 'approved' && String(draft?.status) !== 'published' && (
+        {String(draft?.status) !== 'approved' && String(draft?.status) !== 'complete' && String(draft?.status) !== 'published' && (
           <>
             {/* Desktop: bottom left, avoiding sidebar */}
             <div className="fixed bottom-4 left-64 bg-card border border-border rounded-lg p-3 z-40 shadow-xl hidden lg:flex gap-2">
@@ -610,6 +617,12 @@ export default function DraftDetailPage() {
                 className="px-4 py-2 bg-green-600 hover:bg-green-700 text-text-primary rounded-lg text-sm font-medium"
               >
                 ✓ Approve
+              </button>
+              <button 
+                onClick={handleComplete} 
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-text-primary rounded-lg text-sm font-medium"
+              >
+                ✓ Mark Complete
               </button>
               <button 
                 onClick={handleReject} 
@@ -632,6 +645,12 @@ export default function DraftDetailPage() {
                   className="px-4 py-2 bg-green-600 hover:bg-green-700 text-text-primary rounded-lg text-sm font-medium"
                 >
                   ✓ Approve
+                </button>
+                <button 
+                  onClick={handleComplete} 
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-text-primary rounded-lg text-sm font-medium"
+                >
+                  ✓ Complete
                 </button>
                 <button 
                   onClick={handleReject} 
