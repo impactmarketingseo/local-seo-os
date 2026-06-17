@@ -31,8 +31,10 @@ export default function NewClientPage() {
     credentials: '',
     differentiators: '',
     service_area_cities: '',
+    voice_notes: '',
     cta_preference: '',
     banned_phrases: '',
+    client_types: '',
     services_raw: '',
     cities_raw: '',
   });
@@ -62,6 +64,11 @@ export default function NewClientPage() {
       .split(',')
       .map(p => p.trim())
       .filter(Boolean);
+    
+    const clientTypes = form.client_types
+      .split(',')
+      .map(p => p.trim())
+      .filter(Boolean);
 
     // Create client first
     const { data: client, error } = await supabase.from('clients').insert({
@@ -84,13 +91,14 @@ export default function NewClientPage() {
       emergency_hours: form.emergency_hours || null,
       contact_url: form.contact_url || null,
       services_url: form.services_url || null,
-      credentials: creds.length > 0 ? creds : null,
-      differentiators: diffs.length > 0 ? diffs : null,
-      service_area_cities: areaCities.length > 0 ? areaCities : null,
-      voice_notes: form.voice_notes || null,
-      cta_preference: form.cta_preference || null,
-      banned_phrases: banned.length > 0 ? banned : null,
-      status: 'active',
+       credentials: creds.length > 0 ? creds : null,
+       differentiators: diffs.length > 0 ? diffs : null,
+       service_area_cities: areaCities.length > 0 ? areaCities : null,
+       voice_notes: form.voice_notes || null,
+       cta_preference: form.cta_preference || null,
+       banned_phrases: banned.length > 0 ? banned : null,
+       client_types: clientTypes.length > 0 ? clientTypes : null,
+       status: 'active',
     }).select().single();
 
     if (!error && client) {
@@ -290,18 +298,29 @@ export default function NewClientPage() {
           />
         </div>
 
-        <div>
-          <label className="input-label">Banned Phrases (comma-separated)</label>
-          <input
-            type="text"
-            value={form.banned_phrases}
-            onChange={e => setForm({ ...form, banned_phrases: e.target.value })}
-            className="input-field"
-            placeholder="cheap, affordable, bargain..."
-          />
-        </div>
+         <div>
+           <label className="input-label">Banned Phrases (comma-separated)</label>
+           <input
+             type="text"
+             value={form.banned_phrases}
+             onChange={e => setForm({ ...form, banned_phrases: e.target.value })}
+             className="input-field"
+             placeholder="cheap, affordable, bargain..."
+           />
+         </div>
 
-        <div className="border-t border-border pt-6 mt-6">
+         <div>
+           <label className="input-label">Client Types (comma-separated)</label>
+           <input
+             type="text"
+             value={form.client_types}
+             onChange={e => setForm({ ...form, client_types: e.target.value })}
+             className="input-field"
+             placeholder="Residential, Commercial, Contractor"
+           />
+         </div>
+
+         <div className="border-t border-border pt-6 mt-6">
           <h3 className="section-title mb-4">Quick Add Services</h3>
           <p className="text-xs text-text-tertiary mb-3">Paste services separated by commas - they'll be created automatically</p>
           <textarea

@@ -34,6 +34,7 @@ export interface Client {
   voice_notes?: string;
   cta_preference?: string;
   banned_phrases?: string[];
+  client_types?: string[];
   status: 'active' | 'archived';
   created_at: string;
   updated_at: string;

@@ -169,6 +169,7 @@ Service area: ${(client.service_area_cities || []).join(', ')}
 Credentials: ${(client.credentials || []).join(', ')}
 Differentiators: ${(client.differentiators || []).join(', ')}
 Emergency: ${client.emergency_hours} | Contact: ${client.contact_url || '/contact/'}
+Client types: ${(client.client_types || []).join(', ')}
 === YOUR TASK ===`;
 }
 
