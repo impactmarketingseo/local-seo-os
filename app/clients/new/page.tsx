@@ -31,7 +31,6 @@ export default function NewClientPage() {
     credentials: '',
     differentiators: '',
     service_area_cities: '',
-    voice_notes: '',
     cta_preference: '',
     banned_phrases: '',
     client_types: '',
