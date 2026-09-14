@@ -5,6 +5,7 @@ export async function GET(req: NextRequest) {
   const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
   const cohereKey = process.env.COHERE_API_KEY || process.env.NEXT_PUBLIC_COHERE_API_KEY;
   const togetherKey = process.env.TOGETHER_API_KEY || process.env.NEXT_PUBLIC_TOGETHER_API_KEY;
+  const openrouterKey = process.env.OPENROUTER_API_KEY || process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
 
   const results: Record<string, any> = {};
 
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
+          model: 'qwen-2.5-32b',
           messages: [{ role: 'user', content: 'Say OK' }],
           max_tokens: 10,
         }),
@@ -57,7 +58,7 @@ export async function GET(req: NextRequest) {
         headers: { 'Authorization': `Bearer ${cohereKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'command-r',
-          messages: [{ role: 'user', content: 'Say OK' }],
+          message: 'Say OK',
           max_tokens: 10,
         }),
       });
@@ -91,5 +92,31 @@ export async function GET(req: NextRequest) {
     results.together = { error: 'No TOGETHER_API_KEY set' };
   }
 
-  return NextResponse.json({ keys: { groq: !!groqKey, gemini: !!geminiKey, cohere: !!cohereKey, together: !!togetherKey }, results });
+  // Test OpenRouter
+  if (openrouterKey) {
+    try {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${openrouterKey}`, 
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://impactseo.app',
+          'X-Title': 'Impact SEO OS',
+        },
+        body: JSON.stringify({
+          model: 'meta-llama/llama-3.1-8b-instruct:free',
+          messages: [{ role: 'user', content: 'Say OK' }],
+          max_tokens: 10,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      results.openrouter = { status: res.status, ok: res.ok, error: data.error?.message };
+    } catch (e) {
+      results.openrouter = { error: String(e) };
+    }
+  } else {
+    results.openrouter = { error: 'No OPENROUTER_API_KEY set' };
+  }
+
+  return NextResponse.json({ keys: { groq: !!groqKey, gemini: !!geminiKey, cohere: !!cohereKey, together: !!togetherKey, openrouter: !!openrouterKey }, results });
 }
