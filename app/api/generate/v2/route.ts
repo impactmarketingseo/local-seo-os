@@ -113,7 +113,7 @@ let content = '';
     const geminiModelMap: Record<string, { name: string; maxTokens: number }> = {
       'gemini-flash': { name: 'gemini-1.5-flash', maxTokens: 8000 },
       'gemini-flash-002': { name: 'gemini-1.5-flash-002', maxTokens: 8000 },
-      'gemini-exp': { name: 'gemini-2.0-flash-exp', maxTokens: 8000 },
+      'gemini-2.0-flash': { name: 'gemini-2.0-flash-exp', maxTokens: 8000 },
     };
     
     const cohereModelMap: Record<string, { name: string; maxTokens: number; systemLimit: number; pageLimit: number }> = {
@@ -122,8 +122,8 @@ let content = '';
     };
     
     const togetherModelMap: Record<string, { name: string; maxTokens: number; systemLimit: number; pageLimit: number }> = {
-      'together-llama3': { name: 'meta-llama/Llama-3-70b-chat', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
-      'together-mixtral': { name: 'mistralai/Mixtral-8x7b-instruct-v0.1', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
+      'together-llama3': { name: 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
+      'together-mixtral': { name: 'mistralai/Mixtral-8x22B-Instruct-v0.1', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
       'together-qwen': { name: 'Qwen/Qwen2-72B-Instruct', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
     };
     

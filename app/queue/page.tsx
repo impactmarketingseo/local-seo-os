@@ -433,14 +433,14 @@ const counts: Record<string, number> = {
             className="input-field text-sm w-full sm:w-auto"
           >
             <optgroup label="Groq">
-              <option value="groq-mixtral">Groq Mixtral (32k)</option>
-              <option value="groq-llama70">Groq Llama 3.3 70B (32k)</option>
-              <option value="groq-llama8">Groq Llama 3.1 8B (8k)</option>
+              <option value="groq-mixtral">Groq Llama 3.1 70B (32k)</option>
+              <option value="groq-llama70">Groq Llama 3.1 70B Versatile (32k)</option>
+              <option value="groq-llama8">Groq Llama 3.1 8B Instant (8k)</option>
             </optgroup>
             <optgroup label="Gemini">
               <option value="gemini-flash">Gemini 1.5 Flash</option>
               <option value="gemini-flash-002">Gemini 1.5 Flash 002</option>
-              <option value="gemini-exp">Gemini 2.0 Flash Exp</option>
+              <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
             </optgroup>
             <optgroup label="Cohere (Free)">
               <option value="cohere-command">Cohere Command-R</option>
