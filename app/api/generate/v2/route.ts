@@ -107,7 +107,7 @@ let content = '';
     const groqModelMap: Record<string, { name: string; maxTokens: number; systemLimit: number; pageLimit: number }> = {
       'groq-llama70': { name: 'llama-3.1-70b-versatile', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
       'groq-llama8': { name: 'llama-3.1-8b-instant', maxTokens: 6000, systemLimit: 1500, pageLimit: 800 },
-      'groq-mixtral': { name: 'mixtral-8x7b-32768', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
+      'groq-mixtral': { name: 'llama-3.1-70b-versatile', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
     };
     
     const geminiModelMap: Record<string, { name: string; maxTokens: number }> = {
