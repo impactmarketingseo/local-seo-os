@@ -96,7 +96,8 @@ export async function POST(req: NextRequest) {
     const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     const cohereKey = process.env.COHERE_API_KEY || process.env.NEXT_PUBLIC_COHERE_API_KEY;
     const togetherKey = process.env.TOGETHER_API_KEY || process.env.NEXT_PUBLIC_TOGETHER_API_KEY;
-    console.log('Keys - Groq:', !!groqKey, 'Gemini:', !!geminiKey, 'Cohere:', !!cohereKey, 'Together:', !!togetherKey);
+    const openrouterKey = process.env.OPENROUTER_API_KEY || process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
+    console.log('Keys - Groq:', !!groqKey, 'Gemini:', !!geminiKey, 'Cohere:', !!cohereKey, 'Together:', !!togetherKey, 'OpenRouter:', !!openrouterKey);
 
 let content = '';
     let aiModel = 'groq';
@@ -126,8 +127,14 @@ let content = '';
       'together-qwen': { name: 'Qwen/Qwen2-72B-Instruct', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
     };
     
+    const openrouterModelMap: Record<string, { name: string; maxTokens: number; systemLimit: number; pageLimit: number }> = {
+      'openrouter-llama3': { name: 'meta-llama/llama-3.1-8b-instruct:free', maxTokens: 8000, systemLimit: 2000, pageLimit: 1000 },
+      'openrouter-mistral': { name: 'mistralai/mistral-7b-instruct:free', maxTokens: 8000, systemLimit: 2000, pageLimit: 1000 },
+      'openrouter-qwen': { name: 'qwen/qwen-2.5-7b-instruct:free', maxTokens: 8000, systemLimit: 2000, pageLimit: 1000 },
+    };
+    
     // Check if any API keys are configured
-    const hasKeys = groqKey || geminiKey || cohereKey || togetherKey;
+    const hasKeys = groqKey || geminiKey || cohereKey || togetherKey || openrouterKey;
     if (!hasKeys) {
       return NextResponse.json(
         { error: 'No AI API keys configured', details: 'Set GROQ_API_KEY, GEMINI_API_KEY, COHERE_API_KEY, or TOGETHER_API_KEY in Vercel environment variables' },
@@ -347,6 +354,68 @@ let content = '';
           }
         } catch (e) {
           const errMsg = `Together ${modelConfig.name}: ${String(e)}`;
+          console.log(errMsg);
+          errors.push(errMsg);
+        }
+      }
+    }
+    
+    // Try OpenRouter with free models
+    if (!content && openrouterKey) {
+      console.log('Trying OpenRouter...');
+      
+      let openrouterModelsToTry: { name: string; maxTokens: number; systemLimit: number; pageLimit: number }[] = [];
+      
+      if (model && openrouterModelMap[model]) {
+        const selected = openrouterModelMap[model];
+        openrouterModelsToTry = [selected, ...Object.values(openrouterModelMap).filter(m => m.name !== selected.name)];
+      } else {
+        openrouterModelsToTry = Object.values(openrouterModelMap);
+      }
+      
+      for (const modelConfig of openrouterModelsToTry) {
+        try {
+          console.log(`Trying OpenRouter model: ${modelConfig.name}`);
+          
+          const truncatedSystem = systemPrompt.substring(0, modelConfig.systemLimit);
+          const truncatedPage = pageRequest.substring(0, modelConfig.pageLimit);
+          
+          const openrouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openrouterKey}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'https://impactseo.app',
+              'X-Title': 'Impact SEO OS',
+            },
+            body: JSON.stringify({
+              model: modelConfig.name,
+              messages: [
+                { role: 'system', content: truncatedSystem },
+                { role: 'user', content: truncatedPage }
+              ],
+              max_tokens: Math.min(8000, modelConfig.maxTokens - 1000),
+              temperature: 0.7,
+            }),
+          });
+          
+          console.log(`OpenRouter ${modelConfig.name} status:`, openrouterResponse.status);
+          
+          if (openrouterResponse.ok) {
+            const data = await openrouterResponse.json();
+            content = data.choices?.[0]?.message?.content || '';
+            tokenCount = data.usage?.total_tokens || 0;
+            aiModel = 'openrouter';
+            console.log(`OpenRouter ${modelConfig.name} content length:`, content.length);
+            if (content) break;
+          } else {
+            const errData = await openrouterResponse.json().catch(() => ({}));
+            const errMsg = `OpenRouter ${modelConfig.name}: ${errData?.error?.message || openrouterResponse.status}`;
+            console.log(errMsg);
+            errors.push(errMsg);
+          }
+        } catch (e) {
+          const errMsg = `OpenRouter ${modelConfig.name}: ${String(e)}`;
           console.log(errMsg);
           errors.push(errMsg);
         }

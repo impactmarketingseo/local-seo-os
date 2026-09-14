@@ -445,10 +445,15 @@ const counts: Record<string, number> = {
               <option value="cohere-command">Cohere Command-R</option>
               <option value="cohere-command-plus">Cohere Command-R+</option>
             </optgroup>
-            <optgroup label="Together AI (Free $5)">
-              <option value="together-llama3">Together Llama 3 70B</option>
-              <option value="together-mixtral">Together Mixtral</option>
+            <optgroup label="Together AI (Paid)">
+              <option value="together-llama3">Together Llama 3.1 70B</option>
+              <option value="together-mixtral">Together Mixtral 8x22B</option>
               <option value="together-qwen">Together Qwen 72B</option>
+            </optgroup>
+            <optgroup label="OpenRouter (Free)">
+              <option value="openrouter-llama3">OpenRouter Llama 3.1 8B (Free)</option>
+              <option value="openrouter-mistral">OpenRouter Mistral 7B (Free)</option>
+              <option value="openrouter-qwen">OpenRouter Qwen 2.5 7B (Free)</option>
             </optgroup>
           </select>
           
