@@ -105,14 +105,13 @@ let content = '';
 
     // Model configuration based on user selection
     const groqModelMap: Record<string, { name: string; maxTokens: number; systemLimit: number; pageLimit: number }> = {
-      'groq-llama70': { name: 'llama-3.3-70b-versatile', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
       'groq-llama8': { name: 'llama-3.1-8b-instant', maxTokens: 6000, systemLimit: 1500, pageLimit: 800 },
-      'groq-mixtral': { name: 'llama-3.3-70b-versatile', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
+      'groq-gemma': { name: 'gemma2-9b-it', maxTokens: 8000, systemLimit: 2000, pageLimit: 1000 },
+      'groq-qwen': { name: 'qwen-2.5-32b', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
     };
     
     const geminiModelMap: Record<string, { name: string; maxTokens: number }> = {
       'gemini-flash': { name: 'gemini-1.5-flash', maxTokens: 8000 },
-      'gemini-flash-002': { name: 'gemini-1.5-flash-002', maxTokens: 8000 },
       'gemini-2.0-flash': { name: 'gemini-2.0-flash-exp', maxTokens: 8000 },
     };
     
@@ -274,10 +273,7 @@ let content = '';
             },
             body: JSON.stringify({
               model: modelConfig.name,
-              messages: [
-                { role: 'system', content: truncatedSystem },
-                { role: 'user', content: truncatedPage }
-              ],
+              message: `${truncatedSystem}\n\n${truncatedPage}`,
               max_tokens: Math.min(8000, modelConfig.maxTokens - 1000),
               temperature: 0.7,
             }),
