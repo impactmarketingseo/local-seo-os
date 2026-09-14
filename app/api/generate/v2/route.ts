@@ -98,15 +98,16 @@ export async function POST(req: NextRequest) {
     const togetherKey = process.env.TOGETHER_API_KEY || process.env.NEXT_PUBLIC_TOGETHER_API_KEY;
     console.log('Keys - Groq:', !!groqKey, 'Gemini:', !!geminiKey, 'Cohere:', !!cohereKey, 'Together:', !!togetherKey);
 
-    let content = '';
+let content = '';
     let aiModel = 'groq';
     let tokenCount = 0;
+    const errors: string[] = [];
 
     // Model configuration based on user selection
     const groqModelMap: Record<string, { name: string; maxTokens: number; systemLimit: number; pageLimit: number }> = {
-      'groq-mixtral': { name: 'mixtral-8x7b-32768', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
-      'groq-llama70': { name: 'llama-3.3-70b-versatile', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
+      'groq-llama70': { name: 'llama-3.1-70b-versatile', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
       'groq-llama8': { name: 'llama-3.1-8b-instant', maxTokens: 6000, systemLimit: 1500, pageLimit: 800 },
+      'groq-mixtral': { name: 'mixtral-8x7b-32768', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
     };
     
     const geminiModelMap: Record<string, { name: string; maxTokens: number }> = {
@@ -114,18 +115,27 @@ export async function POST(req: NextRequest) {
       'gemini-flash-002': { name: 'gemini-1.5-flash-002', maxTokens: 8000 },
       'gemini-exp': { name: 'gemini-2.0-flash-exp', maxTokens: 8000 },
     };
-
+    
     const cohereModelMap: Record<string, { name: string; maxTokens: number; systemLimit: number; pageLimit: number }> = {
       'cohere-command': { name: 'command-r', maxTokens: 16000, systemLimit: 4000, pageLimit: 2000 },
       'cohere-command-plus': { name: 'command-r-plus', maxTokens: 32000, systemLimit: 6000, pageLimit: 3000 },
     };
-
+    
     const togetherModelMap: Record<string, { name: string; maxTokens: number; systemLimit: number; pageLimit: number }> = {
       'together-llama3': { name: 'meta-llama/Llama-3-70b-chat', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
       'together-mixtral': { name: 'mistralai/Mixtral-8x7b-instruct-v0.1', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
       'together-qwen': { name: 'Qwen/Qwen2-72B-Instruct', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
     };
-
+    
+    // Check if any API keys are configured
+    const hasKeys = groqKey || geminiKey || cohereKey || togetherKey;
+    if (!hasKeys) {
+      return NextResponse.json(
+        { error: 'No AI API keys configured', details: 'Set GROQ_API_KEY, GEMINI_API_KEY, COHERE_API_KEY, or TOGETHER_API_KEY in Vercel environment variables' },
+        { status: 500 }
+      );
+    }
+    
     // Try Groq with user-selected or fallback models
     if (groqKey && !content) {
       console.log('Attempting Groq API call...');
@@ -176,10 +186,14 @@ export async function POST(req: NextRequest) {
             if (content) break;
           } else {
             const errData = await groqResponse.json().catch(() => ({}));
-            console.log(`Groq ${modelConfig.name} error:`, errData?.error?.message || 'unknown');
+            const errMsg = errData?.error?.message || 'unknown';
+            console.log(`Groq ${modelConfig.name} error:`, errMsg);
+            errors.push(`Groq ${modelConfig.name}: ${errMsg}`);
           }
         } catch (e) {
+          const errMsg = String(e);
           console.log(`Groq ${modelConfig.name} exception:`, e);
+          errors.push(`Groq ${modelConfig.name}: ${errMsg}`);
         }
       }
     }
@@ -221,10 +235,14 @@ export async function POST(req: NextRequest) {
             console.log(`Gemini ${modelConfig.name} content:`, content.length);
             if (content) break;
           } else {
-            console.log(`Gemini ${modelConfig.name} status:`, geminiResponse.status);
+            const errMsg = `Gemini ${modelConfig.name} status: ${geminiResponse.status}`;
+            console.log(errMsg);
+            errors.push(errMsg);
           }
         } catch (e) {
-          console.log(`Gemini ${modelConfig.name} exception:`, e);
+          const errMsg = `Gemini ${modelConfig.name}: ${String(e)}`;
+          console.log(errMsg);
+          errors.push(errMsg);
         }
       }
     }
@@ -272,10 +290,14 @@ export async function POST(req: NextRequest) {
             console.log(`Cohere ${modelConfig.name} content:`, content.length);
             if (content) break;
           } else {
-            console.log(`Cohere ${modelConfig.name} status:`, cohereResponse.status);
+            const errMsg = `Cohere ${modelConfig.name} status: ${cohereResponse.status}`;
+            console.log(errMsg);
+            errors.push(errMsg);
           }
         } catch (e) {
-          console.log(`Cohere ${modelConfig.name} exception:`, e);
+          const errMsg = `Cohere ${modelConfig.name}: ${String(e)}`;
+          console.log(errMsg);
+          errors.push(errMsg);
         }
       }
     }
@@ -323,17 +345,21 @@ export async function POST(req: NextRequest) {
             console.log(`Together ${modelConfig.name} content:`, content.length);
             if (content) break;
           } else {
-            console.log(`Together ${modelConfig.name} status:`, togetherResponse.status);
+            const errMsg = `Together ${modelConfig.name} status: ${togetherResponse.status}`;
+            console.log(errMsg);
+            errors.push(errMsg);
           }
         } catch (e) {
-          console.log(`Together ${modelConfig.name} exception:`, e);
+          const errMsg = `Together ${modelConfig.name}: ${String(e)}`;
+          console.log(errMsg);
+          errors.push(errMsg);
         }
       }
     }
     
     if (!content) {
-      console.log('All APIs failed');
-      return NextResponse.json({ error: 'AI generation failed', details: 'No content from AI API' }, { status: 500 });
+      console.log('All APIs failed. Errors:', errors);
+      return NextResponse.json({ error: 'AI generation failed', details: errors.join('; ') || 'No content from AI API' }, { status: 500 });
     }
     
     // Parse the JSON response
