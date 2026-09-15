@@ -165,7 +165,7 @@ export default function QueuePage() {
   const [services, setServices] = useState<{ id: string; name: string }[]>([]);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [bulkGenerating, setBulkGenerating] = useState(false);
-  const [model, setModel] = useState<string>('groq-mixtral');
+  const [model, setModel] = useState<string>('cohere-command-r-plus');
 
   const loadQueue = useCallback(async () => {
     const supabase = createSupabaseBrowserClient();
@@ -432,17 +432,17 @@ const counts: Record<string, number> = {
             onChange={(e) => setModel(e.target.value)}
             className="input-field text-sm w-full sm:w-auto"
           >
-            <optgroup label="Groq (Free Tier)">
-              <option value="groq-llama8">Groq Llama 3.1 8B Instant (8k)</option>
-              <option value="groq-gemma">Groq Gemma 2 9B (8k)</option>
+            <optgroup label="Cohere (Free - Primary)">
+              <option value="cohere-command-r-plus">Cohere Command R+ 08-2024</option>
+              <option value="cohere-command-a">Cohere Command A 03-2025</option>
             </optgroup>
             <optgroup label="Gemini (Free Tier)">
               <option value="gemini-flash">Gemini 1.5 Flash</option>
               <option value="gemini-2.0-flash">Gemini 2.0 Flash Exp</option>
             </optgroup>
-            <optgroup label="Cohere (Free Tier)">
-              <option value="cohere-command-r-plus">Cohere Command R+ 08-2024</option>
-              <option value="cohere-command-a">Cohere Command A 03-2025</option>
+            <optgroup label="Groq (Limited)">
+              <option value="groq-llama8">Groq Llama 3.1 8B Instant (8k)</option>
+              <option value="groq-gemma">Groq Gemma 2 9B (8k)</option>
             </optgroup>
             <optgroup label="Together AI (Paid)">
               <option value="together-llama3">Together Llama 3.1 70B</option>
