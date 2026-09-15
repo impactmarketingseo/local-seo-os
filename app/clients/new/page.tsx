@@ -100,7 +100,18 @@ export default function NewClientPage() {
        status: 'active',
     }).select().single();
 
-    if (!error && client) {
+    if (error) {
+      console.error('Client creation error:', error);
+      alert('Failed to create client: ' + error.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!client) {
+      alert('Failed to create client: No data returned');
+      setLoading(false);
+      return;
+    }
       console.log('Client created:', client.id, 'Services input:', form.services_raw);
       
       // Process services - split by comma, newline, or semicolon
