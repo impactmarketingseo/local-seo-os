@@ -112,65 +112,63 @@ export default function NewClientPage() {
       setLoading(false);
       return;
     }
-      console.log('Client created:', client.id, 'Services input:', form.services_raw);
+
+    console.log('Client created:', client.id, 'Services input:', form.services_raw);
+    
+    // Process services - split by comma, newline, or semicolon
+    if (form.services_raw && form.services_raw.trim()) {
+      // Split by multiple delimiters: comma, semicolon, or newline
+      const rawServices = form.services_raw
+        .split(/(?:,|;|\n)+/)
+        .map(s => s.trim())
+        .filter(s => s && s.length > 0);
       
-      // Process services - split by comma, newline, or semicolon
-      if (form.services_raw && form.services_raw.trim()) {
-        // Split by multiple delimiters: comma, semicolon, or newline
-        const rawServices = form.services_raw
-          .split(/(?:,|;|\n)+/)
-          .map(s => s.trim())
-          .filter(s => s && s.length > 0);
+      console.log('Parsed services:', rawServices);
+      
+      if (rawServices.length > 0) {
+        const serviceRecords = rawServices.map((name, index) => ({
+          client_id: client.id,
+          name: name,
+          slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+          active: true,
+          priority: index,
+        }));
         
-        console.log('Parsed services:', rawServices);
-        
-        if (rawServices.length > 0) {
-          const serviceRecords = rawServices.map((name, index) => ({
-            client_id: client.id,
-            name: name,
-            slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-            active: true,
-            priority: index,
-          }));
-          
-          console.log('Inserting services:', serviceRecords);
-          const { error: servicesError } = await supabase.from('services').insert(serviceRecords);
-          if (servicesError) {
-            console.error('Services insert error:', servicesError);
-          }
+        console.log('Inserting services:', serviceRecords);
+        const { error: servicesError } = await supabase.from('services').insert(serviceRecords);
+        if (servicesError) {
+          console.error('Services insert error:', servicesError);
         }
       }
-
-      // Process cities - split by comma, newline, or semicolon
-      // Use client's state for all cities
-      const clientState = form.state || '';
-      if (form.cities_raw && form.cities_raw.trim()) {
-        const rawCities = form.cities_raw
-          .split(/(?:,|;|\n)+/)
-          .map(c => c.trim())
-          .filter(c => c && c.length > 0);
-        
-        if (rawCities.length > 0) {
-          const cityRecords = rawCities.map((name, index) => ({
-            client_id: client.id,
-            name: name,
-            state: clientState,
-            slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-            active: true,
-            priority: index,
-          }));
-          
-          const { error: citiesError } = await supabase.from('cities').insert(cityRecords);
-          if (citiesError) {
-            console.error('Cities insert error:', citiesError);
-          }
-        }
-      }
-
-      router.push('/clients');
-    } else if (error) {
-      console.error('Client insert error:', error);
     }
+
+    // Process cities - split by comma, newline, or semicolon
+    // Use client's state for all cities
+    const clientState = form.state || '';
+    if (form.cities_raw && form.cities_raw.trim()) {
+      const rawCities = form.cities_raw
+        .split(/(?:,|;|\n)+/)
+        .map(c => c.trim())
+        .filter(c => c && c.length > 0);
+      
+      if (rawCities.length > 0) {
+        const cityRecords = rawCities.map((name, index) => ({
+          client_id: client.id,
+          name: name,
+          state: clientState,
+          slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+          active: true,
+          priority: index,
+        }));
+        
+        const { error: citiesError } = await supabase.from('cities').insert(cityRecords);
+        if (citiesError) {
+          console.error('Cities insert error:', citiesError);
+        }
+      }
+    }
+
+    router.push('/clients');
     setLoading(false);
   }
 
