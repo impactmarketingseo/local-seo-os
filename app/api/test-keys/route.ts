@@ -9,42 +9,45 @@ export async function GET(req: NextRequest) {
 
   const results: Record<string, any> = {};
 
-  // Test Groq
+  // Test Groq - try multiple models
   if (groqKey) {
-    try {
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'llama-3.1-8b-instant',
-          messages: [{ role: 'user', content: 'Say OK' }],
-          max_tokens: 10,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      results.groq = { status: res.status, ok: res.ok, error: data.error?.message, model: data.model };
-    } catch (e) {
-      results.groq = { error: String(e) };
+    const groqModels = ['llama-3.1-8b-instant', 'gemma2-9b-it', 'llama3-8b-8192', 'gemma-7b-it'];
+    results.groq = { models: {} };
+    for (const model of groqModels) {
+      try {
+        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model, messages: [{ role: 'user', content: 'OK' }], max_tokens: 5 }),
+        });
+        const data = await res.json().catch(() => ({}));
+        results.groq.models[model] = { status: res.status, ok: res.ok, error: data.error?.message };
+        if (res.ok) break;
+      } catch (e) {
+        results.groq.models[model] = { error: String(e) };
+      }
     }
   } else {
     results.groq = { error: 'No GROQ_API_KEY set' };
   }
 
-  // Test Gemini
+  // Test Gemini - try multiple models
   if (geminiKey) {
-    try {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: 'Say OK' }] }],
-          generationConfig: { maxOutputTokens: 10 },
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      results.gemini = { status: res.status, ok: res.ok, error: data.error?.message };
-    } catch (e) {
-      results.gemini = { error: String(e) };
+    const geminiModels = ['gemini-1.5-flash', 'gemini-1.5-flash-001', 'gemini-1.5-flash-002', 'gemini-2.0-flash-exp'];
+    results.gemini = { models: {} };
+    for (const model of geminiModels) {
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: 'OK' }] }], generationConfig: { maxOutputTokens: 5 } }),
+        });
+        const data = await res.json().catch(() => ({}));
+        results.gemini.models[model] = { status: res.status, ok: res.ok, error: data.error?.message };
+        if (res.ok) break;
+      } catch (e) {
+        results.gemini.models[model] = { error: String(e) };
+      }
     }
   } else {
     results.gemini = { error: 'No GEMINI_API_KEY set' };
@@ -56,11 +59,7 @@ export async function GET(req: NextRequest) {
       const res = await fetch('https://api.cohere.ai/v1/chat', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${cohereKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'command-r-plus-08-2024',
-          message: 'Say OK',
-          max_tokens: 10,
-        }),
+        body: JSON.stringify({ model: 'command-r-plus-08-2024', message: 'OK', max_tokens: 5 }),
       });
       const data = await res.json().catch(() => ({}));
       results.cohere = { status: res.status, ok: res.ok, error: data.message };
@@ -77,11 +76,7 @@ export async function GET(req: NextRequest) {
       const res = await fetch('https://api.together.xyz/v1/chat/completions', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${togetherKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
-          messages: [{ role: 'user', content: 'Say OK' }],
-          max_tokens: 10,
-        }),
+        body: JSON.stringify({ model: 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo', messages: [{ role: 'user', content: 'OK' }], max_tokens: 5 }),
       });
       const data = await res.json().catch(() => ({}));
       results.together = { status: res.status, ok: res.ok, error: data.error?.message };
@@ -97,17 +92,8 @@ export async function GET(req: NextRequest) {
     try {
       const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
-        headers: { 
-          'Authorization': `Bearer ${openrouterKey}`, 
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://impactseo.app',
-          'X-Title': 'Impact SEO OS',
-        },
-        body: JSON.stringify({
-          model: 'meta-llama/llama-3.1-8b-instruct:free',
-          messages: [{ role: 'user', content: 'Say OK' }],
-          max_tokens: 10,
-        }),
+        headers: { 'Authorization': `Bearer ${openrouterKey}`, 'Content-Type': 'application/json', 'HTTP-Referer': 'https://impactseo.app', 'X-Title': 'Impact SEO OS' },
+        body: JSON.stringify({ model: 'meta-llama/llama-3.1-8b-instruct:free', messages: [{ role: 'user', content: 'OK' }], max_tokens: 5 }),
       });
       const data = await res.json().catch(() => ({}));
       results.openrouter = { status: res.status, ok: res.ok, error: data.error?.message };
