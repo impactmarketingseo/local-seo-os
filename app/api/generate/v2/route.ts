@@ -108,7 +108,6 @@ let content = '';
     const groqModelMap: Record<string, { name: string; maxTokens: number; systemLimit: number; pageLimit: number }> = {
       'groq-llama8': { name: 'llama-3.1-8b-instant', maxTokens: 6000, systemLimit: 1500, pageLimit: 800 },
       'groq-gemma': { name: 'gemma2-9b-it', maxTokens: 8000, systemLimit: 2000, pageLimit: 1000 },
-      'groq-qwen': { name: 'qwen-2.5-32b', maxTokens: 32000, systemLimit: 4000, pageLimit: 2000 },
     };
     
     const geminiModelMap: Record<string, { name: string; maxTokens: number }> = {
@@ -117,8 +116,8 @@ let content = '';
     };
     
     const cohereModelMap: Record<string, { name: string; maxTokens: number; systemLimit: number; pageLimit: number }> = {
-      'cohere-command': { name: 'command-r', maxTokens: 16000, systemLimit: 4000, pageLimit: 2000 },
-      'cohere-command-plus': { name: 'command-r-plus', maxTokens: 32000, systemLimit: 6000, pageLimit: 3000 },
+      'cohere-command-r-plus': { name: 'command-r-plus-08-2024', maxTokens: 32000, systemLimit: 6000, pageLimit: 3000 },
+      'cohere-command-a': { name: 'command-a-03-2025', maxTokens: 32000, systemLimit: 6000, pageLimit: 3000 },
     };
     
     const togetherModelMap: Record<string, { name: string; maxTokens: number; systemLimit: number; pageLimit: number }> = {

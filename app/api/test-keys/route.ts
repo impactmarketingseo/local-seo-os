@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'qwen-2.5-32b',
+          model: 'llama-3.1-8b-instant',
           messages: [{ role: 'user', content: 'Say OK' }],
           max_tokens: 10,
         }),
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${cohereKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'command-r',
+          model: 'command-r-plus-08-2024',
           message: 'Say OK',
           max_tokens: 10,
         }),
