@@ -141,64 +141,59 @@ let content = '';
       );
     }
     
-    // Try Groq with user-selected or fallback models
-    if (groqKey && !content) {
-      console.log('Attempting Groq API call...');
+    // Try Cohere FIRST (working provider)
+    if (cohereKey && !content) {
+      console.log('Attempting Cohere API call...');
       
-      // Determine which models to try based on user selection
-      let groqModelsToTry: { name: string; maxTokens: number; systemLimit: number; pageLimit: number }[] = [];
+      let cohereModelsToTry: { name: string; maxTokens: number; systemLimit: number; pageLimit: number }[] = [];
       
-      if (model && groqModelMap[model]) {
-        // User selected a specific Groq model - try it first, then fallbacks
-        const selected = groqModelMap[model];
-        groqModelsToTry = [selected, ...Object.values(groqModelMap).filter(m => m.name !== selected.name)];
+      if (model && cohereModelMap[model]) {
+        const selected = cohereModelMap[model];
+        cohereModelsToTry = [selected, ...Object.values(cohereModelMap).filter(m => m.name !== selected.name)];
       } else {
-        // Default: try all models in order of preference (higher limit first)
-        groqModelsToTry = Object.values(groqModelMap);
+        cohereModelsToTry = Object.values(cohereModelMap);
       }
       
-      for (const modelConfig of groqModelsToTry) {
+      for (const modelConfig of cohereModelsToTry) {
         try {
-          console.log(`Trying Groq model: ${modelConfig.name}`);
+          console.log(`Trying Cohere model: ${modelConfig.name}`);
           
           const truncatedSystem = systemPrompt.substring(0, modelConfig.systemLimit);
           const truncatedPage = pageRequest.substring(0, modelConfig.pageLimit);
           
-          const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          const cohereResponse = await fetch('https://api.cohere.ai/v1/chat', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${groqKey}`,
+              'Authorization': `Bearer ${cohereKey}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
               model: modelConfig.name,
-              messages: [
-                { role: 'system', content: truncatedSystem },
-                { role: 'user', content: truncatedPage }
-              ],
+              message: `${truncatedSystem}\n\n${truncatedPage}`,
               max_tokens: Math.min(8000, modelConfig.maxTokens - 1000),
               temperature: 0.7,
             }),
           });
 
-          console.log(`Groq ${modelConfig.name} status:`, groqResponse.status);
+          console.log(`Cohere ${modelConfig.name} status:`, cohereResponse.status);
 
-          if (groqResponse.ok) {
-            const data = await groqResponse.json();
-            content = data.choices?.[0]?.message?.content || '';
+          if (cohereResponse.ok) {
+            const data = await cohereResponse.json();
+            content = data.text || data.message?.content || '';
             tokenCount = data.usage?.total_tokens || 0;
-            console.log(`Groq ${modelConfig.name} content length:`, content.length);
+            aiModel = 'cohere';
+            console.log(`Cohere ${modelConfig.name} content length:`, content.length);
             if (content) break;
           } else {
-            const errData = await groqResponse.json().catch(() => ({}));
-            const errMsg = errData?.error?.message || 'unknown';
-            console.log(`Groq ${modelConfig.name} error:`, errMsg);
-            errors.push(`Groq ${modelConfig.name}: ${errMsg}`);
+            const errData = await cohereResponse.json().catch(() => ({}));
+            const errMsg = errData?.message || 'unknown';
+            console.log(`Cohere ${modelConfig.name} error:`, errMsg);
+            errors.push(`Cohere ${modelConfig.name}: ${errMsg}`);
           }
         } catch (e) {
           const errMsg = String(e);
-          console.log(`Groq ${modelConfig.name} exception:`, e);
-          errors.push(`Groq ${modelConfig.name}: ${errMsg}`);
+          console.log(`Cohere ${modelConfig.name} exception:`, e);
+          errors.push(`Cohere ${modelConfig.name}: ${errMsg}`);
         }
       }
     }
@@ -246,58 +241,6 @@ let content = '';
           }
         } catch (e) {
           const errMsg = `Gemini ${modelConfig.name}: ${String(e)}`;
-          console.log(errMsg);
-          errors.push(errMsg);
-        }
-      }
-    }
-
-    // Try Cohere
-    if (!content && cohereKey) {
-      console.log('Trying Cohere API...');
-      
-      let cohereModelsToTry: { name: string; maxTokens: number; systemLimit: number; pageLimit: number }[] = [];
-      
-      if (model && cohereModelMap[model]) {
-        const selected = cohereModelMap[model];
-        cohereModelsToTry = [selected, ...Object.values(cohereModelMap).filter(m => m.name !== selected.name)];
-      } else {
-        cohereModelsToTry = Object.values(cohereModelMap);
-      }
-      
-      for (const modelConfig of cohereModelsToTry) {
-        try {
-          console.log(`Trying Cohere model: ${modelConfig.name}`);
-          const truncatedSystem = systemPrompt.substring(0, modelConfig.systemLimit);
-          const truncatedPage = pageRequest.substring(0, modelConfig.pageLimit);
-          
-          const cohereResponse = await fetch('https://api.cohere.ai/v1/chat', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${cohereKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: modelConfig.name,
-              message: `${truncatedSystem}\n\n${truncatedPage}`,
-              max_tokens: Math.min(8000, modelConfig.maxTokens - 1000),
-              temperature: 0.7,
-            }),
-          });
-          
-          if (cohereResponse.ok) {
-            const data = await cohereResponse.json();
-            content = data.text || data.message?.content || '';
-            aiModel = 'cohere';
-            console.log(`Cohere ${modelConfig.name} content:`, content.length);
-            if (content) break;
-          } else {
-            const errMsg = `Cohere ${modelConfig.name} status: ${cohereResponse.status}`;
-            console.log(errMsg);
-            errors.push(errMsg);
-          }
-        } catch (e) {
-          const errMsg = `Cohere ${modelConfig.name}: ${String(e)}`;
           console.log(errMsg);
           errors.push(errMsg);
         }
